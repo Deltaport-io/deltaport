@@ -1,0 +1,47 @@
+version: '3.4'
+
+services:
+
+  client:
+    build:
+      context: ./client
+      dockerfile: ./Dockerfile
+      args:
+        REACT_APP_API_URI: http://localhost:4000
+    ports:
+      - 3000:3000
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./server
+      dockerfile: ./Dockerfile
+    ports:
+      - 4000:4000
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      - MYSQL=yes
+      - HOST_MYSQL=mysql
+      - REDIS=yes
+      - HOST_REDIS=redis
+    command: npm run start
+
+  mysql:
+    image: mariadb:10.7.1
+    command: --max_allowed_packet=512000000
+    environment:
+      - MYSQL_ROOT_PASSWORD=1234
+      - MYSQL_DATABASE=database
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=1234
+    ports:
+      - 3306:3306
+
+  redis:
+    image: redis:6.2.6-alpine
+    ports:
+      - 6379:6379
+    command: redis-server --save "" --appendonly no
