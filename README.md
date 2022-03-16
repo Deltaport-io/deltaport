@@ -61,9 +61,9 @@ Login with `demo` for email and `demo` for password.
   ```sh
   git clone https://github.com/deltaport-io/deltaport
   ```
-- Start mariadb and redis from `deltaport` in first terminal:
+- Start mysql and redis from `deltaport` in first terminal:
   ```sh
-  docker compose up mariadb redis
+  docker compose up mysql redis
   ```
 - Setup and start server from `deltaport/server` in second terminal:
   ```sh
