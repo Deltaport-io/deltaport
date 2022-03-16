@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "description": "Crypto trading app",
-  "email": "test@test.com",
+  "email": "contact@deltaport.io",
   "homepage": "./",
   "author": {
-    "name": "J P",
-    "email": "jp@gmail.com",
-    "url": "https://www.google.com"
+    "name": "Deltaport",
+    "email": "contact@deltaport.io",
+    "url": "https://deltaport.io"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.15.4",
