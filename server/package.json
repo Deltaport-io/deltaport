@@ -29,10 +29,9 @@
     "start-electron": "electron ."
   },
   "build": {
-    "appId": "com.deltaport.app",
+    "appId": "io.deltaport",
     "productName": "Deltaport",
     "npmRebuild": "true",
-    "asar": false,
     "files": [
       "dist",
       "node_modules",
@@ -50,8 +49,13 @@
       "buildResources": "assets",
       "output": "electron-dist"
     },
+    "afterSign": "notarize.js",
     "mac": {
-      "target": "dmg"
+      "category": "public.app-category.finance",
+      "target": "dmg",
+      "entitlements": "entitlements.mac.plist",
+      "entitlementsInherit": "entitlements.mac.plist",
+      "hardenedRuntime": true
     },
     "win": {
       "target": "nsis"
@@ -59,8 +63,7 @@
     "linux": {
       "target": "deb"
     },
-    "artifactName": "Deltaport_${version}_Setup.${ext}",
-    "forceCodeSigning": false
+    "artifactName": "Deltaport_${version}_Setup.${ext}"
   },
   "dependencies": {
     "@tensorflow/tfjs": "^3.12.0",
@@ -111,6 +114,7 @@
     "copyfiles": "^2.4.1",
     "electron": "^16.0.5",
     "electron-builder": "^23.0.2",
+    "electron-notarize": "^1.1.1",
     "jest": "^27.4.5",
     "nodemon": "^2.0.14",
     "sequelize-cli": "^6.3.0",
