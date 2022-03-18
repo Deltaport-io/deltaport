@@ -29,12 +29,7 @@ Login with `demo` for email and `demo` for password.
 
 # Downloads
 
-- Windows
-  - LINK
-- OSx
-  - LINK
-- Linux
-  - LINK
+Check releases or visit website.
 
 # Quickstart
 
