@@ -29,7 +29,7 @@ Login with `demo` for email and `demo` for password.
 
 # Downloads
 
-Check (website)[https://deltaport.io] or (releases)[https://github.com/Deltaport-io/deltaport/releases].
+Check [website](https://deltaport.io) or [releases](https://github.com/Deltaport-io/deltaport/releases).
 
 # Quickstart
 
