@@ -1,0 +1,102 @@
+version: '3.4'
+
+services:
+
+  democlient:
+    build:
+      context: ./client
+      dockerfile: ./Dockerfile
+      args:
+        REACT_APP_API_URI: https://demobackend.deltaport.io
+    container_name: democlient
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - master
+    ports:
+      - 80
+    depends_on:
+      - demobackend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.entrypoints.web.address=:80"
+      - "traefik.entrypoints.websecure.address=:443"
+      - "traefik.http.routers.democlient.entrypoints=web"
+      - "traefik.http.routers.democlient.rule=Host(`demo.deltaport.io`)"
+      - "traefik.http.middlewares.democlient-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.democlient.middlewares=democlient-https-redirect"
+      - "traefik.http.routers.democlient-secure.entrypoints=websecure"
+      - "traefik.http.routers.democlient-secure.rule=Host(`demo.deltaport.io`)"
+      - "traefik.http.routers.democlient-secure.tls=true"
+      - "traefik.http.routers.democlient-secure.tls.certresolver=letsecrypt"
+      - "traefik.http.routers.democlient-secure.service=democlient"
+      - "traefik.http.services.democlient.loadbalancer.server.port=80"
+
+  demobackend:
+    build:
+      context: ./server
+      dockerfile: ./Dockerfile
+    container_name: demobackend
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - master
+    ports:
+      - 4000
+    depends_on:
+      - demoredis
+      - demomysql
+    environment:
+      - MYSQL=yes
+      - REDIS_HOST=demoredis
+      - MYSQL_HOST=demomysql
+    labels:
+      - "traefik.enable=true"
+      - "traefik.entrypoints.web.address=:80"
+      - "traefik.entrypoints.websecure.address=:443"
+      - "traefik.http.routers.demobackend.entrypoints=web"
+      - "traefik.http.routers.demobackend.rule=Host(`demobackend.deltaport.io`)"
+      - "traefik.http.middlewares.demobackend-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.demobackend.middlewares=demobackend-https-redirect"
+      - "traefik.http.routers.demobackend-secure.entrypoints=websecure"
+      - "traefik.http.routers.demobackend-secure.rule=Host(`demobackend.deltaport.io`)"
+      - "traefik.http.routers.demobackend-secure.tls=true"
+      - "traefik.http.routers.demobackend-secure.tls.certresolver=letsecrypt"
+      - "traefik.http.routers.demobackend-secure.service=demobackend"
+      - "traefik.http.services.demobackend.loadbalancer.server.port=4000"
+    command: pm2 start ecosystem.config.js --env production
+
+  demomysql:
+    image: mariadb:10.7.1
+    container_name: demomysql
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - master
+    environment:
+      - MYSQL_ROOT_PASSWORD=1234
+      - MYSQL_DATABASE=database
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=1234
+    ports:
+      - 3306
+
+  demoredis:
+    image: redis
+    container_name: demoredis
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - master
+    ports:
+      - 6379
+    command: redis-server --save "" --appendonly no
+
+networks:
+  master:
+    external:
+      name: master
