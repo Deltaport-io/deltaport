@@ -23,18 +23,13 @@
 
 # Demo
 
-Web application deployed for demonstration can be found [here](https://demo.deltaport.io).
+Demo web app can be found [here](https://demo.deltaport.io).
 
 Login with `demo` for email and `demo` for password.
 
 # Downloads
 
-- Windows
-  - LINK
-- OSx
-  - LINK
-- Linux
-  - LINK
+Check [website](https://deltaport.io) or [releases](https://github.com/Deltaport-io/deltaport/releases).
 
 # Quickstart
 
