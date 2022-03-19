@@ -50,8 +50,9 @@ services:
       - demomysql
     environment:
       - MYSQL=yes
-      - REDIS_HOST=demoredis
       - MYSQL_HOST=demomysql
+      - REDIS=yes
+      - REDIS_HOST=demoredis
     labels:
       - "traefik.enable=true"
       - "traefik.entrypoints.web.address=:80"
