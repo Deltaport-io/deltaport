@@ -66,8 +66,8 @@ services:
       - "traefik.http.routers.demobackend-secure.tls=true"
       - "traefik.http.routers.demobackend-secure.tls.certresolver=letsecrypt"
       - "traefik.http.routers.demobackend-secure.service=demobackend"
-      - "traefik.http.services.demobackend.loadbalancer.server.port=4001"
-    command: pm2 start ecosystem.config.js --env production
+      - "traefik.http.services.demobackend.loadbalancer.server.port=4000"
+    command: npm run start
 
   demomysql:
     image: mariadb:10.7.1
