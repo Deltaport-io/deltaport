@@ -25,7 +25,7 @@
 
 Demo web app can be found [here](https://demo.deltaport.io).
 
-Login with `demo` for email and `demo` for password.
+Login with `demo@deltaport.io` for email and `demo` for password.
 
 # Downloads
 
