@@ -73,8 +73,8 @@ class Dash extends Component <DashProps, DashStates> {
                   </Col>
                   <Col md={6}>
                     <div className="text-md-end footer-links d-none d-md-block">
-                      <a target="_blank" rel="noreferrer" href="https://www.github.com">Github <i className="uil uil-external-link-alt"></i></a>
-                      <a target="_blank" rel="noreferrer" href="https://www.github.com">Support <i className="uil uil-external-link-alt"></i></a>
+                      <a target="_blank" rel="noreferrer" href="https://github.com/Deltaport-io/deltaport">Github <i className="uil uil-external-link-alt"></i></a>
+                      <a target="_blank" rel="noreferrer" href="https://github.com/Deltaport-io/deltaport/issues">Support <i className="uil uil-external-link-alt"></i></a>
                       <a target="_blank" rel="noreferrer" href="mailto:contact@deltaport.io">Contact <i className="uil uil-external-link-alt"></i></a>
                     </div>
                   </Col>
