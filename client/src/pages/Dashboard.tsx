@@ -110,52 +110,56 @@ class Dashboard extends Component <DashboardProps, DashboardStates> {
           />
           <div className="row">
             <div className="col-6">
-              <Card>
-                <Card.Body>
-                  <h4 className="header-title mb-1">Upcoming</h4>
-                  {this.state.upcoming.length === 0 ? 
-                  <div className="d-flex mt-3">
-                    Loading...
-                  </div>
-                  : null }
-                  {this.state.upcoming.map((item: any, index: number) => {
-                    return (
-                      <div key={index} className="d-flex mt-3">
-                        <i className="uil uil-arrow-growth me-2 font-18 text-primary"></i>
-                        <div>
-                          <a className="mt-1 font-14" href={item.link}>
-                            <strong>{item.title}: </strong>
-                            <span className="text-muted">{item.desc}</span>
-                          </a>
+              { this.state.upcoming.length > 0 ?
+                <Card>
+                  <Card.Body>
+                    <h4 className="header-title mb-1">Upcoming</h4>
+                    {this.state.upcoming.length === 0 ? 
+                    <div className="d-flex mt-3">
+                      Loading...
+                    </div>
+                    : null }
+                    {this.state.upcoming.map((item: any, index: number) => {
+                      return (
+                        <div key={index} className="d-flex mt-3">
+                          <i className="uil uil-arrow-growth me-2 font-18 text-primary"></i>
+                          <div>
+                            <a className="mt-1 font-14" href={item.link} target="_blank" rel="noreferrer">
+                              <strong>{item.title}: </strong>
+                              <span className="text-muted">{item.desc}</span>
+                            </a>
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </Card.Body>
-              </Card>
-              <Card>
-                <Card.Body>
-                  <h4 className="header-title mb-1">News</h4>
-                  {this.state.news.length === 0 ? 
-                  <div className="d-flex mt-3">
-                    Loading...
-                  </div>
-                  : null }
-                  {this.state.news.map((item: any, index: number) => {
-                    return (
-                      <div key={index} className="d-flex mt-3">
-                        <i className="uil uil-arrow-growth me-2 font-18 text-primary"></i>
-                        <div>
-                          <a className="mt-1 font-14" href={item.link}>
-                            <strong>{item.title}: </strong>
-                            <span className="text-muted">{item.desc}</span>
-                          </a>
+                      );
+                    })}
+                  </Card.Body>
+                </Card>
+              : null }
+              { this.state.news.length > 0 ?
+                <Card>
+                  <Card.Body>
+                    <h4 className="header-title mb-1">News</h4>
+                    {this.state.news.length === 0 ? 
+                    <div className="d-flex mt-3">
+                      Loading...
+                    </div>
+                    : null }
+                    {this.state.news.map((item: any, index: number) => {
+                      return (
+                        <div key={index} className="d-flex mt-3">
+                          <i className="uil uil-arrow-growth me-2 font-18 text-primary"></i>
+                          <div>
+                            <a className="mt-1 font-14" href={item.link} target="_blank" rel="noreferrer">
+                              <strong>{item.title}: </strong>
+                              <span className="text-muted">{item.desc}</span>
+                            </a>
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </Card.Body>
-              </Card>
+                      );
+                    })}
+                  </Card.Body>
+                </Card>
+              : null }
             </div>
             <div className="col-6">
               <Card>
@@ -163,14 +167,14 @@ class Dashboard extends Component <DashboardProps, DashboardStates> {
                   <h4 className="header-title">Donate</h4>
                   <div>Bitcoin: <span className="font-monospace">bc1qlml528etlawyqwsnsraysr4qed92q22xxkpu7w</span></div>
                   <div>Ethereum: <span className="font-monospace">0x7Cd4DFA825C9A4e93BD076F0920942Cf60DF65e1</span></div>
-                  <h4 className="header-title mb-4 mt-3">Deltaport updates</h4>
+                  <h4 className="header-title mb-3 mt-4">Deltaport updates</h4>
                   {this.state.updates.length === 0 ? <p>Loading...</p> : null}
                   {this.state.updates.map((item: any, index: number) => {
                     return (
                       <>
-                        <h5>{item.title}</h5>
+                        <h5>{item.version} - {item.title}</h5>
                         <p className="text-muted mb-2">
-                          {item.desc}
+                          {item.update}
                         </p>
                       </>
                     )
