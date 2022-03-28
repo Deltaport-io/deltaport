@@ -1,7 +1,7 @@
 
 <div align="center">
   <br/>
-  <img src="./client/src/images/logo-big-dark.png" width="300" />
+  <img src="./client/public/logo-big-dark.png" width="300" />
   <br/>
   <br/>
   <p>
