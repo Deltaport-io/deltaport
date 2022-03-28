@@ -527,17 +527,6 @@ body {
     font-size: 24px !important;
 }
 
-body.authentication-bg {
-  background-image: url("./images/bg-pattern-light.svg");
-  background-size: cover;
-  background-position: center;
-  .account-pages {
-      align-items: center;
-      display: flex;
-      min-height: 100vh;
-  }
-}
-
 .logout-icon {
   width: 140px;
 }
@@ -549,7 +538,6 @@ body.authentication-bg {
   min-height: 100vh;
   flex-direction: row;
   align-items: stretch;
-  background: url("./images/bg-auth.jpg") center;
   background-size: cover;
 
   .auth-fluid-form-box {

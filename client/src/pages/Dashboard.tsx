@@ -169,14 +169,14 @@ class Dashboard extends Component <DashboardProps, DashboardStates> {
                   <div>Ethereum: <span className="font-monospace">0x7Cd4DFA825C9A4e93BD076F0920942Cf60DF65e1</span></div>
                   <h4 className="header-title mb-3 mt-4">Deltaport updates</h4>
                   {this.state.updates.length === 0 ? <p>Loading...</p> : null}
-                  {this.state.updates.map((item: any, index: number) => {
+                  {this.state.updates.map((item: any) => {
                     return (
-                      <>
+                      <div key={item.id}>
                         <h5>{item.version} - {item.title}</h5>
                         <p className="text-muted mb-2">
                           {item.update}
                         </p>
-                      </>
+                      </div>
                     )
                   })}
                 </Card.Body>

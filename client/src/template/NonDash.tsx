@@ -2,8 +2,6 @@ import React from 'react';
 import { Card } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 
-import LogoDark from '../images/logo-big-dark.png';
-
 function NonDash(props: any) {
     return (
         <>
@@ -16,7 +14,7 @@ function NonDash(props: any) {
                             <div className="auth-brand text-center text-lg-start">
                                 <Link to="/" className="logo-dark">
                                     <span>
-                                        <img src={LogoDark} alt="" height="32" />
+                                        <img src="/logo-big-dark.png" alt="" height="32" />
                                     </span>
                                 </Link>
                             </div>

@@ -4,8 +4,6 @@ import SimpleBar from 'simplebar-react'
 import { Container, Row, Col } from 'react-bootstrap'
 import AppMenu from './Menu'
 
-import logobig from '../images/logo-big.png'
-
 interface DashProps {
   history: any,
   location: any,
@@ -47,7 +45,7 @@ class Dash extends Component <DashProps, DashStates> {
           <div className="leftside-menu">
             <a className="logo text-center logo-light" href="/">
               <span className="logo-lg">
-                <img src={logobig} alt="logo" height="32"/>
+                <img src="/logo-big.png" alt="logo" height="32"/>
               </span>
             </a>
             <SimpleBar style={{ maxHeight: '100%', overflow: 'scroll' }} scrollbarMaxSize={320}>
