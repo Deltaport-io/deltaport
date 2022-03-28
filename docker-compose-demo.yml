@@ -77,6 +77,8 @@ services:
       - no-new-privileges:true
     networks:
       - master
+    volumes:
+      - ./demotrader-mysql:/var/lib/mysql
     environment:
       - MYSQL_ROOT_PASSWORD=1234
       - MYSQL_DATABASE=database
