@@ -26,6 +26,9 @@
     "watch-ts": "tsc -w",
     "tslint": "tslint -c tslint.json -p tsconfig.json",
     "build-electron": "electron-builder -mwl",
+    "build-electron-mac": "electron-builder -m",
+    "build-electron-linux": "electron-builder -l",
+    "build-electron-win": "electron-builder -w",
     "start-electron": "electron ."
   },
   "build": {

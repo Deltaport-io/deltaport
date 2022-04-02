@@ -50,7 +50,7 @@ loader = {
         }]
     }],
     ethereum: [{
-        wallet: 'Master',
+        wallet: 'MyWallet',
         balances: [{
             currency: 'ETH',
             amount: 100
