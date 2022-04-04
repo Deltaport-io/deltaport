@@ -5,8 +5,8 @@
   <br/>
   <br/>
   <p>
-    DeltaPort.io is open source, self hosted, multi exchange <br>
-    and crypto native trading platform.
+    DeltaPort.io is open source, self hosted<br>
+    Crypto, DeFi, GameFi automation platform.
   </p>
   <br/>
   <p>
