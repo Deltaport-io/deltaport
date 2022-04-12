@@ -77,7 +77,7 @@ Check [website](https://deltaport.io) or [releases](https://github.com/Deltaport
 
 # Documentation
 
-Documentation of Bot and REST APIs can be found here LINK
+Documentation of Bot and REST APIs can be found [here](https://github.com/Deltaport-io/deltaport/blob/main/client/src/Main.md)
 
 # License
 
