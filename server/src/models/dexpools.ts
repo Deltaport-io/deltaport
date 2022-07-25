@@ -1,9 +1,17 @@
 export default (sequelize, DataTypes) => {
   const dexpools = sequelize.define('dexpools', {
-    id: { type: DataTypes.CHAR(43), primaryKey: true },
-    volume: { type: DataTypes.INTEGER(11).UNSIGNED },
-    txcount: { type: DataTypes.INTEGER(11).UNSIGNED },
-    feetier: { type: DataTypes.INTEGER(11).UNSIGNED }
+    id: { type: DataTypes.STRING(128), primaryKey: true },
+    data: {
+      type: DataTypes.JSON,
+      get() {
+        const rawData = this.getDataValue('data');
+        if (typeof rawData === "string") {
+          return JSON.parse(rawData)
+        } else {
+          return rawData
+        }
+      }
+    }
   }, {
     timestamps: false,
     paranoid: false,
@@ -12,8 +20,7 @@ export default (sequelize, DataTypes) => {
   })
   dexpools.associate = function (models) {
     models.dexpools.belongsTo(models.dexes)
-    models.dexpools.belongsTo(models.dextokens, {as: 'token0', foreignKey:'token0Id'})
-    models.dexpools.belongsTo(models.dextokens, {as: 'token1', foreignKey:'token1Id'})
+    models.dexpools.belongsToMany(models.dextokens, { through: models.dexpooltokens })
   }
   return dexpools
 }

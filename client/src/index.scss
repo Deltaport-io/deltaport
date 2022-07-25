@@ -632,3 +632,31 @@ pre code {
 a.page-link {
     color: #6c757d;
 }
+
+.td-small {
+    width: 1%;
+    padding-right: 12px;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.nav-tabs,.nav-pills {
+    > li {
+        > a {
+            color: $gray-700;
+            font-weight: 400;
+        }
+    }
+}
+
+.nav-pills {
+    > a {
+        color: $gray-700;
+        font-weight: 400;   
+    }
+}
+
+
+.bg-nav-pills {
+    background-color: #eef2f7;
+}

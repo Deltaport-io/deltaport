@@ -8,7 +8,7 @@ import tradeohlcs from "./tradeohlcs"
 import backtestsessions from "./backtestsessions"
 import backtestlogs from "./backtestlogs"
 import backtestohlcs from "./backtestohlcs"
-import sessions from "./sessions";
+import sessions from "./sessions"
 import users from "./users";
 import passreset from "./passreset"
 import bots from "./bots"
@@ -17,8 +17,10 @@ import dexes from "./dexes"
 import dexwallets from "./dexwallets"
 import dexpools from "./dexpools"
 import dextokens from "./dextokens"
+import dexpooltokens from "./dexpooltokens"
+import isElectron from 'is-electron'
 
-const Sequelize = require("sequelize");
+const Sequelize = require("sequelize")
 
 let sequelize
 if (config.db !== undefined) {
@@ -32,7 +34,7 @@ if (config.db !== undefined) {
   sequelize = new Sequelize({
     dialect: 'sqlite',
     dialectModule: sqlite3,
-    storage: require('electron').app.getPath('userData')+'/database.sqlite',
+    storage: isElectron() ? require('electron').app.getPath('userData')+'/database.sqlite' : undefined,
     logging: false
   });
 }
@@ -54,7 +56,8 @@ const models = {
   dexes: dexes(sequelize, Sequelize),
   dexwallets: dexwallets(sequelize, Sequelize),
   dexpools: dexpools(sequelize, Sequelize),
-  dextokens: dextokens(sequelize, Sequelize)
+  dextokens: dextokens(sequelize, Sequelize),
+  dexpooltokens: dexpooltokens(sequelize, Sequelize)
 };
 
 // associate

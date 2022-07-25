@@ -6,7 +6,8 @@ import { withRouter } from 'react-router'
 import { Card, Table, DropdownButton, Dropdown } from 'react-bootstrap'
 import PageTitle from '../template/PageTitle'
 import { Link } from 'react-router-dom'
-import { getDisplayBalance, fromDisplayBalance } from '../utils'
+import { getDisplayBalance, fromDisplayBalance, truncate } from '../utils'
+import { Info } from '../template/Info'
 
 interface DexTokenProps {
   history: any,
@@ -153,6 +154,10 @@ class DexToken extends Component <DexTokenProps, DexTokenStates> {
                     <td>Name</td>
                     <td>{this.state.dextoken.name}</td>
                   </tr>
+                  <tr>
+                    <td>Decimals</td>
+                    <td>{this.state.dextoken.decimals}</td>
+                  </tr>
                 </tbody>
               </Table>
             </Card.Body>
@@ -160,28 +165,25 @@ class DexToken extends Component <DexTokenProps, DexTokenStates> {
 
           <Card>
             <Card.Body>
-              <h4 className="header-title mb-2">Top pools - <Link to={`/dexpools?search=${this.state.dextoken.symbol}`}>See all</Link></h4> 
+              <h4 className="header-title mb-2">Pools - <Link to={`/dexpools?search=${this.state.dextoken.symbol}`}>See all</Link></h4> 
               <Table striped hover className="mb-0" size="sm">
                 <thead>
                   <tr>
                     <th>Id</th>
                     <th>Pairs</th>
-                    <th>Fee</th>
+                    <th><i className="mdi mdi-information text-secondary"></i></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {this.state.dextoken.token0?.map((pools:any) => {
-                    return <tr key={pools.id}>
-                      <td className="font-monospace"><Link to={`/dexpools/${pools.id}`}>{pools.id}</Link></td>
-                      <td>{pools.token0.symbol} / {pools.token1.symbol}</td>
-                      <td>{pools.feetier / 10000}%</td>
-                    </tr>
-                  })}
-                  {this.state.dextoken.token1?.map((pools:any) => {
-                    return <tr key={pools.id}>
-                      <td className="font-monospace"><Link to={`/dexpools/${pools.id}`}>{pools.id}</Link></td>
-                      <td>{pools.token0.symbol} / {pools.token1.symbol}</td>
-                      <td>{pools.feetier / 10000}%</td>
+                  {this.state.dextoken.dexpools?.map((pool:any) => {
+                    return <tr key={pool.id}>
+                      <td className="font-monospace"><Link to={`/dexpools/${pool.id}`}>{truncate(pool.id, 16)}</Link></td>
+                      <td>
+                        {pool.dextokens?.map((dextoken :any) => {
+                          return <Link key={dextoken.id} to={`/dextokens/${dextoken.id}`}>{dextoken.symbol+' '}</Link>
+                        })}
+                      </td>
+                      <td><Info data={pool.data}/></td>
                     </tr>
                   })}
                 </tbody>
@@ -253,7 +255,6 @@ class DexToken extends Component <DexTokenProps, DexTokenStates> {
                                   <span className="sr-only"></span>
                                 </div>
                               </button>
-                              
                             :
                               <button className="btn btn-primary btn-sm" type="submit">Send</button>
                             }

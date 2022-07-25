@@ -215,10 +215,26 @@ await this.ethereum['MyWallet'].token('0xed...').getBalance()
 await this.ethereum['MyWallet'].token('0xed...').getBalance('0x82...')
 // transfer token 0xed... from MyWallet addres to 0x33... of amount 100
 await this.ethereum['MyWallet'].token('0xed...').transfer('0x33...', '100')
-// swap with pool 0xcc... from MyWallet addres to 0x33... in primary direction of amount 100
+// swap with Uniswap pool 0xcc... from MyWallet addres to 0x33... in primary direction of amount 100
 await this.ethereum['MyWallet'].pool('0xcc...').swap('0x33...', true, '100')
-// get quote for swap with pool 0xcc... in primary direction of amount 100
-await this.ethereum['MyWallet'].pool('0xcc...').getQuote(true, '100')
+// get quote for swap with Uniswap pool 0xcc... in primary direction of amount 100
+await this.ethereum['MyWallet'].pool('0xcc...').swapQuote(true, '100')
+// get Aave pool info about MyWallet address
+await this.ethereum['MyWallet'].pool('0xcc...').lendPoolGetUserAccountData()
+// get Aave pool info about address 0x33...
+await this.ethereum['MyWallet'].pool('0xcc...').lendPoolGetUserAccountData('0x33...')
+// Deposit into Aave pool 0xcc...
+await this.ethereum['MyWallet'].pool('0xcc...').lendDeposit('100')
+// Borrow 100 amount from Aave pool 0xcc... with stable rate
+await this.ethereum['MyWallet'].pool('0xcc...').lendBorrow('100', '1')
+// Borrow 100 amount from Aave pool 0xcc... with dynamic rate
+await this.ethereum['MyWallet'].pool('0xcc...').lendBorrow('100', '2')
+// Withdraw 100 amount from Aave 0xcc...
+await this.ethereum['MyWallet'].pool('0xcc...').lendWithdraw('100')
+// Repay 100 amount into Aave pool 0xcc... with stable rate
+await this.ethereum['MyWallet'].pool('0xcc...').lendRepay('100', '1')
+// Repay 100 amount into Aave pool 0xcc... for dynamic rate
+await this.ethereum['MyWallet'].pool('0xcc...').lendRepay('100', '2')
 // access injected ABIs
 await this.ethereum['MyWallet'].injectedABIs['MyContract']('0xcc...').balanceOf('0x33...')
 ```

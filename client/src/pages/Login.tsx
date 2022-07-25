@@ -31,7 +31,11 @@ class Login extends Component <LoginProps, LoginStates> {
   }
 
   componentDidMount () {
-
+    const ssid = new URLSearchParams(this.props.location.search).get('ssid')!
+    if (ssid) {
+      storeCredentials(ssid)
+      this.props.history.push('/dashboard')
+    }
   }
 
   componentWillUnmount () {

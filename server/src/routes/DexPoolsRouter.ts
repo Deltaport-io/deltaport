@@ -38,43 +38,64 @@ export class DexPoolsRouter {
       offset = parseInt(req.query.offset as any)
     }
     let where:any = {}
-    if (req.query.search) {
-      // concat to match 2 tokens in any order
-      where = models.Sequelize.literal(`CONCAT(token0.symbol, ' ',token1.symbol, ' ', token0.symbol) LIKE "%${req.query.search.toString().toUpperCase()}%"`)
-    }
-    if (req.query.include) {
-      const includeArray = req.query.include.toString().split('-')
-      where = {
-        [models.Sequelize.Op.or]: {
-          "$token0.symbol$": includeArray,
-          "$token1.symbol$": includeArray
+    if (req.query.search || req.query.include) {
+      if (req.query.search) {
+        where = {
+          symbol: {
+            [models.Sequelize.Op.like]: `%${req.query.search}%`
+          }
         }
       }
+      if (req.query.include) {
+        const includeArray = req.query.include.toString().split('-')
+        where = {
+          symbol: includeArray,
+        }
+      }
+      const tokens = await models.dextokens.findAndCountAll({
+        attributes: ['id'],
+        where,
+        include: [{
+          model: models.dexpools,
+          attributes: ['id']
+        }]
+      })
+      // loop over tokens and collect pools
+      const poolList: any[] = []
+      for (const token of tokens.rows) {
+        for (const pool of token.dexpools) {
+          poolList.push(pool.id)
+        }
+      }
+      const dexpools = await models.dexpools.findAndCountAll({
+        offset,
+        limit,
+        where: {
+          id: poolList
+        },
+        include: [{
+          model: models.dextokens
+        },{
+          model: models.dexes
+        }]
+      })
+      return res.send({ status: 'success', dexpools: dexpools.rows, entries: dexpools.count })
     }
-    // get my pools
+    // get default
     const dexpools = await models.dexpools.findAndCountAll({
         offset,
         limit,
-        where,
         include: [{
           model: models.dextokens,
-          as: 'token0',
-          required: false
-        },
-        {
-          model: models.dextokens,
-          as: 'token1',
-          required: false
         },{
           model: models.dexes
-        }],
-        order: [['txcount', 'desc']]
+        }]
     })
     return res.send({ status: 'success', dexpools: dexpools.rows, entries: dexpools.count })
   }
 
   getDexPoolInputs = [
-    param('id').isLength({ min: 1, max: 50 })
+    param('id').isLength({ min: 1, max: 128 })
   ]
 
   public async getDexPool (req: express.Request, res: express.Response) {
@@ -92,12 +113,7 @@ export class DexPoolsRouter {
     const dexpool = await models.dexpools.findOne({
       where: {id: req.params.id},
       include: [{
-        model: models.dextokens,
-        as: 'token0',
-      },
-      {
-        model: models.dextokens,
-        as: 'token1',
+        model: models.dextokens
       },{
         model: models.dexes
       }],
@@ -115,16 +131,30 @@ export class DexPoolsRouter {
     })
     const ethereumApi = new EthereumApi()
     for (const dexwallet of dexwallets) {
+      const balances = {}
+      let aave: any = undefined
       const web3Wallet = await ethereumApi.wallet(dexwallet)
-      const token0 = await web3Wallet.token(dexpool.token0.id)
-      const balance0 = (await token0.getBalance()).toString()
-      const token1 = await web3Wallet.token(dexpool.token1.id)
-      const balance1 = (await token1.getBalance()).toString()
+      for (const dextoken of dexpool.dextokens) {
+        const token = web3Wallet.token(dextoken.id)
+        const balance = (await token.getBalance()).toString()
+        balances[dextoken.symbol] = balance
+      }
+      if (dexpool.dex.name === 'Aave') {
+        const pool = web3Wallet.pool(dexpool.id)
+        const tempdata = await pool.lendPoolGetUserAccountData(dexwallet.address)
+        aave = {
+          totalCollateralETH: tempdata.totalCollateralETH.toString(),
+          totalDebtETH: tempdata.totalDebtETH.toString(),
+          availableBorrowsETH: tempdata.availableBorrowsETH.toString(),
+          currentLiquidationThreshold: tempdata.currentLiquidationThreshold.toString(),
+          ltv: tempdata.ltv.toString()
+        }
+      }
       wallets.push({
         id: dexwallet.id,
         name: dexwallet.name,
-        [dexpool.token0.symbol]: balance0,
-        [dexpool.token1.symbol]: balance1
+        balances,
+        aave
       })
     }
     // return data
@@ -222,8 +252,194 @@ export class DexPoolsRouter {
     const pool = await web3Account.pool(dexpool.id)
     try {
       // quote
-      const amount = (await pool.getQuote(req.body.direction, req.body.amount)).toString()
+      const amount = (await pool.swapQuote(req.body.direction, req.body.amount)).toString()
       return res.send({ status: 'success', amount: amount})
+    } catch (e) {
+      return res.send({ status: 'error', message: e.message})
+    }
+  }
+
+  public lendDepositDexPoolInputs = [
+    param('id').isString().notEmpty(),
+    body('wallet').isString().notEmpty(),
+    body('amount').isString().notEmpty(),
+  ]
+
+  public async lendDepositDexPool (req: express.Request, res: express.Response) {
+    const result = validationResult(req)
+    if (!result.isEmpty()) {
+        return res.send({ status: 'error', message: 'Please fill all information.', errors: result.mapped() })
+    }
+    const user = await getMeUser(req.header('Authorization'))
+    if (!user) {
+        return res.send({ status: 'error', message: 'No user' })
+    }
+    // get poll
+    const dexpool = await models.dexpools.findOne({
+      where: {id: req.params.id}
+    })
+    // no poll
+    if (dexpool === null) {
+      return res.send({ status: 'error', message: 'No token found' })
+    }
+    // account
+    const dexwallet = await models.dexwallets.findOne({
+      where: {
+        id: req.body.wallet,
+        userIdusers: user.idusers
+      }
+    })
+    if (!dexwallet) {
+      return res.send({ status: 'error', message: 'No dex account found' })
+    }
+    // load pool
+    const ethereumApi = new EthereumApi()
+    const web3Account = await ethereumApi.wallet(dexwallet)
+    const pool = await web3Account.pool(dexpool.id)
+    try {
+      // deposit
+      const tx = await pool.lendDeposit(req.body.amount)
+      return res.send({ status: 'success', message: dexwallet.txviewer + tx.transactionHash})
+    } catch (e) {
+      return res.send({ status: 'error', message: e.message})
+    }
+  }
+
+  public lendBorrowDexPoolInputs = [
+    param('id').isString().notEmpty(),
+    body('wallet').isString().notEmpty(),
+    body('amount').isString().notEmpty(),
+    body('interestMode').isString().notEmpty()
+  ]
+
+  public async lendBorrowDexPool (req: express.Request, res: express.Response) {
+    const result = validationResult(req)
+    if (!result.isEmpty()) {
+        return res.send({ status: 'error', message: 'Please fill all information.', errors: result.mapped() })
+    }
+    const user = await getMeUser(req.header('Authorization'))
+    if (!user) {
+        return res.send({ status: 'error', message: 'No user' })
+    }
+    // get poll
+    const dexpool = await models.dexpools.findOne({
+      where: {id: req.params.id}
+    })
+    // no poll
+    if (dexpool === null) {
+      return res.send({ status: 'error', message: 'No token found' })
+    }
+    // account
+    const dexwallet = await models.dexwallets.findOne({
+      where: {
+        id: req.body.wallet,
+        userIdusers: user.idusers
+      }
+    })
+    if (!dexwallet) {
+      return res.send({ status: 'error', message: 'No dex account found' })
+    }
+    // load pool
+    const ethereumApi = new EthereumApi()
+    const web3Account = await ethereumApi.wallet(dexwallet)
+    const pool = await web3Account.pool(dexpool.id)
+    try {
+      // borrow
+      const tx = await pool.lendBorrow(req.body.amount, req.body.interestMode)
+      return res.send({ status: 'success', message: dexwallet.txviewer + tx.transactionHash})
+    } catch (e) {
+      return res.send({ status: 'error', message: e.message})
+    }
+  }
+
+  public lendWithdrawDexPoolInputs = [
+    param('id').isString().notEmpty(),
+    body('wallet').isString().notEmpty(),
+    body('amount').isString().notEmpty()
+  ]
+
+  public async lendWithdrawDexPool (req: express.Request, res: express.Response) {
+    const result = validationResult(req)
+    if (!result.isEmpty()) {
+        return res.send({ status: 'error', message: 'Please fill all information.', errors: result.mapped() })
+    }
+    const user = await getMeUser(req.header('Authorization'))
+    if (!user) {
+        return res.send({ status: 'error', message: 'No user' })
+    }
+    // get poll
+    const dexpool = await models.dexpools.findOne({
+      where: {id: req.params.id}
+    })
+    // no poll
+    if (dexpool === null) {
+      return res.send({ status: 'error', message: 'No token found' })
+    }
+    // account
+    const dexwallet = await models.dexwallets.findOne({
+      where: {
+        id: req.body.wallet,
+        userIdusers: user.idusers
+      }
+    })
+    if (!dexwallet) {
+      return res.send({ status: 'error', message: 'No dex account found' })
+    }
+    // load pool
+    const ethereumApi = new EthereumApi()
+    const web3Account = await ethereumApi.wallet(dexwallet)
+    const pool = await web3Account.pool(dexpool.id)
+    try {
+      // withdraw
+      const tx = await pool.lendWithdraw(req.body.amount)
+      return res.send({ status: 'success', message: dexwallet.txviewer + tx.transactionHash})
+    } catch (e) {
+      return res.send({ status: 'error', message: e.message})
+    }
+  }
+
+  public lendRepayDexPoolInputs = [
+    param('id').isString().notEmpty(),
+    body('wallet').isString().notEmpty(),
+    body('amount').isString().notEmpty(),
+    body('interestMode').isString().notEmpty()
+  ]
+
+  public async lendRepayDexPool (req: express.Request, res: express.Response) {
+    const result = validationResult(req)
+    if (!result.isEmpty()) {
+        return res.send({ status: 'error', message: 'Please fill all information.', errors: result.mapped() })
+    }
+    const user = await getMeUser(req.header('Authorization'))
+    if (!user) {
+        return res.send({ status: 'error', message: 'No user' })
+    }
+    // get poll
+    const dexpool = await models.dexpools.findOne({
+      where: {id: req.params.id}
+    })
+    // no poll
+    if (dexpool === null) {
+      return res.send({ status: 'error', message: 'No token found' })
+    }
+    // account
+    const dexwallet = await models.dexwallets.findOne({
+      where: {
+        id: req.body.wallet,
+        userIdusers: user.idusers
+      }
+    })
+    if (!dexwallet) {
+      return res.send({ status: 'error', message: 'No dex account found' })
+    }
+    // load pool
+    const ethereumApi = new EthereumApi()
+    const web3Account = await ethereumApi.wallet(dexwallet)
+    const pool = await web3Account.pool(dexpool.id)
+    try {
+      // repay
+      const tx = await pool.lendRepay(req.body.amount, req.body.interestMode)
+      return res.send({ status: 'success', message: dexwallet.txviewer + tx.transactionHash})
     } catch (e) {
       return res.send({ status: 'error', message: e.message})
     }
@@ -234,6 +450,10 @@ export class DexPoolsRouter {
     this.router.get('/:id', this.getDexPoolInputs, this.getDexPool)
     this.router.post('/:id/swap', this.swapDexPoolInputs, this.swapDexPool)
     this.router.post('/:id/swapquote', this.swapQuoteDexPoolInputs, this.swapQuoteDexPool)
+    this.router.post('/:id/lenddeposit', this.lendDepositDexPoolInputs, this.lendDepositDexPool)
+    this.router.post('/:id/lendborrow', this.lendBorrowDexPoolInputs, this.lendBorrowDexPool)
+    this.router.post('/:id/lendwithdraw', this.lendWithdrawDexPoolInputs, this.lendWithdrawDexPool)
+    this.router.post('/:id/lendrepay', this.lendRepayDexPoolInputs, this.lendRepayDexPool)
   }
 }
 

@@ -6,7 +6,9 @@ import { withRouter } from 'react-router'
 import { Card, Table, Pagination } from 'react-bootstrap'
 import PageTitle from '../template/PageTitle'
 import { Link } from 'react-router-dom'
-import { getPromoted } from '../utils'
+import { promotedToken, truncate } from '../utils'
+import { CopyToClipboard } from 'react-copy-to-clipboard'
+import { Info } from '../template/Info'
 
 interface DexPoolsProps {
   history: any,
@@ -94,7 +96,6 @@ class DexPools extends Component <DexPoolsProps, DexPoolsStates> {
   }
 
   render () {
-    const promoted = getPromoted()
     return (
       <div className="Pools">
         <Dash>
@@ -118,22 +119,31 @@ class DexPools extends Component <DexPoolsProps, DexPoolsStates> {
               <Table striped className="mb-0" size="sm">
                 <thead>
                   <tr>
-                    <th scope="col"></th>
-                    <th scope="col">Address</th>
+                    <th scope="col" style={{width: 31}}><i className="mdi mdi-star text-secondary"></i></th>
+                    <th scope="col">Id / Address</th>
                     <th scope="col">Tokens</th>
-                    <th scope="col">Fee</th>
                     <th scope="col">Dex</th>
+                    <th scope="col"><i className="mdi mdi-information text-secondary"></i></th>
                   </tr>
                 </thead>
                 <tbody>
                   {this.state.pools.map((pool:any) => {
                     return (
                       <tr key={pool.id}>
-                        <td>{promoted.includes(pool.token0.symbol) || promoted.includes(pool.token1.symbol) ? <i className="mdi mdi-star text-warning"></i> : null}</td>
-                        <td className="font-monospace"><Link to={`/dexpools/${pool.id}`}>{pool.id}</Link></td>
-                        <td>{pool.token0.symbol} / {pool.token1.symbol}</td>
-                        <td>{pool.feetier / 10000}%</td>
+                        <td>{ promotedToken(pool.dextokens) ? <i className="mdi mdi-star text-warning"></i> : null }</td>
+                        <td className="font-monospace">
+                          <Link to={`/dexpools/${pool.id}`}>{truncate(pool.id, 16)}</Link>
+                          <CopyToClipboard text={pool.id}>
+                            <i className="mdi mdi-clipboard-outline link-primary" style={{cursor: 'pointer'}}></i>
+                          </CopyToClipboard>
+                        </td>
+                        <td>
+                          {pool.dextokens.map((dextoken :any) => {
+                            return (dextoken.symbol+' ')
+                          })}
+                        </td>
                         <td>{pool.dex.name}</td>
+                        <td><Info data={pool.data}/></td>
                       </tr>
                     )
                   })}

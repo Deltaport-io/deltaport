@@ -11,8 +11,7 @@ export default (sequelize, DataTypes) => {
     collate: 'utf8mb4_general_ci'
   })
   dextokens.associate = function (models) {
-    models.dextokens.hasMany(models.dexpools, {as: 'token0', foreignKey:'token0Id'})
-    models.dextokens.hasMany(models.dexpools, {as: 'token1', foreignKey:'token1Id'})
+    models.dextokens.belongsToMany(models.dexpools, { through: models.dexpooltokens })
   }
   return dextokens
 }

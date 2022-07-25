@@ -33,3 +33,12 @@ export const getPromotedExchanges = () => {
   }
   return promoted
 }
+
+export const promotedToken = (arr1: any[]) => {
+  const promoted = getPromoted()
+  return arr1.some(item => promoted.includes(item.symbol))
+}
+
+export const truncate = (text: string, max: number) => {
+  return text.length > max ? `${text.substring(0, max)}...` : text;
+}

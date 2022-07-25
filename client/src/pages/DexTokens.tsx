@@ -6,7 +6,8 @@ import { withRouter } from 'react-router'
 import { Card, Table, Pagination } from 'react-bootstrap'
 import PageTitle from '../template/PageTitle'
 import { Link } from "react-router-dom"
-import { getPromoted } from '../utils'
+import { getPromoted, truncate } from '../utils'
+import { CopyToClipboard } from 'react-copy-to-clipboard'
 
 interface DexTokensProps {
   history: any,
@@ -118,8 +119,8 @@ class DexTokens extends Component <DexTokensProps, DexTokensStates> {
               <Table striped className="mb-0" size="sm">
                 <thead>
                   <tr>
-                    <th scope="col"></th>
-                    <th scope="col">Address</th>
+                    <th scope="col" style={{width: 31}}><i className="mdi mdi-star text-secondary"></i></th>
+                    <th scope="col">Id / Address</th>
                     <th scope="col">Symbol</th>
                     <th scope="col">Name</th>
                   </tr>
@@ -129,7 +130,12 @@ class DexTokens extends Component <DexTokensProps, DexTokensStates> {
                     return (
                       <tr key={token.id}>
                         <td>{promoted.includes(token.symbol) ? <i className="mdi mdi-star text-warning"></i> : null}</td>
-                        <td className="font-monospace"><Link to={`/dextokens/${token.id}`}>{token.id}</Link></td>
+                        <td className="font-monospace">
+                          <Link to={`/dextokens/${token.id}`}>{truncate(token.id, 16)}</Link>
+                          <CopyToClipboard text={token.id}>
+                            <i className="mdi mdi-clipboard-outline link-primary" style={{cursor: 'pointer'}}></i>
+                          </CopyToClipboard>
+                        </td>
                         <td>{token.symbol}</td>
                         <td>{token.name}</td>
                       </tr>

@@ -67,13 +67,20 @@ export class EthereumApi {
         const quoterContract = new ethers.Contract('0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6', uniswapQuoterABI, web3Provider)
         const readQuoterContract = new ethers.Contract('0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6', uniswapQuoterABI, provider)
         const routerContract = new ethers.Contract('0xE592427A0AEce92De3Edee1F18E0157C05861564', uniswapRouterABI, web3Provider)
+        const aaveContract = new ethers.Contract('0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9', aaveLendPoolABI, web3Provider)
         return {
           swap: async (toAddress: string, direction: boolean, amount: string) => {
             const dexpool = await models.dexpools.findOne({
-              where: {id: poolAddress}
+              where: {id: poolAddress},
+              include: [{
+                model: models.dexes
+              }]
             })
             if (dexpool === null) {
               throw new Error('Pool not in database')
+            }
+            if (dexpool.dex.name !== 'Uniswap') {
+              throw new Error('Pool does not support swap function')
             }
             const bnAmount = new BigNumber(amount)
             let outAmount = '0'
@@ -116,12 +123,18 @@ export class EthereumApi {
               0
             ])
           },
-          getQuote: async (direction: boolean, amount: string) => {
+          swapQuote: async (direction: boolean, amount: string) => {
             const dexpool = await models.dexpools.findOne({
-              where: {id: poolAddress}
+              where: {id: poolAddress},
+              include: [{
+                model: models.dexes
+              }]
             })
             if (dexpool === null) {
               throw new Error('Pool not in database')
+            }
+            if (dexpool.dex.name !== 'Uniswap') {
+              throw new Error('Pool does not support swapQuote function')
             }
             if (direction) {
               return await readQuoterContract.quoteExactInputSingle(
@@ -140,7 +153,118 @@ export class EthereumApi {
                 0
               )
             }
-          }
+          },
+          lendPoolGetUserAccountData: async (address?: string) => {
+            const dexpool = await models.dexpools.findOne({
+              where: {id: poolAddress},
+              include: [{
+                model: models.dexes
+              }]
+            })
+            if (dexpool === null) {
+              throw new Error('Pool not in database')
+            }
+            if (dexpool.dex.name !== 'Aave') {
+              throw new Error('Pool does not support GetUserAccountData function')
+            }
+            if (address) {
+              return aaveContract.getUserAccountData(
+                wallet.address
+              )
+            } else {
+              return aaveContract.getUserAccountData(
+                address
+              )
+            }
+          },
+          lendDeposit: async (amount: string) => {
+            const dexpool = await models.dexpools.findOne({
+              where: {id: poolAddress},
+              include: [{
+                model: models.dextokens
+              },{
+                model: models.dexes
+              }]
+            })
+            if (dexpool === null) {
+              throw new Error('Pool not in database')
+            }
+            if (dexpool.dex.name !== 'Aave') {
+              throw new Error('Pool does not support Deposit function')
+            }
+            return await aaveContract.deposit(
+              dexpool.dextokens[0].id,
+              amount,
+              wallet.address,
+              0
+            )
+          },
+          lendBorrow: async (amount: string, interestMode: string) => {
+            const dexpool = await models.dexpools.findOne({
+              where: {id: poolAddress},
+              include: [{
+                model: models.dextokens
+              },{
+                model: models.dexes
+              }]
+            })
+            if (dexpool === null) {
+              throw new Error('Pool not in database')
+            }
+            if (dexpool.dex.name !== 'Aave') {
+              throw new Error('Pool does not support Borrow function')
+            }
+            return await aaveContract.borrow(
+              dexpool.dextokens[0].id,
+              amount,
+              interestMode,
+              0,
+              wallet.address
+            )
+          },
+          lendWithdraw: async (amount: string) => {
+            const dexpool = await models.dexpools.findOne({
+              where: {id: poolAddress},
+              include: [{
+                model: models.dextokens
+              },{
+                model: models.dexes
+              }]
+            })
+            if (dexpool === null) {
+              throw new Error('Pool not in database')
+            }
+            if (dexpool.dex.name !== 'Aave') {
+              throw new Error('Pool does not support Withdraw function')
+            }
+            return await aaveContract.withdraw(
+              dexpool.dextokens[0].id,
+              amount,
+              wallet.address
+            )
+          },
+          lendRepay: async (amount: string, interestMode: string) => {
+            const dexpool = await models.dexpools.findOne({
+              where: {id: poolAddress},
+              include: [{
+                model: models.dextokens
+              },{
+                model: models.dexes
+              }]
+            })
+            if (dexpool === null) {
+              throw new Error('Pool not in database')
+            }
+            if (dexpool.dex.name !== 'Aave') {
+              throw new Error('Pool does not support Repay function')
+            }
+            return await aaveContract.repay(
+              dexpool.dextokens[0].id,
+              amount,
+              interestMode,
+              wallet.address
+            )
+          },
         }
       },
       injectedABIs: injectedABIs
@@ -190,17 +314,6 @@ const erc20ABI:any = [
     "outputs":[{"name":"approved","type":"bool"}],
     "type":"function"
   },
-];
-
-const uniswapPoolABI:any = [
-  // swap
-  {
-    "constant":true,
-    "inputs":[{"name":"recipient","type":"address"},{"name":"zeroForOne","type":"bool"},{"name":"amountSpecified","type":"int256"},{"name":"sqrtPriceLimitX96","type":"uint160"},{"name":"data","type":"bytes"}],
-    "name":"swap",
-    "outputs":[{"name":"amount0","type":"int256"},{"name":"amount1","type":"int256"}],
-    "type":"function"
-  }
 ];
 const uniswapRouterABI:any = [
   // exactInputSingle
@@ -346,3 +459,72 @@ const uniswapQuoterABI:any = [
     "type":"function"
   }
 ];
+const aaveLendPoolABI:any = [
+  // getUserAccountData
+  {
+    "constant":true,
+    "inputs":[
+      {"name":"user","type":"address"}
+    ],
+    "name":"getUserAccountData",
+    "outputs":[
+      {"name":"totalCollateralETH","type":"uint256"},
+      {"name":"totalDebtETH","type":"uint256"},
+      {"name":"availableBorrowsETH","type":"uint256"},
+      {"name":"currentLiquidationThreshold","type":"uint256"},
+      {"name":"ltv","type":"uint256"},
+      {"name":"healthFactor","type":"uint256"}
+    ],
+    "type":"function"
+  },
+  // deposit
+  {
+    "constant":true,
+    "inputs":[
+      {"name":"asset","type":"address"},
+      {"name":"amount","type":"uint256"},
+      {"name":"onBehalfOf","type":"address"},
+      {"name":"referralCode","type":"uint16"}
+    ],
+    "name":"deposit",
+    "type":"function"
+  },
+  // withdraw
+  {
+    "constant":true,
+    "inputs":[
+      {"name":"asset","type":"address"},
+      {"name":"amount","type":"uint256"},
+      {"name":"to","type":"address"}
+    ],
+    "name":"withdraw",
+    "outputs":[{"name":"","type":"uint256"}],
+    "type":"function"
+  },
+  // borrow
+  {
+    "constant":true,
+    "inputs":[
+      {"name":"asset","type":"address"},
+      {"name":"amount","type":"uint256"},
+      {"name":"interestRateMode","type":"uint256"},
+      {"name":"referralCode","type":"uint16"},
+      {"name":"onBehalfOf","type":"address"}
+    ],
+    "name":"borrow",
+    "type":"function"
+  },
+  // repay
+  {
+    "constant":true,
+    "inputs":[
+      {"name":"asset","type":"address"},
+      {"name":"amount","type":"uint256"},
+      {"name":"rateMode","type":"uint256"},
+      {"name":"onBehalfOf","type":"address"}
+    ],
+    "name":"repay",
+    "outputs":[{"name":"","type":"uint256"}],
+    "type":"function"
+  }
+]

@@ -76,31 +76,10 @@ export class DexTokensRouter {
     // get token
     const dextoken = await models.dextokens.findOne({
       where: {id: req.params.id},
-      include:[{
+      include: [{
         model: models.dexpools,
-        as: 'token0',
-        separate: true,
-        limit: 5,
-        order: [['txcount', 'desc']],
         include: [{
-          model: models.dextokens,
-          as: 'token0'
-        },{
-          model: models.dextokens,
-          as: 'token1'
-        }]
-      },{
-        model: models.dexpools,
-        as: 'token1',
-        separate: true,
-        limit: 5,
-        order: [['txcount', 'desc']],
-        include: [{
-          model: models.dextokens,
-          as: 'token0'
-        },{
-          model: models.dextokens,
-          as: 'token1'
+          model: models.dextokens
         }]
       }]
     })

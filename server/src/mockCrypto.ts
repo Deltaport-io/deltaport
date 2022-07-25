@@ -83,6 +83,24 @@ export class mockCrypto {
         return {
           swap: async (toAddress: string, zeroForOne: boolean, amount: number) => {
             throw new Error('Swaping not supported')
+          },
+          swapQuote: async (toAddress: string, zeroForOne: boolean, amount: number) => {
+            throw new Error('Swaping not supported')
+          },
+          lendPoolGetUserAccountData: async (address?: string) => {
+            throw new Error('Lending not supported')
+          },
+          lendDeposit: async (amount: number) => {
+            throw new Error('Lending not supported')
+          },
+          lendBorrow: async (amount: string, interestMode: string) => {
+            throw new Error('Lending not supported')
+          },
+          lendWithdraw: async (amount: string) => {
+            throw new Error('Lending not supported')
+          },
+          lendRepay: async (amount: string, interestMode: string) => {
+            throw new Error('Lending not supported')
           }
         }
       }
