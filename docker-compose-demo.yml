@@ -68,6 +68,7 @@ services:
       - "traefik.http.routers.demobackend-secure.tls.certresolver=letsecrypt"
       - "traefik.http.routers.demobackend-secure.service=demobackend"
       - "traefik.http.services.demobackend.loadbalancer.server.port=4000"
+    command: [ "npm", "start" ]
 
   demomysql:
     image: mariadb:10.7.1
