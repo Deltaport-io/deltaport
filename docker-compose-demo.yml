@@ -32,6 +32,7 @@ services:
       - "traefik.http.routers.democlient-secure.tls.certresolver=letsecrypt"
       - "traefik.http.routers.democlient-secure.service=democlient"
       - "traefik.http.services.democlient.loadbalancer.server.port=80"
+    command: nginx -g 'daemon off;'
 
   demobackend:
     build:
@@ -101,5 +102,4 @@ services:
 
 networks:
   master:
-    external:
-      name: master
+    name: master
