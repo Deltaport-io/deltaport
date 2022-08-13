@@ -33,7 +33,7 @@ class UniswapActions extends Component <UniswapActionsProps, UniswapActionsState
       formLoading: false,
       amount: '',
       amountout: '',
-      wallet: this.props.wallets[0].id,
+      wallet: this.props.wallets[0] && this.props.wallets[0].id ? this.props.wallets[0].id : '',
       direction: 0,
       error: '',
       success: ''

@@ -38,7 +38,7 @@ class AaveActions extends Component <AaveActionsProps, AaveActionsStates> {
       formLoading: false,
       amount: '',
       interestMode: '0',
-      wallet: this.props.wallets[0].id,
+      wallet: this.props.wallets[0] && this.props.wallets[0].id ? this.props.wallets[0].id : '',
       error: '',
       success: ''
     }
