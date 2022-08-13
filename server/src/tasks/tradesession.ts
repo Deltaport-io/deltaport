@@ -38,6 +38,10 @@ export default class TradeSession {
     await models.tradelogs.create({type, msg, tradesessionId: this.options.id})
   }
 
+  saveGraph = async (graph, key, value, timestamp) => {
+    await models.tradegraphs.create({graph, key, value, timestamp, tradesessionId: this.options.id})
+  }
+
   loader = async (toLoad: any) => {
     this.toLoad = toLoad
     // load exchanges
@@ -159,6 +163,7 @@ export default class TradeSession {
     }
     // prepare sandbox
     const data = {}
+    let timestampNow = new Date().getTime()
     for (const entry of this.loadingData) {
       if (data[entry.exchange] === undefined) {
         data[entry.exchange] = {}
@@ -178,6 +183,9 @@ export default class TradeSession {
         info: async (...toLog: any[]) => { await this.saveLog('info', toLog) },
         warn: async (...toLog: any[]) => { await this.saveLog('warn', toLog) },
         error: async (...toLog: any[]) => { await this.saveLog('error', toLog) }
+      },
+      graph: {
+        log: async (graph: string, key: any, value: any) => { await this.saveGraph(graph, key, value, timestampNow) }
       }
     }
     this.vm = new VM({
@@ -291,7 +299,8 @@ export default class TradeSession {
           }
         }
         try {
-          await this.vm.run(`onTick(${JSON.stringify(ticksOnSource)})`)
+          timestampNow = new Date().getTime()
+          await this.vm.run(`onTick({timestamp:${timestampNow}, data:${JSON.stringify(ticksOnSource)}})`)
         } catch (e) {
           await this.saveLog('error', 'onTick '+e.message)
         }

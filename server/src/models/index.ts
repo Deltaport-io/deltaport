@@ -18,6 +18,9 @@ import dexwallets from "./dexwallets"
 import dexpools from "./dexpools"
 import dextokens from "./dextokens"
 import dexpooltokens from "./dexpooltokens"
+import tradegraphs from "./tradegraphs"
+import backtestgraphs from "./backtestgraphs"
+
 import isElectron from 'is-electron'
 
 const Sequelize = require("sequelize")
@@ -57,7 +60,9 @@ const models = {
   dexwallets: dexwallets(sequelize, Sequelize),
   dexpools: dexpools(sequelize, Sequelize),
   dextokens: dextokens(sequelize, Sequelize),
-  dexpooltokens: dexpooltokens(sequelize, Sequelize)
+  dexpooltokens: dexpooltokens(sequelize, Sequelize),
+  tradegraphs: tradegraphs(sequelize, Sequelize),
+  backtestgraphs: backtestgraphs(sequelize, Sequelize)
 };
 
 // associate

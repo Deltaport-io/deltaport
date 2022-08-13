@@ -39,6 +39,10 @@ export default class BacktestSession {
     await models.backtestlogs.create({type, msg, backtestsessionId: this.options.id})
   }
 
+  saveGraph = async (graph, key, value, timestamp) => {
+    await models.backtestgraphs.create({graph, key, value, timestamp, backtestsessionId: this.options.id})
+  }
+
   loader = async (toLoad: any) => {
     this.toLoad = toLoad
     // load exchanges
@@ -181,6 +185,7 @@ export default class BacktestSession {
     }
     // prepare sandbox
     const data = {}
+    let timestampNow
     for (const entry of this.loadingData) {
       if (data[entry.exchange] === undefined) {
         data[entry.exchange] = {}
@@ -200,6 +205,9 @@ export default class BacktestSession {
         info: async (...toLog: any[]) => { await this.saveLog('info', toLog) },
         warn: async (...toLog: any[]) => { await this.saveLog('warn', toLog) },
         error: async (...toLog: any[]) => { await this.saveLog('error', toLog) }
+      },
+      graph: {
+        log: async (graph: string, key: any, value: any, timestamp: number) => { await this.saveGraph(graph, key, value, timestampNow) }
       }
     }
     this.vm = new VM({
@@ -260,7 +268,8 @@ export default class BacktestSession {
           break breaker
         }
         try {
-          await this.vm.run(`onTick(${JSON.stringify(ticksOnSource)})`)
+          timestampNow = minTime
+          await this.vm.run(`onTick({timestamp:${minTime}, data:${JSON.stringify(ticksOnSource)}})`)
         } catch (e) {
           await this.saveLog('error', 'onTick '+e.message)
           this.stopping = "system stop"

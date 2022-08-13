@@ -12,6 +12,15 @@ import { Card, Table } from 'react-bootstrap'
 import { withAPIData } from "../WithAPIData"
 import PageTitle from '../template/PageTitle'
 import Moment from 'react-moment'
+import moment from 'moment'
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts'
 
 import "ace-builds/src-noconflict/mode-javascript" 
 import "ace-builds/src-noconflict/theme-github" 
@@ -26,12 +35,24 @@ interface TradingProps {
 type TradingStates = {
   tradesession: any
   data: any
+  graphs: any
+  graphKeys: any,
   logs: any[]
   viewCharts: boolean
+  viewGraphs: boolean
   viewCode: boolean
   viewLogs: boolean
   liveUpdates: any
 }
+
+const style = getComputedStyle(document.body)
+const colors = [
+  style.getPropertyValue('--bs-primary'),
+  style.getPropertyValue('--bs-danger'),
+  style.getPropertyValue('--bs-success'),
+  style.getPropertyValue('--bs-warning'),
+  style.getPropertyValue('--bs-info')
+]
 
 class Trading extends Component <TradingProps, TradingStates> {
 
@@ -42,8 +63,11 @@ class Trading extends Component <TradingProps, TradingStates> {
     this.state = {
       tradesession: {},
       data: {},
+      graphs: {},
+      graphKeys: {},
       logs: [],
       viewCharts: false,
+      viewGraphs: false,
       viewCode: false,
       viewLogs: true,
       liveUpdates: null
@@ -95,10 +119,30 @@ class Trading extends Component <TradingProps, TradingStates> {
             }
             data[ohlc.source].push(ohlc)
           }
+          // process graphs
+          const graphs: any = {}
+          const graphKeys: any = {}
+          for (const graph of json.graphs) {
+            // graph data
+            if (graphs[graph.graph] === undefined) {
+              graphs[graph.graph] = []
+            }
+            graphs[graph.graph].push({key: graph.key, value: graph.value, timestamp: graph.timestamp})
+            // graph keys
+            if (graphKeys[graph.graph] === undefined) {
+              graphKeys[graph.graph] = []
+            }
+            if (graphKeys[graph.graph].indexOf(graph.key) !== -1) {
+              graphKeys[graph.graph].push(graph.key)
+            }
+          }
+          // update
           this.setState({
             data,
             logs: json.logs,
-            tradesession: json.tradesession
+            tradesession: json.tradesession,
+            graphs,
+            graphKeys
           })
         }
       })
@@ -148,12 +192,13 @@ class Trading extends Component <TradingProps, TradingStates> {
                   </tr>
                   <tr>
                     <td>Ended</td>
-                    <td><Moment format="YYYY/MM/DD h:mm:ss A">{this.state.tradesession.ended}</Moment></td>
+                    <td>{this.state.tradesession.ended ? <Moment format="YYYY/MM/DD h:mm:ss A">{this.state.tradesession.ended}</Moment> : null}</td>
                   </tr>
                   <tr>
                     <td>Display</td>
                     <td>
                       <div className="mb-2 me-1 btn-group">
+                        <button onClick={()=>this.setState({viewGraphs: this.state.viewGraphs ? false : true})} type="button" className={this.state.viewGraphs ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Graphs</button>
                         <button onClick={()=>this.setState({viewCharts: this.state.viewCharts ? false : true})} type="button" className={this.state.viewCharts ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Charts</button>
                         <button onClick={()=>this.setState({viewCode: this.state.viewCode ? false : true})} type="button" className={this.state.viewCode ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Code</button>
                         <button onClick={()=>this.setState({viewLogs: this.state.viewLogs ? false : true})} type="button" className={this.state.viewLogs ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Logs</button>
@@ -172,6 +217,32 @@ class Trading extends Component <TradingProps, TradingStates> {
                 <div>
                   <chart.CustomChart/>
                 </div>
+              </Card.Body>
+            </Card>
+          }): null}
+
+          {this.state.viewGraphs ? Object.keys(this.state.graphs).map((graph: string) => {
+            return <Card key={graph}>
+              <Card.Body>
+                <h4 className="header-title d-inline-block mb-2">{graph}</h4>
+                <ResponsiveContainer width={'100%'} height={300}>
+                  <LineChart data={this.state.graphs[graph]} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
+                    <XAxis
+                      dataKey="timestamp"
+                      tick={{fill: '#6c757d'}}
+                      minTickGap={20}
+                      tickFormatter={(tick, index)=>{return moment(tick, 'x').format('DD/MM/YYYY HH:mm:ss')}}
+                    />
+                    <YAxis tick={{fill: '#6c757d'}}/>
+                    <Tooltip
+                      isAnimationActive={false}
+                      labelFormatter={(entry: any)=>{return moment(entry, 'x').format('DD/MM/YYYY HH:mm:ss')}}
+                    />
+                    {this.state.graphKeys[graph].map((entry: any, index: number) => {
+                      return <Line key={entry} dot={false} type="monotone" connectNulls={true} dataKey="value" name={entry} stroke={colors[index % colors.length]} strokeWidth={2}/>
+                    })}
+                  </LineChart>
+                </ResponsiveContainer>
               </Card.Body>
             </Card>
           }): null}

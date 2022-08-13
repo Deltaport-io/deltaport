@@ -101,6 +101,19 @@ export class BacktestsRouter {
       },
       order: [['timestamp', 'ASC']] 
     })
+    // graphs
+    const graphs = await models.backtestgraphs.findAll({
+      attributes: [
+        'graph',
+        [models.sequelize.literal('UNIX_TIMESTAMP(timestamp)*1000'), 'timestamp'],
+        'key',
+        'value'
+      ],
+      where: {
+        backtestsessionId: req.params.id
+      },
+      order: [['timestamp', 'ASC']]
+    })
     // logs
     const logs = await models.backtestlogs.findAll({
       where: {
@@ -108,7 +121,7 @@ export class BacktestsRouter {
       },
       order: [['timestamp', 'DESC']] 
     })
-    return res.send({ status: 'success', backtest, ohlcs, logs })
+    return res.send({ status: 'success', backtest, ohlcs, logs, graphs })
   }
 
   backtestInputs = [

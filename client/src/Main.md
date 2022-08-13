@@ -14,6 +14,7 @@ Docs
 * [Sandbox](#sandbox)
   * [Globals](#globals)
   * [Console](#console) (logging)
+  * [Graph](#graph) (graphs)
   * [Data](#data)
   * [Exchange](#exchange) 
   * [Ethereum](#ethereum) 
@@ -110,10 +111,11 @@ onStart = async() => {
 onTick function is executed on each retrieved data in backtesting and every few seconds depending on new live data in trading.
 
 ```javascript
-// ticks is array of objects that include information on which data is new. Object includes exchange, pair and timestamp
+// ticks is object that includes current system time as timestamp and data object with newely arrived data. Data object includes exchange, pair and timestamp information for each tick.
 onTick = async(ticks) => {
   await console.log('on tick', ticks)
-  // "on tick", [{"exchange":"BitmexLive","pair":"ETH/USD","timestamp":1645567200000}, ...]
+  // prints out:
+  // "on tick", {timestamp: 1645567200000, data:[{"exchange":"BitmexLive","pair":"ETH/USD","timestamp":1645567200000}, ...]}
   // all new data is stored in this.data and can be accessed anytime
   await console.log(this.data["BitmexLive"]["ETH/USD"].close[0])
   await console.log(this.data["BitmexLive"]["ETH/USD"].open[0])
@@ -162,6 +164,19 @@ await console.log('this is log', 1234)
 await console.info('this is info', 1234)
 await console.warn('this is warn', 1234)
 await console.error('this is error', 1234)
+```
+
+### Graphs ###
+
+Graphs can be used similarly as console with exception that data will be shown in graphs in UI. To ensure all graphs are ordered properly it is recomended to use await. It is possible to have multiple graphs displayed with multimple keys per graph.
+
+```javascript
+// await graph.log(<name of graph>, <name of key>, <value to graph>)
+await graph.log('MainGraph', 'Balance', 100)
+await graph.log('MainGraph', 'Remaining', 50)
+// next tick
+await graph.log('MainGraph', 'Balance', 90)
+await graph.log('MainGraph', 'Remaining', 60)
 ```
 
 ### Data ###
