@@ -65,11 +65,11 @@ export class DexWalletsRouter {
   public async newDexWallet (req: express.Request, res: express.Response) {
     const result = validationResult(req)
     if (!result.isEmpty()) {
-        return res.send({ status: 'error', message: 'Please fill all information.', errors: result.mapped() })
+      return res.send({ status: 'error', message: 'Please fill all information.', errors: result.mapped() })
     }
     const user = await getMeUser(req.header('Authorization'))
     if (!user) {
-        return res.send({ status: 'error', message: 'No user' })
+      return res.send({ status: 'error', message: 'No user' })
     }
     // test wallet and get address
     let address = ""
@@ -78,9 +78,10 @@ export class DexWalletsRouter {
       address = web3Wallet.address
       const provider = new ethers.providers.JsonRpcProvider(req.body.nodeurl)
       const { chainId } = await provider.getNetwork()
-      if (chainId !== 1) {
-        return res.send({ status: 'error', message: 'Not ethereum node' })
-      }
+      // TODO: add back
+      // if (chainId !== 1) {
+      //   return res.send({ status: 'error', message: 'Not ethereum node' })
+      // }
     } catch (e) {
       return res.send({ status: 'error', message: 'Something went wrong' })
     }

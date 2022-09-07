@@ -1,6 +1,7 @@
 import { ethers } from 'ethers'
 import BigNumber from 'bignumber.js'
 import models from './models'
+import { config } from '././config/config'
 
 export class EthereumApi {
 
@@ -267,7 +268,39 @@ export class EthereumApi {
           },
         }
       },
-      injectedABIs: injectedABIs
+      injectedABIs: injectedABIs,
+      marketplace: {
+        addToMarketplace: async (entryType: number, price: string) => {
+          const provider = new ethers.providers.JsonRpcProvider(wallet.nodeurl)
+          const web3Provider = web3Wallet.connect(provider)
+          const marketplaceContract = new ethers.Contract(config.app.marketplaceAddress, marketplaceABI, web3Provider)
+          return marketplaceContract.addEntry(entryType,price,{value: 500})
+        },
+        purchase: async (entryId: string, price: string) => {
+          const provider = new ethers.providers.JsonRpcProvider(wallet.nodeurl)
+          const web3Provider = web3Wallet.connect(provider)
+          const marketplaceContract = new ethers.Contract(config.app.marketplaceAddress, marketplaceABI, web3Provider)
+          return marketplaceContract.purchase(entryId,{value: price})
+        },
+        subscribe: async (entryId: string, price: string) => {
+          const provider = new ethers.providers.JsonRpcProvider(wallet.nodeurl)
+          const web3Provider = web3Wallet.connect(provider)
+          const marketplaceContract = new ethers.Contract(config.app.marketplaceAddress, marketplaceABI, web3Provider)
+          return marketplaceContract.addUpdateSubPayee(entryId,{value: price})
+        },
+        unsubscribe: async (entryId: string) => {
+          const provider = new ethers.providers.JsonRpcProvider(wallet.nodeurl)
+          const web3Provider = web3Wallet.connect(provider)
+          const marketplaceContract = new ethers.Contract(config.app.marketplaceAddress, marketplaceABI, web3Provider)
+          return marketplaceContract.endUpdateSubPayee(entryId)
+        },
+        close: async (entryId: string) => {
+          const provider = new ethers.providers.JsonRpcProvider(wallet.nodeurl)
+          const web3Provider = web3Wallet.connect(provider)
+          const marketplaceContract = new ethers.Contract(config.app.marketplaceAddress, marketplaceABI, web3Provider)
+          return marketplaceContract.closeEntry(entryId)
+        }
+      }
     }
     return this.wallets[wallet.name]
   }
@@ -314,6 +347,113 @@ const erc20ABI:any = [
     "outputs":[{"name":"approved","type":"bool"}],
     "type":"function"
   },
+];
+export const marketplaceABI:any = [
+  // addEntry
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_entryType",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_price",
+        "type": "uint256"
+      }
+    ],
+    "name": "addEntry",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function",
+    "payable": true
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "entryId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "entryType",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "price",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "name": "NewEntry",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_entryId",
+        "type": "uint256"
+      }
+    ],
+    "name": "purchase",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function",
+    "payable": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_entryId",
+        "type": "uint256"
+      }
+    ],
+    "name": "closeEntry",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_entryId",
+        "type": "uint256"
+      }
+    ],
+    "name": "addUpdateSubPayee",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function",
+    "payable": true
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_entryId",
+        "type": "uint256"
+      }
+    ],
+    "name": "endUpdateSubPayee",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
 ];
 const uniswapRouterABI:any = [
   // exactInputSingle

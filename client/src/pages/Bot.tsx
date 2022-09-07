@@ -66,9 +66,6 @@ loader = {
 onStart = async() => {
   // execute on start
   await console.log('on start')
-  // test
-  await console.log('1', await this.exchanges['BitmexLive'].fetchBalance())
-  await console.log('2', await this.exchanges['BitmexLive'].fetchPositions())
 }
 
 onTick = async(ticks) => {
@@ -294,6 +291,7 @@ onEnd = async() => {
                     width="100%"
                     onChange={this.onChange}
                     value={this.state.code} 
+                    setOptions={{ useWorker: false }}
                   />
                 </div>
               </form>

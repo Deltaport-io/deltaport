@@ -188,11 +188,11 @@ class Trading extends Component <TradingProps, TradingStates> {
                   </tr>
                   <tr>
                     <td>Started</td>
-                    <td><Moment format="YYYY/MM/DD h:mm:ss A">{this.state.tradesession.started}</Moment></td>
+                    <td><Moment format="DD/MM/YYYY h:mm:ss A">{this.state.tradesession.started}</Moment></td>
                   </tr>
                   <tr>
                     <td>Ended</td>
-                    <td>{this.state.tradesession.ended ? <Moment format="YYYY/MM/DD h:mm:ss A">{this.state.tradesession.ended}</Moment> : null}</td>
+                    <td>{this.state.tradesession.ended ? <Moment format="DD/MM/YYYY h:mm:ss A">{this.state.tradesession.ended}</Moment> : null}</td>
                   </tr>
                   <tr>
                     <td>Display</td>
@@ -280,7 +280,7 @@ class Trading extends Component <TradingProps, TradingStates> {
                     {this.state.logs.map((log:any) => {
                       return (
                         <tr key={log.id}>
-                          <td><Moment format="YYYY/MM/DD h:mm:ss A">{log.timestamp}</Moment></td>
+                          <td><Moment format="DD/MM/YYYY h:mm:ss A">{log.timestamp}</Moment></td>
                           <td>{log.type}</td>
                           <td>{log.msg}</td>
                         </tr>

@@ -22,6 +22,9 @@ import Trading from './pages/Trading'
 import Backtests from './pages/Backtests'
 import Backtest from './pages/Backtest'
 import Docs from './pages/Docs'
+import Marketplace from './pages/Marketplace'
+import MarketplaceItem from './pages/MarketplaceItem'
+import MarketplaceAddItem from './pages/MarketplaceAddItem'
 
 const routes = <Switch>
   <Route component={Landing} exact path="/" />
@@ -45,6 +48,9 @@ const routes = <Switch>
   <Route component={Backtest} path="/backtests/:id" />
   <Route component={Backtests} path="/backtests" />
   <Route component={Docs} path="/docs" />
+  <Route component={MarketplaceAddItem} path="/marketplace/add" />
+  <Route component={MarketplaceItem} path="/marketplace/:id" />
+  <Route component={Marketplace} path="/marketplace" />
 </Switch>
 
 class Router extends Component {

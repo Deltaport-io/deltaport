@@ -184,11 +184,11 @@ class Backtest extends Component <BacktestProps, BacktestStates> {
                   </tr>
                   <tr>
                     <td>Started</td>
-                    <td><Moment format="YYYY/MM/DD h:mm:ss A">{this.state.backtest.started}</Moment></td>
+                    <td><Moment format="DD/MM/YYYY h:mm:ss A">{this.state.backtest.started}</Moment></td>
                   </tr>
                   <tr>
                     <td>Ended</td>
-                    <td>{this.state.backtest.ended ? <Moment format="YYYY/MM/DD h:mm:ss A">{this.state.backtest.ended}</Moment> : null}</td>
+                    <td>{this.state.backtest.ended ? <Moment format="DD/MM/YYYY h:mm:ss A">{this.state.backtest.ended}</Moment> : null}</td>
                   </tr>
                   <tr>
                     <td>Display</td>
@@ -276,7 +276,7 @@ class Backtest extends Component <BacktestProps, BacktestStates> {
                     {this.state.logs.map((log:any) => {
                       return (
                         <tr key={log.id}>
-                          <td><Moment format="YYYY/MM/DD h:mm:ss A">{log.timestamp}</Moment></td>
+                          <td><Moment format="DD/MM/YYYY h:mm:ss A">{log.timestamp}</Moment></td>
                           <td>{log.type}</td>
                           <td>{log.msg}</td>
                         </tr>

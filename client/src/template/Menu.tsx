@@ -6,18 +6,19 @@ import classNames from 'classnames';
 const baseMenuItems: any[] = [
     { key: 'navigation', label: 'Navigation', isTitle: true },
     { key: 'dashboard', label: 'Dashboard', isTitle: false, icon: 'uil-home-alt', url: '/dashboard' },
+    { key: 'marketplace', label: 'Marketplace', isTitle: false, icon: 'uil-store', url: '/marketplace' },
     { key: 'docs', label: 'Docs', isTitle: false, icon: 'uil-book-alt', url: '/docs' },
-    { key: 'exchanges', label: 'Exchanges', isTitle: true },
-    { key: 'exchanges', label: 'Exchanges', isTitle: false, icon: 'uil-store', url: '/exchanges' },
-    { key: 'pairs', label: 'Pairs', isTitle: false, icon: 'uil-layer-group', url: '/pairs' },
+    { key: 'automation', label: 'Automation', isTitle: true },
+    { key: 'bots', label: 'Bots', isTitle: false, icon: 'uil-robot', url: '/bots' },
+    { key: 'backtests', label: 'Backtests', isTitle: false, icon: 'uil-table', url: '/backtests' },
+    { key: 'trading', label: 'Trading', isTitle: false, icon: 'uil-chart', url: '/tradings' },
     { key: 'ethereum', label: 'Ethereum', isTitle: true },
     { key: 'wallets', label: 'Wallets', isTitle: false, icon: 'uil-globe', url: '/dexwallets' },
     { key: 'tokens', label: 'Tokens', isTitle: false, icon: 'uil-layers-alt', url: '/dextokens' },
     { key: 'pools', label: 'Pools', isTitle: false, icon: 'uil-coins', url: '/dexpools' },
-    { key: 'automation', label: 'Automation', isTitle: true },
-    { key: 'bots', label: 'Bots', isTitle: false, icon: 'uil-robot', url: '/bots' },
-    { key: 'backtests', label: 'Backtests', isTitle: false, icon: 'uil-table', url: '/backtests' },
-    { key: 'trading', label: 'Trading', isTitle: false, icon: 'uil-chart', url: '/tradings' }
+    { key: 'exchanges', label: 'Exchanges', isTitle: true },
+    { key: 'exchanges', label: 'Exchanges', isTitle: false, icon: 'uil-building', url: '/exchanges' },
+    { key: 'pairs', label: 'Pairs', isTitle: false, icon: 'uil-layer-group', url: '/pairs' }
 ];
 
 const findAllParent = (menuItems:any, menuItem:any):any => {
