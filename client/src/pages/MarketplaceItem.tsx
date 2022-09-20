@@ -2,30 +2,46 @@ import React, { Component } from 'react';
 import Dash from '../template/Dash'
 import { config } from '../config'
 import { getCredentials } from '../credcontrols'
-import { StockChart } from "../StockChart";
-import {
-  withDeviceRatio,
-  withSize
-} from "react-financial-charts";
 import { Button, Card, Table, Modal, DropdownButton, Dropdown } from 'react-bootstrap'
 import AceEditor from "react-ace";
-import { withAPIData } from "../WithAPIData"
 import PageTitle from '../template/PageTitle'
 import Moment from 'react-moment'
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts'
 import { Link } from 'react-router-dom'
 import { fromDisplayBalance, getDisplayBalance } from '../utils'
+import ReactEChartsCore from 'echarts-for-react/lib/core'
+import * as echarts from 'echarts/core'
+import { CandlestickChart, BarChart, LineChart } from 'echarts/charts'
+import {
+  GridComponent,
+  ToolboxComponent,
+  TooltipComponent,
+  TitleComponent,
+  DataZoomComponent,
+  VisualMapComponent,
+  DatasetComponent
+} from 'echarts/components'
+import { CanvasRenderer } from 'echarts/renderers'
 
 import "ace-builds/src-noconflict/mode-javascript" 
 import "ace-builds/src-noconflict/theme-github" 
 import "ace-builds/src-noconflict/snippets/javascript"
+
+// include required
+echarts.use(
+  [
+    TitleComponent,
+    TooltipComponent,
+    GridComponent,
+    CandlestickChart,
+    LineChart,
+    CanvasRenderer,
+    BarChart,
+    ToolboxComponent,
+    DataZoomComponent,
+    VisualMapComponent,
+    DatasetComponent
+  ]
+);
 
 interface MarketplaceItemProps {
   history: any,
@@ -316,13 +332,6 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
 
   render () {
     const { id } = this.props.match.params
-    const charts = []
-    for (const source in this.state.data) {
-      const CustomChart = withAPIData(this.state.data[source])(
-        withSize({ style: { minHeight: 300 } })(withDeviceRatio()(StockChart)),
-      )
-      charts.push({source, CustomChart})
-    }
     return (
       <div className="MarketItem">
         <Dash>

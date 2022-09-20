@@ -2,16 +2,39 @@ import React, { Component } from 'react';
 import Dash from '../template/Dash'
 import { config } from '../config'
 import { getCredentials } from '../credcontrols'
-import { StockChart } from "../StockChart";
-import { DropdownButton, Dropdown } from 'react-bootstrap'
-import {
-  withDeviceRatio,
-  withSize
-} from "react-financial-charts";
-import { withAPIData } from "../WithAPIData"
-import { Card, Table } from 'react-bootstrap'
+import { DropdownButton, Dropdown, Card, Table } from 'react-bootstrap'
 import PageTitle from '../template/PageTitle'
-import DatePicker from 'react-datepicker';
+import DatePicker from 'react-datepicker'
+import ReactEChartsCore from 'echarts-for-react/lib/core'
+import * as echarts from 'echarts/core'
+import { CandlestickChart, BarChart, LineChart } from 'echarts/charts'
+import {
+  GridComponent,
+  ToolboxComponent,
+  TooltipComponent,
+  TitleComponent,
+  DataZoomComponent,
+  VisualMapComponent,
+  DatasetComponent
+} from 'echarts/components'
+import { CanvasRenderer } from 'echarts/renderers'
+
+// include required
+echarts.use(
+  [
+    TitleComponent,
+    TooltipComponent,
+    GridComponent,
+    CandlestickChart,
+    LineChart,
+    CanvasRenderer,
+    BarChart,
+    ToolboxComponent,
+    DataZoomComponent,
+    VisualMapComponent,
+    DatasetComponent
+  ]
+);
 
 interface PairProps {
   history: any,
@@ -169,11 +192,145 @@ class Pair extends Component <PairProps, PairStates> {
     })
   }
 
+  getOHLCChartOption = (data: any) => {
+    const upColor = '#ec0000';
+    const upBorderColor = '#8A0000';
+    const downColor = '#00da3c';
+    const downBorderColor = '#008F28';
+    return {
+      dataset: {
+        source: data
+      },
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+          type: 'line'
+        }
+      },
+      toolbox: {
+        feature: {
+          dataZoom: {
+            yAxisIndex: false
+          }
+        }
+      },
+      grid: [
+        {
+          left: '10%',
+          right: '10%',
+          bottom: 200
+        },
+        {
+          left: '10%',
+          right: '10%',
+          height: 80,
+          bottom: 80
+        }
+      ],
+      xAxis: [
+        {
+          type: 'category',
+          boundaryGap: false,
+          // inverse: true,
+          axisLine: { onZero: false },
+          splitLine: { show: false },
+          min: 'dataMin',
+          max: 'dataMax'
+        },
+        {
+          type: 'category',
+          gridIndex: 1,
+          boundaryGap: false,
+          axisLine: { onZero: false },
+          axisTick: { show: false },
+          splitLine: { show: false },
+          axisLabel: { show: false },
+          min: 'dataMin',
+          max: 'dataMax'
+        }
+      ],
+      yAxis: [
+        {
+          scale: true,
+          splitArea: {
+            show: true
+          }
+        },
+        {
+          scale: true,
+          gridIndex: 1,
+          splitNumber: 2,
+          axisLabel: { show: false },
+          axisLine: { show: false },
+          axisTick: { show: false },
+          splitLine: { show: false }
+        }
+      ],
+      dataZoom: [
+        {
+          type: 'inside',
+          xAxisIndex: [0, 1],
+          start: 10,
+          end: 100
+        },
+        {
+          show: true,
+          xAxisIndex: [0, 1],
+          type: 'slider',
+          bottom: 10,
+          start: 10,
+          end: 100
+        }
+      ],
+      visualMap: {
+        show: false,
+        seriesIndex: 1,
+        dimension: 6,
+        pieces: [
+          {
+            value: 1,
+            color: upColor
+          },
+          {
+            value: -1,
+            color: downColor
+          }
+        ]
+      },
+      series: [
+        {
+          type: 'candlestick',
+          itemStyle: {
+            color: upColor,
+            color0: downColor,
+            borderColor: upBorderColor,
+            borderColor0: downBorderColor
+          },
+          encode: {
+            x: 'timestamp',
+            y: ['open', 'close', 'high', 'low']
+          }
+        },
+        {
+          name: 'Volumn',
+          type: 'bar',
+          xAxisIndex: 1,
+          yAxisIndex: 1,
+          itemStyle: {
+            color: '#7fbe9e'
+          },
+          large: true,
+          encode: {
+            x: 'timestamp',
+            y: 'volume'
+          }
+        }
+      ]
+    }
+  }
+
   render () {
     const { id } = this.props.match.params
-    const CustomChart = withAPIData(this.state.data)(
-      withSize()(withDeviceRatio()(StockChart)),
-    )
     return (
       <div className="Pairs">
         <Dash>
@@ -223,7 +380,13 @@ class Pair extends Component <PairProps, PairStates> {
                 </div>
               </div>
               <div style={{height: 400}}>
-                <CustomChart/>
+                <ReactEChartsCore
+                  echarts={echarts}
+                  option={this.getOHLCChartOption(this.state.data)}
+                  notMerge={true}
+                  lazyUpdate={true}
+                  theme={"theme_name"}
+                />
               </div>
             </Card.Body>
           </Card>
