@@ -12,7 +12,6 @@ import AceEditor from "react-ace";
 import { withAPIData } from "../WithAPIData"
 import PageTitle from '../template/PageTitle'
 import Moment from 'react-moment'
-import moment from 'moment'
 import {
   LineChart,
   Line,

@@ -2,10 +2,9 @@ import React, { Component } from 'react';
 import Dash from '../template/Dash'
 import { config } from '../config'
 import { withRouter } from 'react-router'
-import { Card, Table, Dropdown, DropdownButton } from 'react-bootstrap'
+import { Card, Dropdown, DropdownButton } from 'react-bootstrap'
 import PageTitle from '../template/PageTitle'
 import Moment from 'react-moment'
-import { Link } from 'react-router-dom'
 import AceEditor from "react-ace"
 import { getCredentials } from '../credcontrols'
 

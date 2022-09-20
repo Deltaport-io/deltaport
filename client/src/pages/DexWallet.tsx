@@ -5,7 +5,7 @@ import { config } from '../config'
 import { withRouter } from 'react-router'
 import { Card, Table } from 'react-bootstrap'
 import PageTitle from '../template/PageTitle'
-import web3 from 'web3'
+import { fromDisplayBalance, getDisplayBalance } from '../utils'
 
 interface DexWalletProps {
   history: any,
@@ -85,7 +85,7 @@ class DexWallet extends Component <DexWalletProps, DexWalletStates> {
           Authorization: token
         },
         body: JSON.stringify({
-          amount: web3.utils.toWei(this.state.amount, 'ether'),
+          amount: fromDisplayBalance(this.state.amount, '18'),
           address: this.state.address
         })
       })
@@ -176,7 +176,7 @@ class DexWallet extends Component <DexWalletProps, DexWalletStates> {
                     <tbody>
                       <tr>
                         <td>ETH</td>
-                        <td>{web3.utils.fromWei(this.state.balance, 'ether')}</td>
+                        <td>{getDisplayBalance(this.state.balance, '18')}</td>
                       </tr>
                     </tbody>
                   </Table>
