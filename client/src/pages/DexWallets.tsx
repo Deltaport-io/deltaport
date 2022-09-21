@@ -233,7 +233,7 @@ class DexWallets extends Component <DexWalletsProps, DexWalletsStates> {
               </div>
               <div className="mb-3">
                 <label className="form-label">Wallet index</label>
-                <input type="text" className="form-control" name="accindex" value={this.state.walletindex} onChange={this.inputChange}/>
+                <input type="text" className="form-control" name="walletindex" value={this.state.walletindex} onChange={this.inputChange}/>
               </div>
               <div className="mb-3">
                 <label className="form-label">Tx viewer</label>

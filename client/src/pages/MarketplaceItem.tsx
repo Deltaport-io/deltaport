@@ -68,6 +68,7 @@ type MarketplaceItemStates = {
   message: string
   isLoading: boolean
   amount: string
+  subscribeModalAmount: string
 }
 
 const style = getComputedStyle(document.body)
@@ -101,7 +102,8 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
       error: '',
       message: '',
       isLoading: false,
-      amount: '0'
+      amount: '0',
+      subscribeModalAmount: '0'
     }
   }
 
@@ -178,10 +180,6 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
     this.setState({showUnsubscribeModal: true})
   }
 
-  showTopoffModal = () => {
-    this.setState({showTopoffModal: true})
-  }
-
   purchaseItem = () => {
     this.setState({isLoading: true, error: ''})
     // post to backend
@@ -225,38 +223,8 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
         },
         body: JSON.stringify({
           blockchainId: this.state.item.blockchainId,
-          price: this.state.amount,
+          price: fromDisplayBalance(this.state.subscribeModalAmount, '18'),
           wallet: this.state.selectedWallet.id
-        })
-      })
-      .then((response) => { return response.json() })
-      .then((json) => {
-        if (json.status === 'success') {
-          this.setState({isLoading: false, message: json.message})
-        } else {
-          this.setState({isLoading: false, error: json.message})
-        }
-      })
-      .catch((error) => {
-        this.setState({isLoading: false, error})
-      })
-  }
-
-  topoffSubscriptionItem = () => {
-    this.setState({isLoading: true, error: ''})
-    // post to backend
-    const { token } = getCredentials()
-    fetch(
-      config.app.apiUri + '/api/v1/marketplace/'+this.state.item.blockchainId+'/subscribe', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: token
-        },
-        body: JSON.stringify({
-          blockchainId: this.state.item.blockchainId,
-          price: this.state.amount,
-          wallet: this.state.selectedWallet.id // TODO: wallet that subscribed before
         })
       })
       .then((response) => { return response.json() })
@@ -332,6 +300,8 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
 
   render () {
     const { id } = this.props.match.params
+    const subWallet = this.state.item && this.state.item.blockInfo && this.state.item.blockInfo[0] && this.state.item.blockInfo[0].subscriber ?  this.state.item.blockInfo[0].subscriber : null
+    const wallet = this.state.wallets.find(x => x.address === subWallet)
     return (
       <div className="MarketItem">
         <Dash>
@@ -380,23 +350,39 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
                         <td>{getDisplayBalance(this.state.item.price,'18')}</td>
                       </tr>
                     :null}
+                    {this.state.item.blockInfo && this.state.item.blockInfo.length > 0 ?
+                      <tr>
+                        <td>Subscription balance</td>
+                        <td>{getDisplayBalance(this.state.item.blockInfo[0].amount, '18')}</td>
+                      </tr>
+                    :null}
+                    {this.state.item.blockInfo && this.state.item.blockInfo.length > 0 ?
+                      <tr>
+                        <td>Next deduction on</td>
+                        <td><Moment format="DD/MM/YYYY" unix>{this.state.item.blockInfo[0].endSub}</Moment></td>
+                      </tr>
+                    :null}
                     <tr>
                       <td>Actions</td>
                       <td>
                         <div className="mb-2 me-1">
-                          {this.state.item.blockchainType === "0" ?
-                            <button onClick={()=>this.showPurchaseModal()} type="button" className="btn btn-sm btn-primary">Purchase</button>
-                          :null}
-                          {this.state.item.blockchainType === "1" ?
-                            <>
-                              <button onClick={()=>this.showSubscribe()} type="button" className="btn btn-sm btn-primary">Subscribe</button>
-                              <button onClick={()=>this.showSubscribe()} type="button" className="btn btn-sm btn-primary">Top off</button>
-                              <button onClick={()=>this.showUnsubscribe()} type="button" className="btn btn-sm btn-primary">Top off</button>
-                            </>
-                          :null}
                           {this.state.wallets.map(x => x.address).includes(this.state.item.owner) ?
                             <button onClick={()=>this.setState({})} type="button" className="btn btn-sm btn-primary">Close</button>
-                          :null}
+                          :
+                            <div>
+                              {this.state.item.blockchainType === "0" ?
+                                <button onClick={()=>this.showPurchaseModal()} type="button" className="btn btn-sm btn-primary">Purchase</button>
+                              :null}
+                              {this.state.item.blockchainType === "1" ?
+                                <>
+                                  <button onClick={()=>this.showSubscribe()} type="button" className="btn btn-sm btn-primary">Subscribe/TopOff</button>
+                                  {this.state.item.blockInfo && this.state.item.blockInfo[0] && this.state.item.blockInfo[0].amount ?
+                                    <button onClick={()=>this.showUnsubscribe()} type="button" className="btn btn-sm btn-primary">Unsubscribe</button>
+                                  :null}
+                                </>
+                              :null}
+                            </div>
+                          }
                         </div>
                       </td>
                     </tr>
@@ -405,6 +391,35 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
               </Card.Body>
             </Card>
           :null}
+
+          {this.state.item && this.state.item.data ?
+            <Card>
+              <Card.Body>
+                <h4 className="header-title d-inline-block">Data</h4>
+                {this.state.item.blockchainType === "0" || this.state.item.blockchainType === "1" ?
+                  <div style={{height: 'calc(100vh - 335px)',position:'relative'}}>
+                    <AceEditor
+                      mode="javascript"
+                      theme="github"
+                      height="100%"
+                      width="100%"
+                      value={this.state.item.data} 
+                    />
+                  </div>
+                :null}
+                {this.state.item.blockchainType === "2" ?
+                  <div>
+                    Subscribe system
+                  </div>
+                :null}
+                {this.state.item.blockchainType === "3" ?
+                  <div>
+                    {this.state.item.data}
+                  </div>
+                :null}
+              </Card.Body>
+            </Card>
+          : null}
 
           {this.state.item && this.state.item.code ?
             <Card>
@@ -502,23 +517,27 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
 
           <Modal show={this.state.showSubscribeModal} onHide={()=>this.setState({showSubscribeModal: false})} animation={false} centered>
             <Modal.Header style={{display: "flex", justifyContent: "center", alignItems: "center"}}>
-              <Modal.Title>Subscribe</Modal.Title>
+              <Modal.Title>Subscribe / TopOff</Modal.Title>
             </Modal.Header>
             <Modal.Body>
               <form className="ps-3 pe-3">
                 <div className="mb-3">
-                  <label className="form-label">Amount</label>
-                  <div><input type="text" value={this.state.amount} name="amount" className="form-control form-control-sm" placeholder="Amount in ETH" required onChange={this.inputChange}/></div>
+                  <label className="form-label">Subscribe/TopOff with</label>
+                  <input type="text" value={this.state.subscribeModalAmount} name="subscribeModalAmount" className="form-control form-control-sm" placeholder="Amount in ETH" required onChange={this.inputChange}/>
                 </div>
                 <div className="mb-3">
                   <label className="form-label">Wallet</label>
-                  <DropdownButton
-                    title={ this.state.selectedWallet ? this.state.selectedWallet.name : 'Select wallet' }
-                  >
-                    { this.state.wallets.map((wallet:any, index: number) => {
-                      return <Dropdown.Item key={wallet.id} onClick={() => this.setState({selectedWallet: wallet})}>{wallet.name}</Dropdown.Item>
-                    })}
-                  </DropdownButton>
+                  {wallet ?
+                    <div>{wallet.name}</div>
+                  :
+                    <DropdownButton
+                      title={ this.state.selectedWallet ? this.state.selectedWallet.name : 'Select wallet' }
+                    >
+                      { this.state.wallets.map((wallet:any, index: number) => {
+                        return <Dropdown.Item key={wallet.id} onClick={() => this.setState({selectedWallet: wallet})}>{wallet.name}</Dropdown.Item>
+                      })}
+                    </DropdownButton>
+                  }
                 </div>
                 { this.state.error !== ''
                   ? <div className="alert alert-danger alerterror">
@@ -543,7 +562,7 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
                 </div>
               :
                 <div className="mb-1 text-center">
-                  <Button className="btn btn-primary account-button" type="submit" onClick={()=>this.subscribeItem()}>Subscribe</Button>
+                  <Button className="btn btn-primary account-button" type="submit" onClick={()=>this.subscribeItem()}>Subscribe/TopOff</Button>
                 </div>
               }
             </Modal.Body>
@@ -555,19 +574,25 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
             </Modal.Header>
             <Modal.Body>
               <form className="ps-3 pe-3">
-                <div className="mb-3">
-                  <label className="form-label">Amount</label>
-                  <div>{getDisplayBalance(this.state.item.price,'18')}</div>
-                </div>
+                {this.state.item && this.state.item.blockInfo && this.state.item.blockInfo[0] && this.state.item.blockInfo[0].amount?
+                  <div className="mb-3">
+                    <label className="form-label">Amount</label>
+                    <div>{getDisplayBalance(this.state.item.blockInfo[0].amount, '18')}</div>
+                  </div>
+                :null}
                 <div className="mb-3">
                   <label className="form-label">Wallet</label>
-                  <DropdownButton
-                    title={ this.state.selectedWallet ? this.state.selectedWallet.name : 'Select wallet' }
-                  >
-                    { this.state.wallets.map((wallet:any, index: number) => {
-                      return <Dropdown.Item key={wallet.id} onClick={() => this.setState({selectedWallet: wallet})}>{wallet.name}</Dropdown.Item>
-                    })}
-                  </DropdownButton>
+                  {wallet ?
+                    <div>{wallet.name}</div>
+                  :
+                    <DropdownButton
+                      title={ this.state.selectedWallet ? this.state.selectedWallet.name : 'Select wallet' }
+                    >
+                      { this.state.wallets.map((wallet:any, index: number) => {
+                        return <Dropdown.Item key={wallet.id} onClick={() => this.setState({selectedWallet: wallet})}>{wallet.name}</Dropdown.Item>
+                      })}
+                    </DropdownButton>
+                  }
                 </div>
                 { this.state.error !== ''
                   ? <div className="alert alert-danger alerterror">
@@ -593,55 +618,6 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
               :
                 <div className="mb-1 text-center">
                   <Button className="btn btn-primary account-button" type="submit" onClick={()=>this.unsubscribeItem()}>Unsubscribe</Button>
-                </div>
-              }
-            </Modal.Body>
-          </Modal>
-
-          <Modal show={this.state.showTopoffModal} onHide={()=>this.setState({showTopoffModal: false})} animation={false} centered>
-            <Modal.Header style={{display: "flex", justifyContent: "center", alignItems: "center"}}>
-              <Modal.Title>Subscribe</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-              <form className="ps-3 pe-3">
-                <div className="mb-3">
-                  <label className="form-label">Amount</label>
-                  <div>{getDisplayBalance(this.state.item.price,'18')}</div>
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Wallet</label>
-                  <DropdownButton
-                    title={ this.state.selectedWallet ? this.state.selectedWallet.name : 'Select wallet' }
-                  >
-                    { this.state.wallets.map((wallet:any, index: number) => {
-                      return <Dropdown.Item key={wallet.id} onClick={() => this.setState({selectedWallet: wallet})}>{wallet.name}</Dropdown.Item>
-                    })}
-                  </DropdownButton>
-                </div>
-                { this.state.error !== ''
-                  ? <div className="alert alert-danger alerterror">
-                    {this.state.error}
-                  </div>
-                  : null
-                }
-                { this.state.message !== ''
-                  ? <div className="alert alert-success mb-0">
-                    Success <a target="_blank" rel="noreferrer" href={ this.state.message }>Tx details <i className="uil uil-external-link-alt"></i></a>
-                  </div>
-                  : null
-                }
-              </form>
-              { this.state.isLoading ?
-                <div className="mb-1 text-center">
-                  <Button className="btn btn-primary account-button" type="button">
-                    <div className="spinner-border spinner-border-sm">
-                      <span className="sr-only"></span>
-                    </div>
-                  </Button>
-                </div>
-              :
-                <div className="mb-1 text-center">
-                  <Button className="btn btn-primary account-button" type="submit" onClick={()=>this.topoffSubscriptionItem()}>Top off</Button>
                 </div>
               }
             </Modal.Body>

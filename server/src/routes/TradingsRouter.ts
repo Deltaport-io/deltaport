@@ -110,7 +110,7 @@ export class TradingsRouter {
         'value'
       ],
       where: {
-        tradegraphs: req.params.id
+        tradesessionId: req.params.id
       },
       order: [['timestamp', 'ASC']]
     })

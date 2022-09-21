@@ -19,7 +19,7 @@ export class MarketplaceRouter {
   }
 
   public async searchMarketplace (req: express.Request, res: express.Response) {
-    try{
+    try {
       const baseReq = await superagent
         .get(config.app.baseUri+req.originalUrl)
         .type('application/json')
@@ -67,7 +67,7 @@ export class MarketplaceRouter {
       })
     }
     // request
-    try{
+    try {
       const baseReq = await superagent
         .post(config.app.baseUri+'/api/v1/marketplace/'+req.params.id)
         .type('application/json')
@@ -107,7 +107,7 @@ export class MarketplaceRouter {
     }
     // load wallet
     const dexwallet = await models.dexwallets.findOne({
-      where: { id: req.body.wallet }
+      where: { id: req.body.wallet, userIdusers: user.idusers }
     })
     if (!dexwallet) {
       return res.send({ status: 'error', message: 'Wallet not found' })
@@ -180,7 +180,7 @@ export class MarketplaceRouter {
     }
     // load wallet
     const dexwallet = await models.dexwallets.findOne({
-      where: { id: req.body.wallet }
+      where: { id: req.body.wallet, userIdusers: user.idusers }
     })
     if (!dexwallet) {
       return res.send({ status: 'error', message: 'Wallet not found' })
@@ -217,7 +217,7 @@ export class MarketplaceRouter {
     }
     // load wallet
     const dexwallet = await models.dexwallets.findOne({
-      where: { id: req.body.wallet }
+      where: { id: req.body.wallet, userIdusers: user.idusers }
     })
     if (!dexwallet) {
       return res.send({ status: 'error', message: 'Wallet not found' })
@@ -253,7 +253,7 @@ export class MarketplaceRouter {
     }
     // load wallet
     const dexwallet = await models.dexwallets.findOne({
-      where: { id: req.body.wallet }
+      where: { id: req.body.wallet, userIdusers: user.idusers }
     })
     if (!dexwallet) {
       return res.send({ status: 'error', message: 'Wallet not found' })
@@ -289,16 +289,27 @@ export class MarketplaceRouter {
     }
     // load wallet
     const dexwallet = await models.dexwallets.findOne({
-      where: { id: req.body.wallet }
+      where: { id: req.body.walletm, userIdusers: user.idusers }
     })
     if (!dexwallet) {
       return res.send({ status: 'error', message: 'Wallet not found' })
     }
+    // create signatures
+    const web3WalletSigner = await ethers.Wallet.fromMnemonic(dexwallet.seedphrase, "m/44'/60'/0'/0/" + dexwallet.walletindex)
+    const message = `I am owner of ${dexwallet.address}`
+    const signature = await web3WalletSigner.signMessage(message)
     // execute
     try {
       const ethereumApi = new EthereumApi()
       const web3Wallet = await ethereumApi.wallet(dexwallet)
       const tx = await web3Wallet.marketplace.close(req.body.blockchainId)
+      // ping backend to update
+      superagent
+        .post(config.app.baseUri+'/api/v1/marketplace/'+req.params.id+'/close')
+        .type('application/json')
+        .send({
+          signature
+        })
       return res.send({ status: 'success', message: dexwallet.txviewer + tx.transactionHash })
     } catch (e) {
       console.log('error', e)

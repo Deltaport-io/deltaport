@@ -7,6 +7,7 @@ import PageTitle from '../template/PageTitle'
 import Moment from 'react-moment'
 import AceEditor from "react-ace"
 import { getCredentials } from '../credcontrols'
+import { fromDisplayBalance } from '../utils'
 
 import "ace-builds/src-noconflict/mode-javascript" 
 import "ace-builds/src-noconflict/theme-github" 
@@ -121,7 +122,7 @@ class MarketplaceAddItem extends Component <MarketplaceAddItemProps, Marketplace
           title: this.state.title,
           description: this.state.description,
           type: types[this.state.type],
-          price: this.state.price,
+          price: fromDisplayBalance(this.state.price, '18'),
           data: this.state.data,
           wallet: this.state.selectedWallet.id
         })
@@ -268,8 +269,8 @@ class MarketplaceAddItem extends Component <MarketplaceAddItemProps, Marketplace
                       <input type="text" className="form-control" name="price" value={this.state.price} onChange={this.inputChange} placeholder=""/>
                     </div>
                     <label className="form-label">Select bot</label>
-                    {this.state.selectedBotOrTrading ?
-                      <li onClick={()=>this.setState({selectedBotOrTrading: undefined})} className="list-group-item"><span style={{fontWeight: 'bold'}}>{this.state.selectedBotOrTrading.name}</span> created:<Moment format="DD/MM/YYYY h:mm:ss A">{this.state.selectedBotOrTrading.createdAt}</Moment></li>
+                    {this.state.selectedBotOrTrading !== undefined ?
+                      <li onClick={()=>this.setState({selectedBotOrTrading: undefined, searchDropDownVisible: false})} className="list-group-item"><span style={{fontWeight: 'bold'}}>{this.state.selectedBotOrTrading.name}</span> created:<Moment format="DD/MM/YYYY h:mm:ss A">{this.state.selectedBotOrTrading.createdAt}</Moment></li>
                     :
                       <div>
                         <form className="d-flex" onSubmit={this.searchBots}>
@@ -282,7 +283,7 @@ class MarketplaceAddItem extends Component <MarketplaceAddItemProps, Marketplace
                               autoComplete="false"
                               onChange={this.inputChangeWithBotSearch}
                               onFocus={()=>{this.setState({searchDropDownVisible: true});this.searchBots()}}
-                              onBlur={()=>setTimeout(() => this.setState({searchDropDownVisible: false}), 100)}
+                              onBlur={()=>this.setState({searchDropDownVisible: false})}
                               placeholder="Bots"
                             />
                             <button className="btn btn-primary" type="submit">Search</button>
@@ -291,7 +292,7 @@ class MarketplaceAddItem extends Component <MarketplaceAddItemProps, Marketplace
                         {this.state.searchDropDownVisible ?
                           <ul className="list-group">
                             {this.state.searchResults.map((result: any) => {
-                              return <li key={result.id} onClick={()=>{this.setState({selectedBotOrTrading: result, data: result.code})}} className="list-group-item"><span style={{fontWeight: 'bold'}}>{result.name}</span> created:<Moment format="DD/MM/YYYY h:mm:ss A">{result.createdAt}</Moment></li>
+                              return <li key={result.id} onMouseDown={(event)=>{this.setState({selectedBotOrTrading: result, data: result.code})}} className="list-group-item"><span style={{fontWeight: 'bold'}}>{result.name}</span> created:<Moment format="DD/MM/YYYY h:mm:ss A">{result.createdAt}</Moment></li>
                             })}
                           </ul>
                         :null}
@@ -327,7 +328,7 @@ class MarketplaceAddItem extends Component <MarketplaceAddItemProps, Marketplace
                     </div>
                     <label className="form-label">Bot session</label>
                     {this.state.selectedBotOrTrading ?
-                      <li onClick={()=>this.setState({selectedBotOrTrading: undefined})} className="list-group-item"><span style={{fontWeight: 'bold'}}>{this.state.selectedBotOrTrading.name}</span> created:<Moment format="DD/MM/YYYY h:mm:ss A">{this.state.selectedBotOrTrading.createdAt}</Moment></li>
+                      <li onClick={()=>this.setState({selectedBotOrTrading: undefined, searchDropDownVisible: false})} className="list-group-item"><span style={{fontWeight: 'bold'}}>{this.state.selectedBotOrTrading.name}</span> created:<Moment format="DD/MM/YYYY h:mm:ss A">{this.state.selectedBotOrTrading.createdAt}</Moment></li>
                     :
                       <div>
                         <form className="d-flex" onSubmit={this.searchTradings}>
@@ -349,7 +350,7 @@ class MarketplaceAddItem extends Component <MarketplaceAddItemProps, Marketplace
                         {this.state.searchDropDownVisible ?
                           <ul className="list-group">
                             {this.state.searchResults.map((result: any) => {
-                              return <li key={result.id} onClick={()=>this.setState({selectedBotOrTrading: result, data: 'TODO: code reqirements'})} className="list-group-item"><span style={{fontWeight: 'bold'}}>{result.name}</span> created:<Moment format="DD/MM/YYYY h:mm:ss A">{result.createdAt}</Moment></li>
+                              return <li key={result.id} onMouseDown={(event)=>{this.setState({selectedBotOrTrading: result, data: 'TODO: code reqirements'})}} className="list-group-item"><span style={{fontWeight: 'bold'}}>{result.name}</span> created:<Moment format="DD/MM/YYYY h:mm:ss A">{result.createdAt}</Moment></li>
                             })}
                           </ul>
                         :null}

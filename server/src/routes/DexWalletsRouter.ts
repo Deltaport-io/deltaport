@@ -42,6 +42,8 @@ export class DexWalletsRouter {
         }
       }
     }
+    // add user check
+    where.userIdusers = user.idusers
     const dexwallets = await models.dexwallets.findAndCountAll({
       attributes: ['id', 'name', 'nodeurl', 'walletindex', 'address'],
       where,
@@ -92,7 +94,7 @@ export class DexWalletsRouter {
       nodeurl: req.body.nodeurl,
       walletindex: req.body.walletindex,
       txviewer: req.body.txviewer,
-      address,
+      address: address.toLowerCase(),
       userIdusers: user.idusers
     })
     return res.send({ status: 'success' })

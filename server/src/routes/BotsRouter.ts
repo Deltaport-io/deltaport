@@ -45,7 +45,9 @@ export class BotsRouter {
         order.push(['createdAt', 'DESC'])
       }
     }
-    let where:any = {}
+    let where:any = {
+      userIdusers: user.idusers
+    }
     if (req.query.search) {
         where = {
             userIdusers: user.idusers,
