@@ -350,13 +350,13 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
                         <td>{getDisplayBalance(this.state.item.price,'18')}</td>
                       </tr>
                     :null}
-                    {this.state.item.blockInfo && this.state.item.blockInfo.length > 0 ?
+                    {this.state.item.blockInfo && this.state.item.blockInfo.length > 0 && this.state.item.blockchainType === "1" ?
                       <tr>
                         <td>Subscription balance</td>
                         <td>{getDisplayBalance(this.state.item.blockInfo[0].amount, '18')}</td>
                       </tr>
                     :null}
-                    {this.state.item.blockInfo && this.state.item.blockInfo.length > 0 ?
+                    {this.state.item.blockInfo && this.state.item.blockInfo.length > 0 && this.state.item.blockchainType === "1"?
                       <tr>
                         <td>Next deduction on</td>
                         <td><Moment format="DD/MM/YYYY" unix>{this.state.item.blockInfo[0].endSub}</Moment></td>
