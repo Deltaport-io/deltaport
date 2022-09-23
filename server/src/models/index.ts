@@ -20,6 +20,7 @@ import dextokens from "./dextokens"
 import dexpooltokens from "./dexpooltokens"
 import tradegraphs from "./tradegraphs"
 import backtestgraphs from "./backtestgraphs"
+import followtrading from "./followtrading"
 
 import isElectron from 'is-electron'
 
@@ -62,7 +63,8 @@ const models = {
   dextokens: dextokens(sequelize, Sequelize),
   dexpooltokens: dexpooltokens(sequelize, Sequelize),
   tradegraphs: tradegraphs(sequelize, Sequelize),
-  backtestgraphs: backtestgraphs(sequelize, Sequelize)
+  backtestgraphs: backtestgraphs(sequelize, Sequelize),
+  followtrading: followtrading(sequelize, Sequelize)
 };
 
 // associate

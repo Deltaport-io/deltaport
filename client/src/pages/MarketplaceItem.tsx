@@ -64,11 +64,13 @@ type MarketplaceItemStates = {
   showSubscribeModal: boolean
   showUnsubscribeModal: boolean
   showTopoffModal: boolean
+  showSetupFollowModal: boolean
   error: string
   message: string
   isLoading: boolean
   amount: string
   subscribeModalAmount: string
+  createFollowName: string
 }
 
 const style = getComputedStyle(document.body)
@@ -99,11 +101,13 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
       showSubscribeModal: false,
       showUnsubscribeModal: false,
       showTopoffModal: false,
+      showSetupFollowModal: false,
       error: '',
       message: '',
       isLoading: false,
       amount: '0',
-      subscribeModalAmount: '0'
+      subscribeModalAmount: '0',
+      createFollowName: ''
     }
   }
 
@@ -178,6 +182,10 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
 
   showUnsubscribe = () => {
     this.setState({showUnsubscribeModal: true})
+  }
+
+  showFollowSetupModal = () => {
+    this.setState({showSetupFollowModal: true})
   }
 
   purchaseItem = () => {
@@ -274,7 +282,7 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
     // post to backend
     const { token } = getCredentials()
     fetch(
-      config.app.apiUri + '/api/v1/marketplace/'+this.state.item.blockchainId+'/close', {
+      config.app.apiUri + '/api/v1/marketplace/'+this.state.item.id+'/close', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -295,6 +303,34 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
       })
       .catch((error) => {
         this.setState({isLoading: false, error})
+      })
+  }
+
+  setupFollow = () => {
+    // post to backend
+    const { token } = getCredentials()
+    fetch(
+      config.app.apiUri + '/api/v1/follows', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token
+        },
+        body: JSON.stringify({
+          name: this.state.createFollowName,
+          remoteId: this.state.item.id,
+        })
+      })
+      .then((response) => { return response.json() })
+      .then((json) => {
+        if (json.status === 'success') {
+          this.props.history.push('/follows')
+        } else {
+          console.log(json.message)
+        }
+      })
+      .catch((error) => {
+        console.log(error)
       })
   }
 
@@ -377,7 +413,10 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
                                 <>
                                   <button onClick={()=>this.showSubscribe()} type="button" className="btn btn-sm btn-primary">Subscribe/TopOff</button>
                                   {this.state.item.blockInfo && this.state.item.blockInfo[0] && this.state.item.blockInfo[0].amount ?
-                                    <button onClick={()=>this.showUnsubscribe()} type="button" className="btn btn-sm btn-primary">Unsubscribe</button>
+                                    <span>
+                                      <button onClick={()=>this.showUnsubscribe()} type="button" className="btn btn-sm btn-primary">Unsubscribe</button>
+                                      <button onClick={()=>this.showFollowSetupModal()} type="button" className="btn btn-sm btn-primary">Setup Follow</button>
+                                    </span>
                                   :null}
                                 </>
                               :null}
@@ -392,11 +431,11 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
             </Card>
           :null}
 
-          {this.state.item && this.state.item.data ?
+          {this.state.item && this.state.item.data && this.state.item.blockchainType === "0" ?
             <Card>
               <Card.Body>
-                <h4 className="header-title d-inline-block">Data</h4>
-                {this.state.item.blockchainType === "0" || this.state.item.blockchainType === "1" ?
+                <div>
+                  <h4 className="header-title d-inline-block">Data</h4>
                   <div style={{height: 'calc(100vh - 335px)',position:'relative'}}>
                     <AceEditor
                       mode="javascript"
@@ -406,17 +445,7 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
                       value={this.state.item.data} 
                     />
                   </div>
-                :null}
-                {this.state.item.blockchainType === "2" ?
-                  <div>
-                    Subscribe system
-                  </div>
-                :null}
-                {this.state.item.blockchainType === "3" ?
-                  <div>
-                    {this.state.item.data}
-                  </div>
-                :null}
+                </div>
               </Card.Body>
             </Card>
           : null}
@@ -620,6 +649,23 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
                   <Button className="btn btn-primary account-button" type="submit" onClick={()=>this.unsubscribeItem()}>Unsubscribe</Button>
                 </div>
               }
+            </Modal.Body>
+          </Modal>
+
+          <Modal show={this.state.showSetupFollowModal} onHide={()=>this.setState({showSetupFollowModal: false})} animation={false} centered>
+            <Modal.Header style={{display: "flex", justifyContent: "center", alignItems: "center"}}>
+              <Modal.Title>Setup Following</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <form className="ps-3 pe-3">
+                <div className="mb-3">
+                  <label className="form-label">Alias for following</label>
+                  <input type="text" value={this.state.createFollowName} name="createFollowName" className="form-control form-control-sm" placeholder="Alias" required onChange={this.inputChange}/>
+                </div>
+              </form>
+              <div className="mb-1 text-center">
+                <Button className="btn btn-primary account-button" type="submit" onClick={()=>this.setupFollow()}>Setup</Button>
+              </div>
             </Modal.Body>
           </Modal>
 

@@ -11,12 +11,14 @@ const log = debug("trader:taskqueue")
 // tasks
 import TradeSession from "./tasks/tradesession"
 import BacktestSession from "./tasks/backtestsession"
+import FollowSession from "./tasks/followsession"
 import Blank from "./tasks/blank"
 
 // list tasks
 const loadTask = {
   TradeSession,
   BacktestSession,
+  FollowSession,
   Blank
 };
 

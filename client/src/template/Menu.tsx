@@ -12,6 +12,7 @@ const baseMenuItems: any[] = [
     { key: 'bots', label: 'Bots', isTitle: false, icon: 'uil-robot', url: '/bots' },
     { key: 'backtests', label: 'Backtests', isTitle: false, icon: 'uil-table', url: '/backtests' },
     { key: 'trading', label: 'Trading', isTitle: false, icon: 'uil-chart', url: '/tradings' },
+    { key: 'following', label: 'Following', isTitle: false, icon: 'uil-copy-landscape', url: '/follows' },
     { key: 'ethereum', label: 'Ethereum', isTitle: true },
     { key: 'wallets', label: 'Wallets', isTitle: false, icon: 'uil-globe', url: '/dexwallets' },
     { key: 'tokens', label: 'Tokens', isTitle: false, icon: 'uil-layers-alt', url: '/dextokens' },

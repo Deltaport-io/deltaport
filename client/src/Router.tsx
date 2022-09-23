@@ -19,6 +19,8 @@ import Exchanges from './pages/Exchanges'
 import Exchange from './pages/Exchange'
 import Tradings from './pages/Tradings'
 import Trading from './pages/Trading'
+import Follows from './pages/Follows'
+import Follow from './pages/Follow'
 import Backtests from './pages/Backtests'
 import Backtest from './pages/Backtest'
 import Docs from './pages/Docs'
@@ -51,6 +53,8 @@ const routes = <Switch>
   <Route component={MarketplaceAddItem} path="/marketplace/add" />
   <Route component={MarketplaceItem} path="/marketplace/:id" />
   <Route component={Marketplace} path="/marketplace" />
+  <Route component={Follows} path="/follows" />
+  <Route component={Follow} path="/follows/:id" />
 </Switch>
 
 class Router extends Component {
