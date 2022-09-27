@@ -124,7 +124,8 @@ class MarketplaceAddItem extends Component <MarketplaceAddItemProps, Marketplace
           type: types[this.state.type],
           price: fromDisplayBalance(this.state.price, '18'),
           data: this.state.data,
-          wallet: this.state.selectedWallet.id
+          wallet: this.state.selectedWallet.id,
+          botorsession: this.state.selectedBotOrTrading ? this.state.selectedBotOrTrading.id : ''
         })
       })
       .then((response) => { return response.json() })

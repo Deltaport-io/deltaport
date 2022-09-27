@@ -17,6 +17,7 @@ export default (sequelize, DataTypes) => {
   tradesessions.associate = function (models) {
     models.tradesessions.hasMany(models.tradelogs, {onDelete: 'cascade', hooks: true})
     models.tradesessions.hasMany(models.tradeohlcs, {onDelete: 'cascade', hooks: true})
+    models.tradesessions.hasMany(models.subtradesessions, {onDelete: 'cascade', hooks: true})
     models.tradesessions.belongsTo(models.users)
   }
   return tradesessions

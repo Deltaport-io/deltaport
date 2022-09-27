@@ -91,7 +91,8 @@ export class MarketplaceRouter {
     body('type').isString().isLength({ min: 1 }),
     body('price').isString().isLength({ min: 1 }),
     body('wallet').isString().isLength({ min: 1 }),
-    body('data').isString().isLength({ min: 1 })
+    body('data').isString().isLength({ min: 1 }),
+    body('botorsession').isString().isLength({ min: 1 })
   ]
 
   public async addMarketplaceItem (req: express.Request, res: express.Response) {
@@ -150,6 +151,13 @@ export class MarketplaceRouter {
           message
         })
       if (baseReq.body.status === 'success'){
+        if (req.body.type === 'Subscription') {
+          await models.subtradesessions.create({
+            remoteId: baseReq.body.marketplaceId,
+            dexwallet: dexwallet.id,
+            tradesessionId: req.body.botorsession
+          })
+        }
         return res.send({ status: 'success', id: baseReq.body.marketplaceId })
       } else {
         return res.send({ status: 'error', message: baseReq.body.message})

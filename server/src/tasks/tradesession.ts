@@ -8,6 +8,7 @@ import { config } from '../config/config'
 import * as tf from '@tensorflow/tfjs'
 import superagent from 'superagent'
 import BigNumber from 'bignumber.js'
+import { ethers } from 'ethers'
 
 const wait1sec = () => new Promise(resolve => setTimeout(resolve, 1000))
 
@@ -42,10 +43,110 @@ export default class TradeSession {
     await models.tradegraphs.create({graph, key, value, timestamp, tradesessionId: this.options.id})
   }
 
+  trackTrades = async (index, exchange, action, actionArgs) => {
+    const subSessions = await models.subtradesessions.findAll({
+      where: { tradesessionId: this.options.id },
+      include: { model: models.dexwallets }
+    })
+    for (const subSession of subSessions) {
+      // signature
+      const dexwallet = subSession.dexwallet
+      const web3WalletSigner = await ethers.Wallet.fromMnemonic(dexwallet.seedphrase, "m/44'/60'/0'/0/" + dexwallet.walletindex)
+      const message = `I am owner of ${dexwallet.address}`
+      const signature = await web3WalletSigner.signMessage(message)
+      // data payload
+      const data = {
+        type: 'exchange',
+        index,
+        exchange,
+        action,
+        actionArgs
+      }
+      // request
+      try {
+        await superagent
+          .post(config.app.baseUri+'/api/v1/marketplace/'+subSession.remoteId+'/newevent')
+          .type('application/json')
+          .send({
+            signature,
+            message,
+            data
+          })
+      } catch (e) {
+        // console.log('er')
+      }
+    }
+  }
+
+  loadExchange = (index, account, noTrading = false) => {
+    const exchange = account.exchange.exchange
+    const ccxtExchange = new ccxt[account.exchange.exchange]({
+      apiKey: account.key,
+      secret: account.secret,
+      enableRateLimit: true
+    })
+    if (account.testnet) {
+      ccxtExchange.setSandboxMode(true)
+    }
+    return {
+      createOrder: async (...args) => {
+        await this.trackTrades(index, exchange, 'createOrder', args)
+        if (noTrading) return
+        return ccxtExchange.createOrder(...args)
+      },
+      createLimitBuyOrder: async (...args) => {
+        await this.trackTrades(index, exchange, 'createLimitBuyOrder', args)
+        if (noTrading) return
+        return ccxtExchange.createLimitBuyOrder(...args)
+      },
+      createLimitSellOrder: async (...args) => {
+        await this.trackTrades(index, exchange, 'createLimitSellOrder', args)
+        if (noTrading) return
+        return ccxtExchange.createLimitSellOrder(...args)
+      },
+      createMarketBuyOrder: async (...args) => {
+        await this.trackTrades(index, exchange, 'createMarketBuyOrder', args)
+        if (noTrading) return
+        return ccxtExchange.createMarketBuyOrder(...args)
+      },
+      createMarketSellOrder: async (...args) => {
+        await this.trackTrades(index, exchange, 'createMarketSellOrder', args)
+        if (noTrading) return
+        return ccxtExchange.createMarketSellOrder(...args)
+      },
+      cancelOrder: async (...args) => {
+        if (noTrading) return
+        return ccxtExchange.cancelOrder(...args)
+      },
+      fetchOrders: async (...args) => {
+        return ccxtExchange.fetchOrders(...args)
+      },
+      fetchOpenOrders: async (...args) => {
+        return ccxtExchange.fetchOpenOrders(...args)
+      },
+      fetchClosedOrders: async (...args) => {
+        return ccxtExchange.fetchClosedOrders(...args)
+      },
+      fetchOrder: async (...args) => {
+        return ccxtExchange.fetchOrder(...args)
+      },
+      fetchPositions: async (...args) => {
+        return ccxtExchange.fetchPositions(...args)
+      },
+      fetchBalance: async (...args) => {
+        return ccxtExchange.fetchBalance(...args)
+      },
+      fetchOHLCV: async (...args) => {
+        return ccxtExchange.fetchOHLCV(...args)
+      }
+    }
+  }
+
   loader = async (toLoad: any) => {
     this.toLoad = toLoad
     // load exchanges
     if (toLoad.exchanges) {
+      let exchangesToLoadIndex = 0
       for (const exchange of toLoad.exchanges) {
         if (this.stopping !== "") {
           await this.close()
@@ -63,14 +164,7 @@ export default class TradeSession {
           }]
         })
         if (account) {
-          this.exchanges[exchange.exchange] = new ccxt[account.exchange.exchange]({
-            apiKey: account.key,
-            secret: account.secret,
-            enableRateLimit: true
-          })
-          if (account.testnet === true) {
-            this.exchanges[exchange.exchange].setSandboxMode(true)
-          }
+          this.exchanges[exchange.exchange] = this.loadExchange(exchangesToLoadIndex, account, exchange.noTrading === true ? true : false)
           for (const pair of exchange.pairs) {
             if (this.stopping !== "") {
               await this.close()
@@ -87,6 +181,7 @@ export default class TradeSession {
           this.saveLog('error', 'Exchange not found '+exchange.exchange)
           this.stopping = 'loader error'
         }
+        exchangesToLoadIndex++
       }
     }
     // load ethereum

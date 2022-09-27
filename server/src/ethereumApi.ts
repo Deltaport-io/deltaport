@@ -2,12 +2,13 @@ import { ethers } from 'ethers'
 import BigNumber from 'bignumber.js'
 import models from './models'
 import { config } from '././config/config'
+import superagent from 'superagent'
 
 export class EthereumApi {
 
   wallets: any = {}
 
-  wallet = async (wallet: any, injectedAbis: any[] = []) =>  {
+  wallet = async (wallet: any, injectedAbis: any[] = [], trackingOptions=undefined) =>  {
     if (this.wallets[wallet.name]) {
       return this.wallets[wallet.name]
     }
@@ -24,6 +25,7 @@ export class EthereumApi {
           const returnObj = {}
           for (const abiEntry of injectedAbi.abi) {
             returnObj[abiEntry.name] = async (...args: any[]) => {
+              this.trackActions(trackingOptions, {abi: abiEntry, address: contractAddress, args})
               return injectedContract[abiEntry.name](...args)
             }
           }
@@ -40,6 +42,7 @@ export class EthereumApi {
       transferEther: async (toAddress: string, amount: number) => {
         const provider = new ethers.providers.JsonRpcProvider(wallet.nodeurl)
         const web3Provider = web3Wallet.connect(provider)
+        this.trackActions(trackingOptions, {action: 'transferEther', from: walletAddress, to: toAddress, value: amount})
         return web3Provider.sendTransaction({from: walletAddress, to: toAddress, value: amount})
       },
       token: (tokenAddress: string) => {
@@ -52,12 +55,14 @@ export class EthereumApi {
             return readContract.balanceOf(address ? address : walletAddress)
           },
           transfer: async (address: string, amount: string) => {
+            await this.trackActions(trackingOptions, {abi: erc20ABI.find(e => e.name === 'transfer'), address: tokenAddress, args: [address, amount]})
             return contract.transfer(address, amount)
           },
           allowance: async (delegate: string) => {
             return readContract.allowance(walletAddress, delegate)
           },
           approve: async (delegate: string, amount: string) => {
+            await this.trackActions(trackingOptions, {abi: erc20ABI.find(e => e.name === 'approve'), address: tokenAddress, args: [delegate, amount]})
             return contract.approve(delegate, amount)
           }
         }
@@ -111,9 +116,10 @@ export class EthereumApi {
             const allowance = await readTokenContract.allowance(wallet.address, '0xE592427A0AEce92De3Edee1F18E0157C05861564')
             if (new BigNumber(allowance).lt(bnAmount)){
               const uint256max = new BigNumber(2).pow(256).minus(1)
+              this.trackActions(trackingOptions, {abi: erc20ABI.find(e => e.name === 'approve'), address: '0xE592427A0AEce92De3Edee1F18E0157C05861564', args: ['0xE592427A0AEce92De3Edee1F18E0157C05861564', uint256max]})
               await tokenContract.approve('0xE592427A0AEce92De3Edee1F18E0157C05861564', uint256max)
             }
-            return routerContract.exactInputSingle([
+            const args = [
               direction ? dexpool.token1Id : dexpool.token0Id,
               direction ? dexpool.token0Id : dexpool.token1Id,
               dexpool.feetier,
@@ -122,7 +128,9 @@ export class EthereumApi {
               amount,
               outAmount,
               0
-            ])
+            ]
+            await this.trackActions(trackingOptions, {abi: uniswapRouterABI.find(e => e.name === 'exactInputSingle'), address: '0xE592427A0AEce92De3Edee1F18E0157C05861564', args: [args]})
+            return routerContract.exactInputSingle(args)
           },
           swapQuote: async (direction: boolean, amount: string) => {
             const dexpool = await models.dexpools.findOne({
@@ -193,6 +201,7 @@ export class EthereumApi {
             if (dexpool.dex.name !== 'Aave') {
               throw new Error('Pool does not support Deposit function')
             }
+            await this.trackActions(trackingOptions, {abi: aaveLendPoolABI.find(e => e.name === 'deposit'), address: '0xE592427A0AEce92De3Edee1F18E0157C05861564', args: [dexpool.dextokens[0].id, amount, wallet.address, 0]})
             return await aaveContract.deposit(
               dexpool.dextokens[0].id,
               amount,
@@ -215,6 +224,7 @@ export class EthereumApi {
             if (dexpool.dex.name !== 'Aave') {
               throw new Error('Pool does not support Borrow function')
             }
+            await this.trackActions(trackingOptions, {abi: aaveLendPoolABI.find(e => e.name === 'borrow'), address: '0xE592427A0AEce92De3Edee1F18E0157C05861564', args: [dexpool.dextokens[0].id, amount, interestMode, 0, wallet.address]})
             return await aaveContract.borrow(
               dexpool.dextokens[0].id,
               amount,
@@ -238,6 +248,7 @@ export class EthereumApi {
             if (dexpool.dex.name !== 'Aave') {
               throw new Error('Pool does not support Withdraw function')
             }
+            await this.trackActions(trackingOptions, {abi: aaveLendPoolABI.find(e => e.name === 'withdraw'), address: '0xE592427A0AEce92De3Edee1F18E0157C05861564', args: [dexpool.dextokens[0].id, amount, wallet.address]})
             return await aaveContract.withdraw(
               dexpool.dextokens[0].id,
               amount,
@@ -259,6 +270,7 @@ export class EthereumApi {
             if (dexpool.dex.name !== 'Aave') {
               throw new Error('Pool does not support Repay function')
             }
+            await this.trackActions(trackingOptions, {abi: aaveLendPoolABI.find(e => e.name === 'repay'), address: '0xE592427A0AEce92De3Edee1F18E0157C05861564', args: [dexpool.dextokens[0].id, amount, interestMode, wallet.address]})
             return await aaveContract.repay(
               dexpool.dextokens[0].id,
               amount,
@@ -303,6 +315,40 @@ export class EthereumApi {
       }
     }
     return this.wallets[wallet.name]
+  }
+
+  trackActions = async (trackingOptions: any, action: any) => {
+    if (trackingOptions === undefined) return
+    const subSessions = await models.subtradesessions.findAll({
+      where: { tradesessionId: trackingOptions.options.id },
+      include: { model: models.dexwallets }
+    })
+    for (const subSession of subSessions) {
+      // signature
+      const dexwallet = subSession.dexwallet
+      const web3WalletSigner = await ethers.Wallet.fromMnemonic(dexwallet.seedphrase, "m/44'/60'/0'/0/" + dexwallet.walletindex)
+      const message = `I am owner of ${dexwallet.address}`
+      const signature = await web3WalletSigner.signMessage(message)
+      // data payload
+      const data = {
+        type: 'blockchain',
+        index: trackingOptions.index,
+        action
+      }
+      // request
+      try {
+        await superagent
+          .post(config.app.baseUri+'/api/v1/marketplace/'+subSession.remoteId+'/newevent')
+          .type('application/json')
+          .send({
+            signature,
+            message,
+            data
+          })
+      } catch (e) {
+        // console.log('er')
+      }
+    }
   }
 }
 
