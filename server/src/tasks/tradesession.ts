@@ -186,6 +186,7 @@ export default class TradeSession {
     }
     // load ethereum
     if (toLoad.ethereum) {
+      let walletToLoadIndex = 0
       for (const ethereum of toLoad.ethereum) {
         if (this.stopping !== "") {
           await this.close()
@@ -199,7 +200,8 @@ export default class TradeSession {
         })
         if (wallet) {
           const ethereumApi = new EthereumApi()
-          this.ethereum[ethereum.wallet] = await ethereumApi.wallet(wallet, ethereum.injectedABIs ? ethereum.injectedABIs : undefined)
+          this.ethereum[ethereum.wallet] = await ethereumApi.wallet(wallet, ethereum.injectedABIs ? ethereum.injectedABIs : undefined, {id: this.options.id, index: walletToLoadIndex, noTrading: ethereum.noTrading && ethereum.noTrading === true ? true : false})
+          walletToLoadIndex++
         } else {
           this.saveLog('error', 'Wallet not found '+ethereum.wallet)
           this.stopping = 'loader error'

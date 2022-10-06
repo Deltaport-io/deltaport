@@ -8,7 +8,7 @@ import compression from 'compression'
 import { taskQueue } from "./taskqueue"
 import models from './models'
 import { Umzug, SequelizeStorage } from 'umzug';
-import { loadExchanges, loadDexPoolsTokens } from './loaders'
+import { loadExchanges, importIfNotInPoolsTokens } from './loaders'
 
 // routes
 import MeRouter from "./routes/MeRouter"
@@ -48,7 +48,7 @@ export const start = async () => {
   // run loaders
   try {
     await loadExchanges()
-    await loadDexPoolsTokens()
+    await importIfNotInPoolsTokens()
   } catch (e) {
     logger.error('failed loading', e)
   }

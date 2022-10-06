@@ -3,6 +3,14 @@ import models from './models'
 import { request, gql } from 'graphql-request'
 import { logger } from './logger'
 
+export const importIfNotInPoolsTokens = async () => {
+  const count1 = await models.dextokens.count()
+  const count2 = await models.dexpools.count()
+  if (count1 === 0 || count2 === 0) {
+    loadDexPoolsTokens()
+  }
+}
+
 export const loadDexPoolsTokens = async () => {
   try {
     // load uniswap

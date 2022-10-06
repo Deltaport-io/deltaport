@@ -6,6 +6,7 @@ import { withRouter } from 'react-router'
 import { Modal, Button, Card, Table, OverlayTrigger, Tooltip } from 'react-bootstrap'
 import PageTitle from '../template/PageTitle'
 import { Link } from 'react-router-dom'
+import { Wallet, utils } from 'ethers'
 
 interface DexWalletsProps {
   history: any,
@@ -155,6 +156,12 @@ class DexWallets extends Component <DexWalletsProps, DexWalletsStates> {
       })
   }
 
+  generateSeedphrase = () => {
+    this.setState({
+      seedphrase: utils.entropyToMnemonic(utils.randomBytes(16))
+    })
+  }
+
   openModal = () => {
     this.setState({
       showModal: true
@@ -224,12 +231,12 @@ class DexWallets extends Component <DexWalletsProps, DexWalletsStates> {
                 <input type="text" className="form-control" name="name" value={this.state.name} onChange={this.inputChange} placeholder="Alias"/>
               </div>
               <div className="mb-3">
-                <label className="form-label">Seedphrase</label>
+                <label className="form-label">Seedphrase <i onClick={()=>this.generateSeedphrase()} className="uil uil-redo"></i></label>
                 <input type="text" className="form-control" name="seedphrase" value={this.state.seedphrase} onChange={this.inputChange} placeholder="Seedphrase"/>
               </div>
               <div className="mb-3">
                 <label className="form-label">Node URL</label>
-                <input type="text" className="form-control" name="nodeurl" value={this.state.nodeurl} onChange={this.inputChange} placeholder="Ethereum Node URL"/>
+                <input type="text" className="form-control" name="nodeurl" value={this.state.nodeurl} onChange={this.inputChange} placeholder="Node URL / free on infura.io"/>
               </div>
               <div className="mb-3">
                 <label className="form-label">Wallet index</label>

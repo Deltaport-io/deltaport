@@ -43,6 +43,8 @@ loader = {
     exchanges: [{
         // identifier of connected exchange
         exchange: 'BitmexLive',
+        // OPTIONAL: trading only, don't execute trades (still sends trades to marketplace)
+        noTrading: true
         // array of pair objects
         pairs: [{
             // identifier of pair to load
@@ -66,6 +68,8 @@ loader = {
     ethereum: [{
         // identifier of wallet
         wallet: 'MyWallet',
+        // OPTIONAL: trading only, don't execute trades (still sends trades to marketplace)
+        noTrading: true
         // BACKTESTING ONLY: array of mocked balances
         balances: [{
             // currency ETH gives ethereum to account

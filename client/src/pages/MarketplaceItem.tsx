@@ -8,58 +8,23 @@ import PageTitle from '../template/PageTitle'
 import Moment from 'react-moment'
 import { Link } from 'react-router-dom'
 import { fromDisplayBalance, getDisplayBalance } from '../utils'
-import ReactEChartsCore from 'echarts-for-react/lib/core'
-import * as echarts from 'echarts/core'
-import { CandlestickChart, BarChart, LineChart } from 'echarts/charts'
-import {
-  GridComponent,
-  ToolboxComponent,
-  TooltipComponent,
-  TitleComponent,
-  DataZoomComponent,
-  VisualMapComponent,
-  DatasetComponent
-} from 'echarts/components'
-import { CanvasRenderer } from 'echarts/renderers'
 
 import "ace-builds/src-noconflict/mode-javascript" 
 import "ace-builds/src-noconflict/theme-github" 
 import "ace-builds/src-noconflict/snippets/javascript"
 
-// include required
-echarts.use(
-  [
-    TitleComponent,
-    TooltipComponent,
-    GridComponent,
-    CandlestickChart,
-    LineChart,
-    CanvasRenderer,
-    BarChart,
-    ToolboxComponent,
-    DataZoomComponent,
-    VisualMapComponent,
-    DatasetComponent
-  ]
-);
-
 interface MarketplaceItemProps {
-  history: any,
-  location: any,
+  history: any
+  location: any
   match: any
 }
 
 type MarketplaceItemStates = {
   item: any
   wallets: any[]
+  accounts: any[]
   selectedWallet: any
   data: any
-  graphs: any
-  graphKeys: any
-  logs: any[]
-  viewGraphs: boolean
-  viewCode: boolean
-  viewLogs: boolean
   showPurchaseModal: boolean
   showSubscribeModal: boolean
   showUnsubscribeModal: boolean
@@ -89,14 +54,9 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
     this.state = {
       item: {},
       wallets: [],
+      accounts: [],
       selectedWallet: undefined,
       data: {},
-      graphs: {},
-      graphKeys: {},
-      logs: [],
-      viewGraphs: true,
-      viewCode: true,
-      viewLogs: true,
       showPurchaseModal: false,
       showSubscribeModal: false,
       showUnsubscribeModal: false,
@@ -172,11 +132,36 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
       })
   }
 
+  loadAccounts = () => {
+    const { token } = getCredentials()
+    fetch(
+      config.app.apiUri + '/api/v1/exchanges/', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token
+        }
+      })
+      .then((response) => { return response.json() })
+      .then((json) => {
+        if (json.status === 'success') {
+          this.setState({
+            accounts: json.accounts
+          })
+        }
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+  }
+
   showPurchaseModal = () => {
+    this.loadDexWallets()
     this.setState({showPurchaseModal: true})
   }
 
   showSubscribe = () => {
+    this.loadDexWallets()
     this.setState({showSubscribeModal: true})
   }
 
@@ -185,6 +170,8 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
   }
 
   showFollowSetupModal = () => {
+    this.loadDexWallets()
+    this.loadAccounts()
     this.setState({showSetupFollowModal: true})
   }
 
@@ -370,7 +357,7 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
                     </tr>
                     <tr>
                       <td>Added</td>
-                      <td><Moment format="DD/MM/YYYY h:mm:ss A">{this.state.item.added}</Moment></td>
+                      <td><Moment format="DD/MM/YYYY h:mm:ss A">{this.state.item.createdAt}</Moment></td>
                     </tr>
                     <tr>
                       <td>Owner</td>
@@ -431,7 +418,7 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
             </Card>
           :null}
 
-          {this.state.item && this.state.item.data && this.state.item.blockchainType === "0" ?
+          {this.state.item && this.state.item.data && this.state.item.data.code && this.state.item.blockchainType === "0" ?
             <Card>
               <Card.Body>
                 <div>
@@ -442,55 +429,10 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
                       theme="github"
                       height="100%"
                       width="100%"
-                      value={this.state.item.data} 
+                      value={this.state.item.data.code} 
                     />
                   </div>
                 </div>
-              </Card.Body>
-            </Card>
-          : null}
-
-          {this.state.item && this.state.item.code ?
-            <Card>
-              <Card.Body>
-                <h4 className="header-title d-inline-block">Code</h4>
-                <div style={{height: 'calc(100vh - 335px)',position:'relative'}}>
-                  <AceEditor
-                    mode="javascript"
-                    theme="github"
-                    height="100%"
-                    width="100%"
-                    value={this.state.item.code} 
-                  />
-                </div>
-              </Card.Body>
-            </Card>
-          : null}
-
-          {this.state.logs && this.state.logs.length > 0 ?
-            <Card>
-              <Card.Body>
-                <h4 className="header-title d-inline-block">Logs</h4>
-                <Table striped className="mb-0" size="sm">
-                  <thead>
-                  <tr>
-                    <th>Time</th>
-                    <th>Type</th>
-                    <th>Log</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                    {this.state.logs.map((log:any) => {
-                      return (
-                        <tr key={log.id}>
-                          <td><Moment format="DD/MM/YYYY h:mm:ss A">{log.timestamp}</Moment></td>
-                          <td>{log.type}</td>
-                          <td>{log.msg}</td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </Table>
               </Card.Body>
             </Card>
           : null}
@@ -659,9 +601,25 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
             <Modal.Body>
               <form className="ps-3 pe-3">
                 <div className="mb-3">
-                  <label className="form-label">Alias for following</label>
+                  <label className="form-label">Name the following</label>
                   <input type="text" value={this.state.createFollowName} name="createFollowName" className="form-control form-control-sm" placeholder="Alias" required onChange={this.inputChange}/>
                 </div>
+                {this.state.item.data && this.state.item.data.exchanges && this.state.item.data.exchanges.length > 0 ?
+                  <div>
+                    <div>Connect exchanges</div>
+                    {this.state.item.data.exchanges.map((e: any)=>{
+                      return <div>{JSON.stringify(e)}</div>
+                    })}
+                  </div>
+                : null}
+                {this.state.item.data && this.state.item.data.ethereum && this.state.item.data.ethereum.length > 0 ?
+                  <div>
+                    <div>Connect Ethereum wallets</div>
+                    {this.state.item.data.ethereum.map((e: any)=>{
+                      return <div>{JSON.stringify(e)}</div>
+                    })}
+                  </div>
+                : null}
               </form>
               <div className="mb-1 text-center">
                 <Button className="btn btn-primary account-button" type="submit" onClick={()=>this.setupFollow()}>Setup</Button>
