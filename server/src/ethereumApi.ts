@@ -25,7 +25,7 @@ export class EthereumApi {
           const returnObj = {}
           for (const abiEntry of injectedAbi.abi) {
             returnObj[abiEntry.name] = async (...args: any[]) => {
-              this.trackActions(options, {abi: abiEntry, address: contractAddress, args})
+              this.trackActions(options, {action: 'contractInteraction', abi: abiEntry, address: contractAddress, args})
               if (options && options.noTrading === true) return
               return injectedContract[abiEntry.name](...args)
             }
@@ -57,7 +57,7 @@ export class EthereumApi {
             return readContract.balanceOf(address ? address : walletAddress)
           },
           transfer: async (address: string, amount: string) => {
-            await this.trackActions(options, {abi: erc20ABI.find(e => e.name === 'transfer'), address: tokenAddress, args: [address, amount]})
+            await this.trackActions(options, {action: 'contractInteraction', abi: erc20ABI.find(e => e.name === 'transfer'), address: tokenAddress, args: [address, amount]})
             if (options && options.noTrading === true) return
             return contract.transfer(address, amount)
           },
@@ -65,7 +65,7 @@ export class EthereumApi {
             return readContract.allowance(walletAddress, delegate)
           },
           approve: async (delegate: string, amount: string) => {
-            await this.trackActions(options, {abi: erc20ABI.find(e => e.name === 'approve'), address: tokenAddress, args: [delegate, amount]})
+            await this.trackActions(options, {action: 'contractInteraction', abi: erc20ABI.find(e => e.name === 'approve'), address: tokenAddress, args: [delegate, amount]})
             if (options && options.noTrading === true) return
             return contract.approve(delegate, amount)
           }
@@ -120,7 +120,7 @@ export class EthereumApi {
             const allowance = await readTokenContract.allowance(wallet.address, '0xE592427A0AEce92De3Edee1F18E0157C05861564')
             if (new BigNumber(allowance).lt(bnAmount)){
               const uint256max = new BigNumber(2).pow(256).minus(1)
-              this.trackActions(options, {abi: erc20ABI.find(e => e.name === 'approve'), address: '0xE592427A0AEce92De3Edee1F18E0157C05861564', args: ['0xE592427A0AEce92De3Edee1F18E0157C05861564', uint256max]})
+              this.trackActions(options, {action: 'contractInteraction', abi: erc20ABI.find(e => e.name === 'approve'), address: '0xE592427A0AEce92De3Edee1F18E0157C05861564', args: ['0xE592427A0AEce92De3Edee1F18E0157C05861564', uint256max]})
               if (options && options.noTrading === true) return
               await tokenContract.approve('0xE592427A0AEce92De3Edee1F18E0157C05861564', uint256max)
             }
@@ -134,7 +134,7 @@ export class EthereumApi {
               outAmount,
               0
             ]
-            await this.trackActions(options, {abi: uniswapRouterABI.find(e => e.name === 'exactInputSingle'), address: '0xE592427A0AEce92De3Edee1F18E0157C05861564', args: [args]})
+            await this.trackActions(options, {action: 'contractInteraction', abi: uniswapRouterABI.find(e => e.name === 'exactInputSingle'), address: '0xE592427A0AEce92De3Edee1F18E0157C05861564', args: [args]})
             if (options && options.noTrading === true) return
             return routerContract.exactInputSingle(args)
           },
@@ -207,7 +207,7 @@ export class EthereumApi {
             if (dexpool.dex.name !== 'Aave') {
               throw new Error('Pool does not support Deposit function')
             }
-            await this.trackActions(options, {abi: aaveLendPoolABI.find(e => e.name === 'deposit'), address: '0xE592427A0AEce92De3Edee1F18E0157C05861564', args: [dexpool.dextokens[0].id, amount, wallet.address, 0]})
+            await this.trackActions(options, {action: 'contractInteraction', abi: aaveLendPoolABI.find(e => e.name === 'deposit'), address: '0xE592427A0AEce92De3Edee1F18E0157C05861564', args: [dexpool.dextokens[0].id, amount, wallet.address, 0]})
             if (options && options.noTrading === true) return
             return await aaveContract.deposit(
               dexpool.dextokens[0].id,
@@ -231,7 +231,7 @@ export class EthereumApi {
             if (dexpool.dex.name !== 'Aave') {
               throw new Error('Pool does not support Borrow function')
             }
-            await this.trackActions(options, {abi: aaveLendPoolABI.find(e => e.name === 'borrow'), address: '0xE592427A0AEce92De3Edee1F18E0157C05861564', args: [dexpool.dextokens[0].id, amount, interestMode, 0, wallet.address]})
+            await this.trackActions(options, {action: 'contractInteraction', abi: aaveLendPoolABI.find(e => e.name === 'borrow'), address: '0xE592427A0AEce92De3Edee1F18E0157C05861564', args: [dexpool.dextokens[0].id, amount, interestMode, 0, wallet.address]})
             if (options && options.noTrading === true) return
             return await aaveContract.borrow(
               dexpool.dextokens[0].id,
@@ -256,7 +256,7 @@ export class EthereumApi {
             if (dexpool.dex.name !== 'Aave') {
               throw new Error('Pool does not support Withdraw function')
             }
-            await this.trackActions(options, {abi: aaveLendPoolABI.find(e => e.name === 'withdraw'), address: '0xE592427A0AEce92De3Edee1F18E0157C05861564', args: [dexpool.dextokens[0].id, amount, wallet.address]})
+            await this.trackActions(options, {action: 'contractInteraction', abi: aaveLendPoolABI.find(e => e.name === 'withdraw'), address: '0xE592427A0AEce92De3Edee1F18E0157C05861564', args: [dexpool.dextokens[0].id, amount, wallet.address]})
             if (options && options.noTrading === true) return
             return await aaveContract.withdraw(
               dexpool.dextokens[0].id,
@@ -279,7 +279,7 @@ export class EthereumApi {
             if (dexpool.dex.name !== 'Aave') {
               throw new Error('Pool does not support Repay function')
             }
-            await this.trackActions(options, {abi: aaveLendPoolABI.find(e => e.name === 'repay'), address: '0xE592427A0AEce92De3Edee1F18E0157C05861564', args: [dexpool.dextokens[0].id, amount, interestMode, wallet.address]})
+            await this.trackActions(options, {action: 'contractInteraction', abi: aaveLendPoolABI.find(e => e.name === 'repay'), address: '0xE592427A0AEce92De3Edee1F18E0157C05861564', args: [dexpool.dextokens[0].id, amount, interestMode, wallet.address]})
             if (options && options.noTrading === true) return
             return await aaveContract.repay(
               dexpool.dextokens[0].id,
@@ -322,6 +322,12 @@ export class EthereumApi {
           const marketplaceContract = new ethers.Contract(config.app.marketplaceAddress, marketplaceABI, web3Provider)
           return marketplaceContract.closeEntry(entryId)
         }
+      },
+      executeContractAction: async (address, abi, name, args) => {
+        const provider = new ethers.providers.JsonRpcProvider(wallet.nodeurl)
+        const web3Provider = web3Wallet.connect(provider)
+        const tempContract = new ethers.Contract(address, abi, web3Provider)
+        return tempContract[name](...args)
       }
     }
     return this.wallets[wallet.name]
@@ -341,7 +347,7 @@ export class EthereumApi {
       const signature = await web3WalletSigner.signMessage(message)
       // data payload
       const data = {
-        type: 'blockchain',
+        type: 'ethereum',
         index: options.index,
         action
       }

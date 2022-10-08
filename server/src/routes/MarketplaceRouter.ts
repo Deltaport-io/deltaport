@@ -135,7 +135,7 @@ export class MarketplaceRouter {
       const loader = vm.run(`loader`)
       if (loader.exchanges && loader.exchanges.length > 0) {
         data['exchanges'] = []
-        let indexExchanges = 0
+        let indexExchanges = 1
         for(const item of loader.exchanges){
           const account = await models.accounts.findOne({where:{name:item.exchange, userIdusers: user.idusers},include:[{model: models.exchanges}]})
           data['exchanges'].push({index: indexExchanges, type: account.exchange.type, exchange: account.exchange.exchange})
@@ -144,7 +144,7 @@ export class MarketplaceRouter {
       }
       if (loader.ethereum && loader.ethereum.length > 0) {
         data['ethereum'] = []
-        let indexEthereum = 0
+        let indexEthereum = 1
         for(const item of loader.ethereum){
           data['ethereum'].push({index: indexEthereum})
           indexEthereum++

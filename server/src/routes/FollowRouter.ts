@@ -3,6 +3,7 @@ import { getMeUser } from '../me'
 import models from '../models'
 import { query, body, param, validationResult } from 'express-validator'
 import { taskQueue } from '../taskqueue'
+import { id } from 'ethers/lib/utils'
 
 export class FollowRouter {
   router: express.Router
@@ -154,7 +155,9 @@ export class FollowRouter {
 
   followInputs = [
     body('remoteId').isLength({ min: 1, max: 50 }),
-    body('name').isLength({ min: 1, max: 50 })
+    body('name').isLength({ min: 1, max: 50 }),
+    body('wallet').isLength({ min: 1, max: 50 }),
+    body('mapping').isObject()
   ]
 
   public async follow (req: express.Request, res: express.Response) {
@@ -168,11 +171,18 @@ export class FollowRouter {
     if (!user) {
         return res.send({ status: 'error', message: 'No user' })
     }
+    // validate wallet
+    const wallet = await models.dexwallets.findOne({where: {id: req.body.wallet, userIdusers: user.idusers}})
+    if (!wallet) {
+      return res.send({ status: 'error', message: 'Not wallet owner' })
+  }
     // create session
     const session = await models.followtrading.create({
       remoteId: req.body.remoteId,
       name: req.body.name,
-      userIdusers: user.idusers
+      userIdusers: user.idusers,
+      mapping: req.body.mapping,
+      dexwalletId: wallet.id
     })
     // create task
     await taskQueue.addTask({type: 'FollowSession', id: session.id})

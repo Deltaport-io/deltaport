@@ -36,6 +36,7 @@ type MarketplaceItemStates = {
   amount: string
   subscribeModalAmount: string
   createFollowName: string
+  createFollowMapping: any
 }
 
 const style = getComputedStyle(document.body)
@@ -67,7 +68,8 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
       isLoading: false,
       amount: '0',
       subscribeModalAmount: '0',
-      createFollowName: ''
+      createFollowName: '',
+      createFollowMapping: {}
     }
   }
 
@@ -237,6 +239,8 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
 
   unsubscribeItem = () => {
     this.setState({isLoading: true, error: ''})
+    const subWallet = this.state.item && this.state.item.blockInfo && this.state.item.blockInfo[0] && this.state.item.blockInfo[0].subscriber ?  this.state.item.blockInfo[0].subscriber : null
+    const wallet = this.state.wallets.find(x => x.address === subWallet)
     // post to backend
     const { token } = getCredentials()
     fetch(
@@ -248,7 +252,7 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
         },
         body: JSON.stringify({
           blockchainId: this.state.item.blockchainId,
-          // TODO: wallet that purchased address
+          wallet: wallet.id
         })
       })
       .then((response) => { return response.json() })
@@ -266,6 +270,8 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
 
   closeItem = () => {
     this.setState({isLoading: true, error: ''})
+    const subWallet = this.state.item && this.state.item.blockInfo && this.state.item.blockInfo[0] && this.state.item.blockInfo[0].subscriber ?  this.state.item.blockInfo[0].subscriber : null
+    const wallet = this.state.wallets.find(x => x.address === subWallet)
     // post to backend
     const { token } = getCredentials()
     fetch(
@@ -277,7 +283,7 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
         },
         body: JSON.stringify({
           blockchainId: this.state.item.blockchainId,
-          // TODO: wallet with item.owner address
+          wallet: wallet.id
         })
       })
       .then((response) => { return response.json() })
@@ -294,6 +300,26 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
   }
 
   setupFollow = () => {
+    // process mapping
+    const subWallet = this.state.item && this.state.item.blockInfo && this.state.item.blockInfo[0] && this.state.item.blockInfo[0].subscriber ?  this.state.item.blockInfo[0].subscriber : null
+    const wallet = this.state.wallets.find(x => x.address === subWallet)
+    const mapping: any = {}
+    if (this.state.createFollowMapping && this.state.createFollowMapping.ethereum) {
+      for (const index in this.state.createFollowMapping.ethereum) {
+        if (mapping['ethereum'] === undefined) {
+          mapping['ethereum'] = {}
+        }
+        mapping['ethereum'][index] = this.state.createFollowMapping.ethereum[index].id
+      }
+    }
+    if (this.state.createFollowMapping && this.state.createFollowMapping.exchanges) {
+      for (const index in this.state.createFollowMapping.exchanges) {
+        if (mapping['exchanges'] === undefined) {
+          mapping['exchanges'] = {}
+        }
+        mapping['exchanges'][index] = this.state.createFollowMapping.exchanges[index].id
+      } 
+    }
     // post to backend
     const { token } = getCredentials()
     fetch(
@@ -306,6 +332,8 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
         body: JSON.stringify({
           name: this.state.createFollowName,
           remoteId: this.state.item.id,
+          mapping,
+          wallet: wallet.id
         })
       })
       .then((response) => { return response.json() })
@@ -319,6 +347,20 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
       .catch((error) => {
         console.log(error)
       })
+  }
+
+  addToMapping = (network: string, index: number, data: any) => {
+    const createFollowMapping = this.state.createFollowMapping
+    if (createFollowMapping[network] === undefined) {
+      createFollowMapping[network] = {}
+    }
+    if (createFollowMapping[network][index] === undefined) {
+      createFollowMapping[network][index] = data
+    }
+    if (data === undefined) {
+      delete createFollowMapping[network][index]
+    }
+    this.setState({createFollowMapping})
   }
 
   render () {
@@ -604,25 +646,59 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
                   <label className="form-label">Name the following</label>
                   <input type="text" value={this.state.createFollowName} name="createFollowName" className="form-control form-control-sm" placeholder="Alias" required onChange={this.inputChange}/>
                 </div>
-                {this.state.item.data && this.state.item.data.exchanges && this.state.item.data.exchanges.length > 0 ?
+                {this.state.item.data && this.state.item.data.ethereum && this.state.item.data.ethereum.length > 0 ?
                   <div>
-                    <div>Connect exchanges</div>
-                    {this.state.item.data.exchanges.map((e: any)=>{
-                      return <div>{JSON.stringify(e)}</div>
+                    <div>Ethereum wallets</div>
+                    {this.state.item.data.ethereum.map((e: any)=>{
+                      return <div>
+                        <div className="mb-3">
+                          <label className="form-label">Select: {e.index} - wallet</label>
+                          {this.state.createFollowMapping &&
+                            this.state.createFollowMapping.ethereum &&
+                            this.state.createFollowMapping.ethereum[e.index] ?
+                            <div onClick={()=>this.addToMapping('ethereum', e.index, undefined)}>{this.state.createFollowMapping.ethereum[e.index].name}</div>
+                          :
+                            <DropdownButton
+                              title={''}
+                            >
+                              { this.state.wallets.map((wallet:any, index: number) => {
+                                return <Dropdown.Item key={wallet.id} onClick={()=>this.addToMapping('ethereum', e.index, wallet)}>{wallet.name}</Dropdown.Item>
+                              })}
+                            </DropdownButton>
+                          }
+                        </div>
+                      </div>
                     })}
                   </div>
                 : null}
-                {this.state.item.data && this.state.item.data.ethereum && this.state.item.data.ethereum.length > 0 ?
+                {this.state.item.data && this.state.item.data.exchanges && this.state.item.data.exchanges.length > 0 ?
                   <div>
-                    <div>Connect Ethereum wallets</div>
-                    {this.state.item.data.ethereum.map((e: any)=>{
-                      return <div>{JSON.stringify(e)}</div>
+                    <div>Exchanges</div>
+                    {this.state.item.data.exchanges.map((e: any)=>{
+                      return <div>
+                      <div className="mb-3">
+                        <label className="form-label">Select: {e.index} - wallet</label>
+                        {this.state.createFollowMapping &&
+                          this.state.createFollowMapping.exchanges &&
+                          this.state.createFollowMapping.exchanges[e.index] ?
+                          <div onClick={()=>this.addToMapping('exchanges', e.index, undefined)}>{this.state.createFollowMapping.exchanges[e.index].name}</div>
+                        :
+                          <DropdownButton
+                            title={''}
+                          >
+                            { this.state.accounts.map((account:any, index: number) => {
+                              return <Dropdown.Item key={account.id} onClick={()=>this.addToMapping('exchanges', e.index, account)}>{account.name}</Dropdown.Item>
+                            })}
+                          </DropdownButton>
+                        }
+                      </div>
+                    </div>
                     })}
                   </div>
                 : null}
               </form>
               <div className="mb-1 text-center">
-                <Button className="btn btn-primary account-button" type="submit" onClick={()=>this.setupFollow()}>Setup</Button>
+                <Button className="btn btn-primary account-button" type="submit" onClick={()=>this.setupFollow()}>Start following</Button>
               </div>
             </Modal.Body>
           </Modal>

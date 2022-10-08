@@ -7,7 +7,19 @@ export default (sequelize, DataTypes) => {
     started: { type: DataTypes.DATE(6) },
     ended: { type: DataTypes.DATE(6) },
     reason: { type: DataTypes.STRING },
-    followId: { type: DataTypes.STRING }
+    remoteId: { type: DataTypes.STRING },
+    // FK dexwallets
+    mapping: {
+      type: DataTypes.JSON,
+      get() {
+        const rawData = this.getDataValue('mapping')
+        if (typeof rawData === "string") {
+          return JSON.parse(rawData)
+        } else {
+          return rawData
+        }
+      }
+    }
   }, {
     timestamps: true,
     paranoid: false,
@@ -16,6 +28,7 @@ export default (sequelize, DataTypes) => {
   })
   followtrading.associate = function (models) {
     models.followtrading.belongsTo(models.users)
+    models.followtrading.belongsTo(models.dexwallets)
   }
   return followtrading
 }
