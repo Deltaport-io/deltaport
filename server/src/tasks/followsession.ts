@@ -162,7 +162,7 @@ export default class Blank {
     this.walletMessage = `I am owner of ${this.session.dexwallet.address}`
     this.walletSingature = await web3WalletSigner.signMessage(this.walletMessage)
     // listen shutdown
-    taskQueue.queue.on('global:completed', (id) => {
+    taskQueue.queue.on('global:failed', (id) => {
       if (id === this.session.id) {
         this.stopping = "user stop"
       }

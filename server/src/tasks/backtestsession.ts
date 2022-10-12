@@ -149,7 +149,7 @@ export default class BacktestSession {
       where: { id: this.options.id }
     })
     // listen shutdown
-    taskQueue.queue.on('global:completed', (id) => {
+    taskQueue.queue.on('global:failed', (id) => {
       if (id === this.session.id) {
         this.stopping = "user stop"
       }
@@ -160,7 +160,7 @@ export default class BacktestSession {
     process.on('SIGINT', async () => {
       this.stopping = "system stop"
     })
-    await models.backtestsessions.update({started: new Date().getTime()}, {where:{id: this.options.id}})
+    await models.backtestsessions.update({started: new Date().getTime(), ended: null, reason: null}, {where:{id: this.options.id}})
     // check for script compile
     let script
     try {

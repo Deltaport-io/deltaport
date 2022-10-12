@@ -16,7 +16,7 @@ export class mockTaskQueue extends EventEmitter {
       id,
       data: task,
       remove: async () => {
-        this.emit('global:completed', id)
+        this.emit('global:failed', id)
         delete this.jobs[id]
       }
     }
@@ -40,7 +40,7 @@ export class mockTaskQueue extends EventEmitter {
           this.jobs[newTasksIds[0]].status = 'working'
           try {
             await func(this.jobs[newTasksIds[0]], ()=>{
-              this.emit('global:completed', newTasksIds[0])
+              this.emit('global:failed', newTasksIds[0])
               delete this.jobs[newTasksIds[0]]
             })
           } catch {

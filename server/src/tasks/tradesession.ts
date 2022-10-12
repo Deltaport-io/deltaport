@@ -216,7 +216,7 @@ export default class TradeSession {
       where: { id: this.options.id }
     })
     // listen shutdown
-    taskQueue.queue.on('global:completed', (id) => {
+    taskQueue.queue.on('global:failed', (id) => {
       if (id === this.session.id) {
         this.stopping = "user stop"
       }
@@ -227,7 +227,7 @@ export default class TradeSession {
     process.on('SIGINT', async () => {
       this.stopping = "system stop"
     })
-    await models.tradesessions.update({started: new Date().getTime()}, {where:{id: this.options.id}})
+    await models.tradesessions.update({started: new Date().getTime(), ended: null, reason: null}, {where:{id: this.options.id}})
     // check for script compile
     let script
     try {
