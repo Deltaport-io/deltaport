@@ -300,6 +300,7 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
   }
 
   setupFollow = () => {
+    this.setState({isLoading: true, error: ''})
     // process mapping
     const subWallet = this.state.item && this.state.item.blockInfo && this.state.item.blockInfo[0] && this.state.item.blockInfo[0].subscriber ?  this.state.item.blockInfo[0].subscriber : null
     const wallet = this.state.wallets.find(x => x.address === subWallet)
@@ -340,12 +341,13 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
       .then((json) => {
         if (json.status === 'success') {
           this.props.history.push('/follows')
+          this.setState({isLoading: false})
         } else {
-          console.log(json.message)
+          this.setState({isLoading: false, error: json.message})
         }
       })
       .catch((error) => {
-        console.log(error)
+        this.setState({isLoading: false, error})
       })
   }
 
@@ -697,9 +699,19 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
                   </div>
                 : null}
               </form>
-              <div className="mb-1 text-center">
-                <Button className="btn btn-primary account-button" type="submit" onClick={()=>this.setupFollow()}>Start following</Button>
-              </div>
+              { this.state.isLoading ?
+                <div className="mb-1 text-center">
+                  <Button className="btn btn-primary account-button" type="button">
+                    <div className="spinner-border spinner-border-sm">
+                      <span className="sr-only"></span>
+                    </div>
+                  </Button>
+                </div>
+              :
+                <div className="mb-1 text-center">
+                  <Button className="btn btn-primary account-button" type="submit" onClick={()=>this.setupFollow()}>Start following</Button>
+                </div>
+              }
             </Modal.Body>
           </Modal>
 
