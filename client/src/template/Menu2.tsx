@@ -1,8 +1,5 @@
 import React, { Component } from 'react';
-import { Card, Collapse } from 'react-bootstrap';
 import { withRouter } from 'react-router'
-import { Link } from 'react-router-dom';
-import classNames from 'classnames';
 import AppMenu from './Menu'
 
 interface MenuProps {
