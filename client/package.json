@@ -46,7 +46,6 @@
     "react-moment": "^1.1.2",
     "react-router-dom": "^5.2.1",
     "react-scripts": "^4.0.3",
-    "simplebar-react": "^2.4.1",
     "typescript": "^4.4.2",
     "web-vitals": "^3.0.2"
   },

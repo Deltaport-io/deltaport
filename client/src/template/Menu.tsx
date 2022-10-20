@@ -3,25 +3,6 @@ import { Link, withRouter } from 'react-router-dom';
 import { Collapse } from 'react-bootstrap';
 import classNames from 'classnames';
 
-const baseMenuItems: any[] = [
-    { key: 'navigation', label: 'Navigation', isTitle: true },
-    { key: 'dashboard', label: 'Dashboard', isTitle: false, icon: 'uil-home-alt', url: '/dashboard' },
-    { key: 'marketplace', label: 'Marketplace', isTitle: false, icon: 'uil-store', url: '/marketplace' },
-    { key: 'docs', label: 'Docs', isTitle: false, icon: 'uil-book-alt', url: '/docs' },
-    { key: 'automation', label: 'Automation', isTitle: true },
-    { key: 'bots', label: 'Bots', isTitle: false, icon: 'uil-robot', url: '/bots' },
-    { key: 'backtests', label: 'Backtests', isTitle: false, icon: 'uil-table', url: '/backtests' },
-    { key: 'trading', label: 'Trading', isTitle: false, icon: 'uil-chart', url: '/tradings' },
-    { key: 'following', label: 'Following', isTitle: false, icon: 'uil-copy-landscape', url: '/follows' },
-    { key: 'ethereum', label: 'Ethereum', isTitle: true },
-    { key: 'wallets', label: 'Wallets', isTitle: false, icon: 'uil-globe', url: '/dexwallets' },
-    { key: 'tokens', label: 'Tokens', isTitle: false, icon: 'uil-layers-alt', url: '/dextokens' },
-    { key: 'pools', label: 'Pools', isTitle: false, icon: 'uil-coins', url: '/dexpools' },
-    { key: 'exchanges', label: 'Exchanges', isTitle: true },
-    { key: 'exchanges', label: 'Exchanges', isTitle: false, icon: 'uil-building', url: '/exchanges' },
-    { key: 'pairs', label: 'Pairs', isTitle: false, icon: 'uil-layer-group', url: '/pairs' }
-];
-
 const findAllParent = (menuItems:any, menuItem:any):any => {
     let parents = [];
     const parent = findMenuItem(menuItems, menuItem['parentKey']);
@@ -141,10 +122,52 @@ const MenuItemLink = ({ item, className }:any) => {
 type AppMenuProps = {
     history: any,
     location: any,
-    match: any
+    match: any,
+    menuExtended: boolean
 }
 
 const AppMenu = (props: AppMenuProps) => {
+
+    const baserMenuItems: any[] = [
+        { key: 'navigation', label: 'Navigation', isTitle: true },
+        { key: 'dashboard', label: 'Dashboard', isTitle: false, icon: 'uil-home-alt', url: '/dashboard' },
+        { key: 'marketplace', label: 'Marketplace', isTitle: false, icon: 'uil-store', url: '/marketplace' },
+        { key: 'docs', label: 'Docs', isTitle: false, icon: 'uil-book-alt', url: '/docs' },
+        { key: 'automation', label: 'Automation', isTitle: true },
+        { key: 'bots', label: 'Bots', isTitle: false, icon: 'uil-robot', url: '/bots' },
+        { key: 'backtests', label: 'Backtests', isTitle: false, icon: 'uil-table', url: '/backtests' },
+        { key: 'trading', label: 'Trading', isTitle: false, icon: 'uil-chart', url: '/tradings' },
+        { key: 'following', label: 'Following', isTitle: false, icon: 'uil-copy-landscape', url: '/follows' },
+        { key: 'ethereum', label: 'Ethereum', isTitle: true },
+        { key: 'wallets', label: 'Wallets', isTitle: false, icon: 'uil-globe', url: '/dexwallets' },
+        { key: 'tokens', label: 'Tokens', isTitle: false, icon: 'uil-layers-alt', url: '/dextokens' },
+        { key: 'pools', label: 'Pools', isTitle: false, icon: 'uil-coins', url: '/dexpools' },
+        { key: 'exchanges', label: 'Exchanges', isTitle: true },
+        { key: 'exchanges', label: 'Exchanges', isTitle: false, icon: 'uil-building', url: '/exchanges' },
+        { key: 'pairs', label: 'Pairs', isTitle: false, icon: 'uil-layer-group', url: '/pairs' }
+    ]
+
+    const minimalMenuItems: any[] = [
+        { key: 'navigation', icon: 'uil-minus' },
+        { key: 'dashboard', isTitle: false, icon: 'uil-home-alt', url: '/dashboard' },
+        { key: 'marketplace', isTitle: false, icon: 'uil-store', url: '/marketplace' },
+        { key: 'docs', isTitle: false, icon: 'uil-book-alt', url: '/docs' },
+        { key: 'automation', icon: 'uil-minus' },
+        { key: 'bots', isTitle: false, icon: 'uil-robot', url: '/bots' },
+        { key: 'backtests', isTitle: false, icon: 'uil-table', url: '/backtests' },
+        { key: 'trading', isTitle: false, icon: 'uil-chart', url: '/tradings' },
+        { key: 'following', isTitle: false, icon: 'uil-copy-landscape', url: '/follows' },
+        { key: 'ethereum', icon: 'uil-minus' },
+        { key: 'wallets', isTitle: false, icon: 'uil-globe', url: '/dexwallets' },
+        { key: 'tokens', isTitle: false, icon: 'uil-layers-alt', url: '/dextokens' },
+        { key: 'pools', isTitle: false, icon: 'uil-coins', url: '/dexpools' },
+        { key: 'exchanges', icon: 'uil-minus' },
+        { key: 'exchanges', isTitle: false, icon: 'uil-building', url: '/exchanges' },
+        { key: 'pairs', isTitle: false, icon: 'uil-layer-group', url: '/pairs' }
+    ];
+
+    const baseMenuItems = props.menuExtended ? baserMenuItems : minimalMenuItems
+
     const menuRef = useRef(null);
 
     const [activeMenuItems, setActiveMenuItems] = useState([] as any[]);
@@ -216,12 +239,26 @@ const AppMenu = (props: AppMenuProps) => {
                     );
                 })}
             </ul>
-            <div
-                onClick={() => logout()}
-                style={{marginLeft: 65, marginTop:40, marginBottom:20, cursor:'pointer'}}
-            >
-                Logout
-            </div>
+            <ul className="side-nav mt-4">
+                <li className="side-nav-item">
+                    <a
+                        onClick={() => logout()}
+                        className="side-nav-link-ref side-sub-nav-link side-nav-link"
+                        href='#'
+                    >
+                        { props.menuExtended ?
+                            <>
+                                <i className="uil uil-exit"></i>
+                                <span>Logout</span>
+                            </>
+                        :
+                            <>
+                                <i className="uil uil-exit"></i>
+                            </>
+                        }
+                    </a>
+                </li>
+            </ul>
         </>
     );
 };

@@ -48,9 +48,7 @@ body {
 .logo {
   display: block;
   line-height: 70px;
-  width: 250px;
-  position: fixed;
-  top: 0;
+  height: 70px;
 
   span.logo-lg {
       display: block;
@@ -68,21 +66,18 @@ body {
 }
 
 .content-page {
-  margin-left: 250px;
+  position: relative;
   overflow: hidden;
-  padding: 70px 12px 65px;
+  padding: 0px 12px 65px;
   min-height: 100vh;
+  flex-grow: 1;
 }
 
 .leftside-menu {
-  width: 250px;
-  z-index: 10;
+  flex-shrink: 0;
   background: #313a46;
-  bottom: 0;
-  position: fixed;
-  top: 0;
-  padding-top: 70px;
   box-shadow: $box-shadow;
+  position: relative;
 }
 
 .side-nav {
@@ -94,7 +89,7 @@ body {
   .side-nav-link {
       color: #cedce4;
       display: block;
-      padding: 10px 30px;
+      padding: 10px 25px;
       font-size: 0.9375rem;
       position: relative;
       transition: all 0.4s;
@@ -117,7 +112,6 @@ body {
           margin: 0 10px 0 0;
           font-size: 1.1rem;
           vertical-align: middle;
-          width: 20px;
       }
   }
 
@@ -157,7 +151,7 @@ body {
   }
 
   .side-nav-title {
-      padding: 12px 30px;
+      padding: 12px 25px;
       letter-spacing: .05em;
       pointer-events: none;
       cursor: default;
@@ -233,11 +227,6 @@ body {
   body {
       overflow-x: hidden;
   }
-  .leftside-menu {
-      box-shadow: $box-shadow;
-      display: none;
-      z-index: 10 !important;
-  }
   .sidebar-enable {
       .leftside-menu {
           display: block;
@@ -247,8 +236,7 @@ body {
       float: right;
   }
   .content-page {
-      margin-left: 0 !important;
-      padding: 65px 10px 65px;
+      padding: 0px 10px 65px;
   }
   body[data-leftbar-compact-mode="condensed"] {
       .leftside-menu {
@@ -396,13 +384,12 @@ body {
 }
 
 .footer {
-  border-top: 1px solid rgba($gray-600, 0.2);
   bottom: 0;
   padding: 19px 24px 20px;
   position: absolute;
   right: 0;
   color: $gray-600;
-  left: 250px;
+  left: 0px;
 
   .footer-links {
       a {
@@ -421,8 +408,7 @@ body {
 
 @include media-breakpoint-down(md) {
   .footer {
-      left: 0 !important;
-      text-align: center;
+    text-align: center;
   }
 }
 
@@ -669,4 +655,23 @@ a.page-link {
 .ace-github .ace_gutter {
     background-color: #f1f3fa;
     color: #6c757d;
+}
+
+.mainHolder {
+    display: flex;
+}
+
+.menuOpener {
+    position: absolute;
+    right: 0px;
+    top: 17px;
+    z-index: 99999999;
+    font-size: 28px;
+    cursor: pointer;
+    color: #8391a2;
+}
+
+.menuScroll {
+    height: calc(100vh - 70px);
+    overflow: scroll;
 }

@@ -1,8 +1,7 @@
 import React, { Component } from 'react'
 import { withRouter } from 'react-router'
-import SimpleBar from 'simplebar-react'
 import { Container, Row, Col } from 'react-bootstrap'
-import AppMenu from './Menu'
+import Menu2 from './Menu2'
 
 interface DashProps {
   history: any,
@@ -41,27 +40,15 @@ class Dash extends Component <DashProps, DashStates> {
   render () {
     return (
       <>
-        <div className="wrapper">
-          <div className="leftside-menu">
-            <a className="logo text-center logo-light" href="/">
-              <span className="logo-lg">
-                <img src="/logo-big.png" alt="logo" height="32"/>
-              </span>
-            </a>
-            <SimpleBar style={{ maxHeight: '100%', overflow: 'scroll' }} scrollbarMaxSize={320}>
-              <>
-                <AppMenu/>
-                <div className="clearfix" />
-              </>
-            </SimpleBar>
-          </div>
-          <div className="content-page" style={{paddingTop:0}}>
+        <div className="wrapper mainHolder">
+          <Menu2/>
+          <div className="content-page">
             <div className="content">
               <Container fluid>
                 {this.props.children}
               </Container>
             </div>
-            <footer className="footer" style={{borderTop:'none'}}>
+            <footer className="footer">
               <div className="container-fluid">
                 <Row>
                   <Col md={6}>
@@ -78,7 +65,7 @@ class Dash extends Component <DashProps, DashStates> {
                   </Col>
                 </Row>
               </div>
-              </footer>
+            </footer>
           </div>
         </div>
       </>
