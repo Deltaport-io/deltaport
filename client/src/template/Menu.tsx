@@ -148,20 +148,20 @@ const AppMenu = (props: AppMenuProps) => {
     ]
 
     const minimalMenuItems: any[] = [
-        { key: 'navigation', icon: 'uil-minus' },
+        { key: 'navigation', label: '---', isTitle: true },
         { key: 'dashboard', isTitle: false, icon: 'uil-home-alt', url: '/dashboard' },
         { key: 'marketplace', isTitle: false, icon: 'uil-store', url: '/marketplace' },
         { key: 'docs', isTitle: false, icon: 'uil-book-alt', url: '/docs' },
-        { key: 'automation', icon: 'uil-minus' },
+        { key: 'automation', label: '---', isTitle: true },
         { key: 'bots', isTitle: false, icon: 'uil-robot', url: '/bots' },
         { key: 'backtests', isTitle: false, icon: 'uil-table', url: '/backtests' },
         { key: 'trading', isTitle: false, icon: 'uil-chart', url: '/tradings' },
         { key: 'following', isTitle: false, icon: 'uil-copy-landscape', url: '/follows' },
-        { key: 'ethereum', icon: 'uil-minus' },
+        { key: 'ethereum', label: '---', isTitle: true },
         { key: 'wallets', isTitle: false, icon: 'uil-globe', url: '/dexwallets' },
         { key: 'tokens', isTitle: false, icon: 'uil-layers-alt', url: '/dextokens' },
         { key: 'pools', isTitle: false, icon: 'uil-coins', url: '/dexpools' },
-        { key: 'exchanges', icon: 'uil-minus' },
+        { key: 'exchanges', label: '---', isTitle: true },
         { key: 'exchanges', isTitle: false, icon: 'uil-building', url: '/exchanges' },
         { key: 'pairs', isTitle: false, icon: 'uil-layer-group', url: '/pairs' }
     ];

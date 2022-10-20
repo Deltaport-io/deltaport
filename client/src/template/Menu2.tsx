@@ -17,13 +17,16 @@ class Menu extends Component <MenuProps, MenuStates> {
   constructor (props: MenuProps) {
     super(props)
     this.state = {
-      menuExtended: true,
+      menuExtended: Boolean(localStorage.getItem('openmenu') && localStorage.getItem('openmenu') === 'close' ? false : true),
       open: true
     }
   }
 
   extendMenu () {
-    this.setState({menuExtended: !this.state.menuExtended})
+    const newState = !this.state.menuExtended
+    this.setState({menuExtended: newState}, ()=>{
+      localStorage.setItem('openmenu', newState ? 'open' : 'close')
+    })
   }
 
   render() {
