@@ -185,8 +185,8 @@ class Tradings extends Component <TestingsProps, TestingsStates> {
                     return (
                       <tr key={session.id}>
                         <td><Link to={`/tradings/${session.id}`}>{session.name}</Link></td>
-                        <td><Moment format="DD/MM/YYYY h:mm:ss A">{session.started}</Moment></td>
-                        <td>{session.ended ? <Moment format="DD/MM/YYYY h:mm:ss A">{session.ended}</Moment> : null}</td>
+                        <td><Moment format="DD/MM/YYYY kk:mm:ss">{session.started}</Moment></td>
+                        <td>{session.ended ? <Moment format="DD/MM/YYYY kk:mm:ss">{session.ended}</Moment> : null}</td>
                         <td>{session.reason}</td>
                         <td>
                           {session.ended ?

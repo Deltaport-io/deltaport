@@ -125,8 +125,8 @@ class Bots extends Component <BotsProps, BotsStates> {
                     return (
                       <tr key={bot.id}>
                         <td><Link to={`/bots/${bot.id}`}>{bot.name}</Link></td>
-                        <td><Moment format="DD/MM/YYYY h:mm:ss A">{bot.createdAt}</Moment></td>
-                        <td><Moment format="DD/MM/YYYY h:mm:ss A">{bot.updatedAt}</Moment></td>
+                        <td><Moment format="DD/MM/YYYY kk:mm:ss">{bot.createdAt}</Moment></td>
+                        <td><Moment format="DD/MM/YYYY kk:mm:ss">{bot.updatedAt}</Moment></td>
                         <td>
                           <OverlayTrigger placement="bottom" overlay={<Tooltip> Remove </Tooltip>}>
                             <span className="link-primary ms-3" style={{cursor: 'pointer'}} onClick={()=>this.deleteBot(bot.id)}><i className="dripicons dripicons-trash"></i></span>

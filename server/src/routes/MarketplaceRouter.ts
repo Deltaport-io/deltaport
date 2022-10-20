@@ -19,18 +19,71 @@ export class MarketplaceRouter {
   }
 
   public async searchMarketplace (req: express.Request, res: express.Response) {
-    try {
-      const baseReq = await superagent
-        .get(config.app.baseUri+req.originalUrl)
-        .type('application/json')
-      if (baseReq.body.status === 'success'){
-        return res.send({ ...baseReq.body })
-      } else {
-        return res.send({ status: 'error', message: baseReq.body.message})
+    // get logged user
+    const user = await getMeUser(req.header('Authorization'))
+    if (!user) {
+      return res.send({ status: 'error', message: 'No user' })
+    }
+    // check for mine & owner search
+    const search = req.query.search.toString()
+    let updatedUrl = req.originalUrl
+    if (search === 'purchased:mine' || search === 'owner:mine') {
+      // get addresses
+      let updatedSearch
+      const listOfAddresses = []
+      const dexwallets = await models.dexwallets.findAll({ where: { userIdusers: user.idusers } })
+      for (const dexwallet of dexwallets) {
+        listOfAddresses.push(dexwallet.address)
       }
-    } catch (e) {
-      console.log('error', e)
-      return res.send({ status: 'error', message: e.message})
+      if (search === 'owner:mine') {
+        updatedSearch = 'owner:'+listOfAddresses.toString()
+        updatedUrl = `${req.baseUrl}?search=${updatedSearch}&order=${req.query.order}&minPrice=${req.query.minPrice}&maxPrice=${req.query.maxPrice}&limit=${req.query.limit}&offset=${req.query.offset}`
+        try {
+          const baseReq = await superagent
+            .get(config.app.baseUri+updatedUrl)
+            .type('application/json')
+          if (baseReq.body.status === 'success'){
+            return res.send({ ...baseReq.body })
+          } else {
+            return res.send({ status: 'error', message: baseReq.body.message})
+          }
+        } catch (e) {
+          // console.log('error', e)
+          return res.send({ status: 'error', message: e.message})
+        }
+      }
+      if (search === 'purchased:mine') {
+        updatedSearch = 'purchased:'+listOfAddresses.toString()
+        updatedUrl = `/api/v1/marketplace/purchased?search=${updatedSearch}&order=${req.query.order}&minPrice=${req.query.minPrice}&maxPrice=${req.query.maxPrice}`
+        try {
+          const baseReq = await superagent
+            .get(config.app.baseUri+updatedUrl)
+            .type('application/json')
+          if (baseReq.body.status === 'success'){
+            return res.send({ ...baseReq.body })
+          } else {
+            return res.send({ status: 'error', message: baseReq.body.message})
+          }
+        } catch (e) {
+          // console.log('error', e)
+          return res.send({ status: 'error', message: e.message})
+        }
+      }
+    } else {
+      // query
+      try {
+        const baseReq = await superagent
+          .get(config.app.baseUri+updatedUrl)
+          .type('application/json')
+        if (baseReq.body.status === 'success'){
+          return res.send({ ...baseReq.body })
+        } else {
+          return res.send({ status: 'error', message: baseReq.body.message})
+        }
+      } catch (e) {
+        // console.log('error', e)
+        return res.send({ status: 'error', message: e.message})
+      }
     }
   }
 

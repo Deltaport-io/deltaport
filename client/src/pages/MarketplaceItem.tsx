@@ -401,7 +401,7 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
                     </tr>
                     <tr>
                       <td>Added</td>
-                      <td><Moment format="DD/MM/YYYY h:mm:ss A">{this.state.item.createdAt}</Moment></td>
+                      <td><Moment format="DD/MM/YYYY kk:mm:ss">{this.state.item.createdAt}</Moment></td>
                     </tr>
                     <tr>
                       <td>Owner</td>

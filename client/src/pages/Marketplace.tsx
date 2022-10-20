@@ -2,11 +2,12 @@ import React, { Component } from 'react';
 import Dash from '../template/Dash'
 import { config } from '../config'
 import { withRouter } from 'react-router'
-import { Card, Table, Dropdown, DropdownButton } from 'react-bootstrap'
+import { Card, Table, Dropdown, DropdownButton, Pagination } from 'react-bootstrap'
 import PageTitle from '../template/PageTitle'
 import Moment from 'react-moment'
 import { Link } from 'react-router-dom'
 import { fromDisplayBalance, getDisplayBalance } from '../utils'
+import { getCredentials } from '../credcontrols'
 
 interface MarketplaceProps {
   history: any,
@@ -24,6 +25,8 @@ type MarketplaceStates = {
   maxPrice: string
   viewOrder: number
   items: any[]
+  entries: number
+  page: number
 }
 
 const ordering = [{
@@ -40,6 +43,8 @@ const ordering = [{
   api: 'priceasc'
 }]
 
+const itemsPerPage = 30
+
 class Marketplace extends Component <MarketplaceProps, MarketplaceStates> {
 
   constructor (props: MarketplaceProps) {
@@ -53,7 +58,9 @@ class Marketplace extends Component <MarketplaceProps, MarketplaceStates> {
       minPrice: '0',
       maxPrice: '',
       viewOrder: 0,
-      items: []
+      items: [],
+      entries: 0,
+      page: 0
     }
   }
 
@@ -81,16 +88,18 @@ class Marketplace extends Component <MarketplaceProps, MarketplaceStates> {
     if (event !== null) {
       event.preventDefault()
     }
+    const { token } = getCredentials()
     const arrayOfTypes = []
     if (this.state.viewBots) arrayOfTypes.push('Bot')
     if (this.state.viewJobs) arrayOfTypes.push('Job')
     if (this.state.viewScripts) arrayOfTypes.push('Script')
     if (this.state.viewSubscriptions) arrayOfTypes.push('Subscription')
     fetch(
-      `${config.app.apiUri}/api/v1/marketplace?search=${this.state.search}&order=${ordering[this.state.viewOrder].api}&minPrice=${this.state.minPrice==='0'?'0':fromDisplayBalance(this.state.minPrice,'18')}&maxPrice=${this.state.maxPrice===''?'99999999999999999999999999999999':fromDisplayBalance(this.state.maxPrice,'18')}&type=${arrayOfTypes.join(",")}`, {
+      `${config.app.apiUri}/api/v1/marketplace?search=${this.state.search}&order=${ordering[this.state.viewOrder].api}&minPrice=${this.state.minPrice==='0'?'0':fromDisplayBalance(this.state.minPrice,'18')}&maxPrice=${this.state.maxPrice===''?'99999999999999999999999999999999':fromDisplayBalance(this.state.maxPrice,'18')}&type=${arrayOfTypes.join(",")}&offset=${this.state.page * itemsPerPage}&limit=${itemsPerPage}`, {
         method: 'GET',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          Authorization: token
         }
       })
       .then((response) => { return response.json() })
@@ -156,6 +165,12 @@ class Marketplace extends Component <MarketplaceProps, MarketplaceStates> {
                 <div className="mb-2 me-1 btn-group">
                   <button onClick={()=>{this.props.history.push('/marketplace/add')}} type="button" className={"btn btn-sm btn-primary"}>Add</button>
                 </div>
+                <div className="mb-2 me-1 btn-group">
+                  <button onClick={()=>{this.setState({search: 'purchased:mine'}, ()=>this.searchMarketplace())}} type="button" className={"btn btn-sm btn-primary"}>Purchased</button>
+                </div>
+                <div className="mb-2 me-1 btn-group">
+                  <button onClick={()=>{this.setState({search: 'owner:mine'}, ()=>this.searchMarketplace())}} type="button" className={"btn btn-sm btn-primary"}>Mine</button>
+                </div>
               </div>
               <Table striped className="mb-0" size="sm">
                 <thead>
@@ -175,7 +190,7 @@ class Marketplace extends Component <MarketplaceProps, MarketplaceStates> {
                         <td>{item.type}</td>
                         <td>{item.description}</td>
                         <td>{getDisplayBalance(item.price,'18')}</td>
-                        <td><Moment format="DD/MM/YYYY h:mm:ss A">{item.added}</Moment></td>
+                        <td><Moment format="DD/MM/YYYY kk:mm:ss">{item.added}</Moment></td>
                       </tr>
                     )
                   })}
@@ -184,6 +199,15 @@ class Marketplace extends Component <MarketplaceProps, MarketplaceStates> {
                   : null}
                 </tbody>
               </Table>
+              {this.state.entries > itemsPerPage && !this.state.search.startsWith('purchased:mine')
+                ? <Pagination className="justify-content-center mt-3">
+                  {this.state.page > 0 ? <Pagination.Prev onClick={() => this.setState({ page: this.state.page - 1 }, () => { this.searchMarketplace() })} /> : null}
+                  {[...Array(Math.ceil(this.state.entries / itemsPerPage))].map((e:any, number:any) => {
+                    return (this.state.page - 4 < number && number < this.state.page + 4) ? <Pagination.Item key={number} active={number === this.state.page} onClick={() => this.setState({ page: number }, () => { this.searchMarketplace() })}>{number + 1}</Pagination.Item> : null
+                  })}
+                  {this.state.page < Math.floor(this.state.entries / itemsPerPage) ? <Pagination.Next onClick={() => this.setState({ page: this.state.page + 1 }, () => { this.searchMarketplace() })} /> : null}
+                </Pagination>
+                : null}
             </Card.Body>
           </Card>
         </Dash>

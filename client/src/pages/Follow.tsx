@@ -316,11 +316,11 @@ class Follow extends Component <FollowProps, FollowStates> {
                   </tr>
                   <tr>
                     <td>Started</td>
-                    <td><Moment format="DD/MM/YYYY h:mm:ss A">{this.state.follow.started}</Moment></td>
+                    <td><Moment format="DD/MM/YYYY kk:mm:ss">{this.state.follow.started}</Moment></td>
                   </tr>
                   <tr>
                     <td>Ended</td>
-                    <td>{this.state.follow.ended ? <Moment format="DD/MM/YYYY h:mm:ss A">{this.state.follow.ended}</Moment> : null}</td>
+                    <td>{this.state.follow.ended ? <Moment format="DD/MM/YYYY kk:mm:ss">{this.state.follow.ended}</Moment> : null}</td>
                   </tr>
                 </tbody>
               </Table>

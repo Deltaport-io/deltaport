@@ -21,10 +21,6 @@ import {
 } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 
-import "ace-builds/src-noconflict/mode-javascript" 
-import "ace-builds/src-noconflict/theme-github" 
-import "ace-builds/src-noconflict/snippets/javascript"
-
 // include required
 echarts.use(
   [
@@ -361,11 +357,11 @@ class Trading extends Component <TradingProps, TradingStates> {
                   </tr>
                   <tr>
                     <td>Started</td>
-                    <td><Moment format="DD/MM/YYYY h:mm:ss A">{this.state.tradesession.started}</Moment></td>
+                    <td><Moment format="DD/MM/YYYY kk:mm:ss">{this.state.tradesession.started}</Moment></td>
                   </tr>
                   <tr>
                     <td>Ended</td>
-                    <td>{this.state.tradesession.ended ? <Moment format="DD/MM/YYYY h:mm:ss A">{this.state.tradesession.ended}</Moment> : null}</td>
+                    <td>{this.state.tradesession.ended ? <Moment format="DD/MM/YYYY kk:mm:ss">{this.state.tradesession.ended}</Moment> : null}</td>
                   </tr>
                   <tr>
                     <td>Display</td>
@@ -434,11 +430,11 @@ class Trading extends Component <TradingProps, TradingStates> {
             <Card>
               <Card.Body>
                 <h4 className="header-title d-inline-block">Logs</h4>
-                <Table striped className="mb-0" size="sm">
+                <Table striped className="mb-0 logtable" size="sm">
                   <thead>
                   <tr>
-                    <th>Time</th>
-                    <th>Type</th>
+                    <th style={{width: 170}}>Time</th>
+                    <th style={{width: 50}}>Type</th>
                     <th>Log</th>
                   </tr>
                   </thead>
@@ -446,7 +442,7 @@ class Trading extends Component <TradingProps, TradingStates> {
                     {this.state.logs.map((log:any) => {
                       return (
                         <tr key={log.id}>
-                          <td><Moment format="DD/MM/YYYY h:mm:ss A">{log.timestamp}</Moment></td>
+                          <td><Moment format="DD/MM/YYYY kk:mm:ss">{log.timestamp}</Moment></td>
                           <td>{log.type}</td>
                           <td>{log.msg}</td>
                         </tr>
