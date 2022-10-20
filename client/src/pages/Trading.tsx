@@ -342,7 +342,15 @@ class Trading extends Component <TradingProps, TradingStates> {
 
           <Card>
             <Card.Body>
-              <h4 className="header-title mb-2">{this.state.tradesession.name}</h4>
+              <div className="d-flex justify-content-between">
+                <h4 className="header-title">{this.state.tradesession.name}</h4>
+                <div className="me-1 btn-group">
+                  <button onClick={()=>this.setState({viewGraphs: this.state.viewGraphs ? false : true})} type="button" className={this.state.viewGraphs ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Graphs</button>
+                  <button onClick={()=>this.setState({viewCharts: this.state.viewCharts ? false : true})} type="button" className={this.state.viewCharts ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Charts</button>
+                  <button onClick={()=>this.setState({viewCode: this.state.viewCode ? false : true})} type="button" className={this.state.viewCode ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Code</button>
+                  <button onClick={()=>this.setState({viewLogs: this.state.viewLogs ? false : true})} type="button" className={this.state.viewLogs ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Logs</button>
+                </div>
+              </div>
               <Table striped className="mb-0" size="sm">
                 <thead>
                   <tr>
@@ -362,17 +370,6 @@ class Trading extends Component <TradingProps, TradingStates> {
                   <tr>
                     <td>Ended</td>
                     <td>{this.state.tradesession.ended ? <Moment format="DD/MM/YYYY kk:mm:ss">{this.state.tradesession.ended}</Moment> : null}</td>
-                  </tr>
-                  <tr>
-                    <td>Display</td>
-                    <td>
-                      <div className="mb-2 me-1 btn-group">
-                        <button onClick={()=>this.setState({viewGraphs: this.state.viewGraphs ? false : true})} type="button" className={this.state.viewGraphs ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Graphs</button>
-                        <button onClick={()=>this.setState({viewCharts: this.state.viewCharts ? false : true})} type="button" className={this.state.viewCharts ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Charts</button>
-                        <button onClick={()=>this.setState({viewCode: this.state.viewCode ? false : true})} type="button" className={this.state.viewCode ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Code</button>
-                        <button onClick={()=>this.setState({viewLogs: this.state.viewLogs ? false : true})} type="button" className={this.state.viewLogs ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Logs</button>
-                      </div>
-                    </td>
                   </tr>
                 </tbody>
               </Table>

@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import Dash from '../template/Dash'
 import { config } from '../config'
 import { getCredentials } from '../credcontrols'
-import AceEditor from "react-ace";
 import { Card, Table } from 'react-bootstrap'
 import PageTitle from '../template/PageTitle'
 import Moment from 'react-moment'
