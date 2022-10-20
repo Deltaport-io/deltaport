@@ -131,28 +131,35 @@ class Marketplace extends Component <MarketplaceProps, MarketplaceStates> {
           />
           <Card>
             <Card.Body>
-              <div className="d-flex float-start mb-2">
-                <form onSubmit={this.searchMarketplace} className="mb-2 me-1">
-                  <div className="input-group input-group-sm">
-                    <input type="text" className="form-control form-control-sm" name="search" value={this.state.search} onChange={this.inputChange} placeholder=""/>
-                    <button className="btn btn-primary" type="submit">Search</button>
+              <div>
+                <div className="d-flex justify-content-between mb-1">
+                  <div>
+                    <form onSubmit={this.searchMarketplace} className="me-1">
+                      <div className="input-group input-group-sm">
+                        <input type="text" className="form-control form-control-sm" name="search" value={this.state.search} onChange={this.inputChange} placeholder=""/>
+                        <button className="btn btn-primary" type="submit">Search</button>
+                      </div>
+                    </form>
                   </div>
-                </form>
-                <div className="mb-2 me-1 btn-group">
-                  <button onClick={()=>this.setState({viewBots: this.state.viewBots ? false : true}, ()=>this.searchMarketplace())} type="button" className={this.state.viewBots ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Bots</button>
-                  <button onClick={()=>this.setState({viewSubscriptions: this.state.viewSubscriptions ? false : true}, ()=>this.searchMarketplace())} type="button" className={this.state.viewSubscriptions ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Subscriptions</button>
-                  <button onClick={()=>this.setState({viewScripts: this.state.viewScripts ? false : true}, ()=>this.searchMarketplace())} type="button" className={this.state.viewScripts ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Scripts</button>
-                  <button onClick={()=>this.setState({viewJobs: this.state.viewJobs ? false : true}, ()=>this.searchMarketplace())} type="button" className={this.state.viewJobs ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Jobs</button>
+                  <div>
+                    <div className="mb-1 me-1 btn-group">
+                      <button onClick={()=>{this.setState({search: 'purchased:mine'}, ()=>this.searchMarketplace())}} type="button" className={"btn btn-sm btn-primary"}>Purchased</button>
+                    </div>
+                    <div className="mb-1 me-1 btn-group">
+                      <button onClick={()=>{this.setState({search: 'owner:mine'}, ()=>this.searchMarketplace())}} type="button" className={"btn btn-sm btn-primary"}>Mine</button>
+                    </div>
+                    <div className="mb-1 me-1 btn-group">
+                      <button onClick={()=>{this.props.history.push('/marketplace/add')}} type="button" className={"btn btn-sm btn-primary"}>Add</button>
+                    </div>
+                  </div>
                 </div>
-                <div className="mb-2 me-1 btn-group">
-                  <div className="input-group input-group-sm">
-                    <input type="text" className="form-control form-control-sm" name="minPrice" value={this.state.minPrice} onChange={this.inputChange} placeholder="0"/>
+                <div className="d-flex">
+                  <div className="mb-1 me-1 btn-group">
+                    <button onClick={()=>this.setState({viewBots: this.state.viewBots ? false : true}, ()=>this.searchMarketplace())} type="button" className={this.state.viewBots ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Bots</button>
+                    <button onClick={()=>this.setState({viewSubscriptions: this.state.viewSubscriptions ? false : true}, ()=>this.searchMarketplace())} type="button" className={this.state.viewSubscriptions ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Subscriptions</button>
+                    <button onClick={()=>this.setState({viewScripts: this.state.viewScripts ? false : true}, ()=>this.searchMarketplace())} type="button" className={this.state.viewScripts ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Scripts</button>
+                    <button onClick={()=>this.setState({viewJobs: this.state.viewJobs ? false : true}, ()=>this.searchMarketplace())} type="button" className={this.state.viewJobs ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Jobs</button>
                   </div>
-                  <div className="input-group input-group-sm">
-                    <input type="text" className="form-control form-control-sm" name="maxPrice" value={this.state.maxPrice} onChange={this.inputChange} placeholder="Max"/>
-                  </div>
-                </div>
-                <div className="mb-2 me-1 btn-group">
                   <DropdownButton
                     title={ordering[this.state.viewOrder].name}
                     size="sm"
@@ -162,14 +169,12 @@ class Marketplace extends Component <MarketplaceProps, MarketplaceStates> {
                     })}
                   </DropdownButton>
                 </div>
-                <div className="mb-2 me-1 btn-group">
-                  <button onClick={()=>{this.props.history.push('/marketplace/add')}} type="button" className={"btn btn-sm btn-primary"}>Add</button>
-                </div>
-                <div className="mb-2 me-1 btn-group">
-                  <button onClick={()=>{this.setState({search: 'purchased:mine'}, ()=>this.searchMarketplace())}} type="button" className={"btn btn-sm btn-primary"}>Purchased</button>
-                </div>
-                <div className="mb-2 me-1 btn-group">
-                  <button onClick={()=>{this.setState({search: 'owner:mine'}, ()=>this.searchMarketplace())}} type="button" className={"btn btn-sm btn-primary"}>Mine</button>
+                <div className="d-inline-flex mb-2">
+                  <div className="input-group input-group-sm">
+                    <span className="input-group-text" id="basic-addon1">Price range</span>
+                    <input type="text" className="form-control form-control-sm" name="minPrice" value={this.state.minPrice} onChange={this.inputChange} placeholder="0"/>
+                    <input type="text" className="form-control form-control-sm" name="maxPrice" value={this.state.maxPrice} onChange={this.inputChange} placeholder="Max"/>
+                  </div>
                 </div>
               </div>
               <Table striped className="mb-0" size="sm">
