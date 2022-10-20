@@ -171,7 +171,7 @@ class Marketplace extends Component <MarketplaceProps, MarketplaceStates> {
                 </div>
                 <div className="d-inline-flex mb-2">
                   <div className="input-group input-group-sm">
-                    <span className="input-group-text" id="basic-addon1">Price range</span>
+                    <button className="btn btn-primary" onClick={()=>this.searchMarketplace()}>Price range</button>
                     <input type="text" className="form-control form-control-sm" name="minPrice" value={this.state.minPrice} onChange={this.inputChange} placeholder="0"/>
                     <input type="text" className="form-control form-control-sm" name="maxPrice" value={this.state.maxPrice} onChange={this.inputChange} placeholder="Max"/>
                   </div>
