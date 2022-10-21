@@ -28,18 +28,18 @@
 </div>
 
 # Features
-<div style="padding-bottom: 30px; text-align: center;">
-  <img src="./client/public/about1.png" width="300" />
-  <div style="width: 200px; margin: 0 auto;">Connect your crypto wallets and exchanges!</div>
-</div>
-<div style="padding-bottom: 30px; text-align: center;">
-  <img src="./client/public/about2.png" width="300" />
-  <div style="width: 200px; margin: 0 auto;">Trade, transfer, swap tokens and pairs from app!</div>
-</div>
-<div style="padding-bottom: 30px; text-align: center;">
-  <img src="./client/public/feature.png" width="300" />
-  <div style="width: 200px; margin: 0 auto;">Use sandbox to code your tradings automations!</div>
-</div>
+<p align="center">
+  <img src="./client/public/about1.png" width="300" style="padding-top: 30px;"/>
+  <p align="center">Connect your crypto wallets and exchanges!</p>
+</p>
+<p align="center">
+  <img src="./client/public/about2.png" width="300" style="padding-top: 30px;"/>
+  <p align="center">Trade, transfer, swap tokens and pairs from app!</p>
+</p>
+<p align="center">
+  <img src="./client/public/feature.png" width="300" style="padding-top: 30px;"/>
+  <p align="center">Use sandbox to code your tradings automations!</p>
+</p>
 
 # Download
 
