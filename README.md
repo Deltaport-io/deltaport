@@ -11,25 +11,43 @@
   <br/>
   <p>
     <a href="https://deltaport.io"><strong>Homepage</strong></a> ·
-    <a href="#demo"><strong>Demo</strong></a> ·
-    <a href="#downloads"><strong>Downloads</strong></a> ·
+    <a href="https://demo.deltaport.io/login?ssid=1823375daa7.5MhliuKvWyFIrseSdIjJtyuJMEYecpJLn6LnQ4dn9VfAGd3oEeXbUpG/2np53d4d" target="_blank"><strong>Demo</strong></a> ·
+    <a href="#features"><strong>Features</strong></a> ·
+    <a href="#download"><strong>Download</strong></a> ·
+    <a href="#documentation"><strong>Documentation</strong></a> ·
     <a href="#quickstart"><strong>Quickstart</strong></a> ·
     <a href="#dev"><strong>Dev</strong></a> ·
-    <a href="#documentation"><strong>Documentation</strong></a>
   </p>
   <br/>
+
+  ![GitHub release (latest by date)](https://img.shields.io/github/v/release/Deltaport-io/deltaport)
+  ![GitHub language count](https://img.shields.io/github/languages/count/Deltaport-io/deltaport)
+  ![GitHub top language](https://img.shields.io/github/languages/top/Deltaport-io/deltaport)
+  ![GitHub issues](https://img.shields.io/github/issues/Deltaport-io/deltaport)
   <br/>
 </div>
 
-# Demo
+# Features
+<div style="display: flex; align-items: center; justify-content: center; padding-bottom: 30px;">
+  <div style="width: 200px;">Connect your crypto wallets and exchanges!</div>
+  <img src="./client/public/about1.png" width="300" />
+</div>
+<div style="display: flex; align-items: center; justify-content: center; padding-bottom: 30px;">
+  <img src="./client/public/about2.png" width="300" />
+  <div style="width: 200px;">Trade, transfer, swap tokens and pairs from app!</div>
+</div>
+<div style="display: flex; align-items: center; justify-content: center; padding-bottom: 30px;">
+  <div style="width: 200px;">Use sandbox to code your tradings automations!</div>
+  <img src="./client/public/feature.png" width="300" />
+</div>
 
-Demo web app can be found [here](https://demo.deltaport.io).
+# Download
 
-Login with `demo@deltaport.io` for email and `demo` for password.
+Downloads can be found on [website](https://deltaport.io) or in github [releases](https://github.com/Deltaport-io/deltaport/releases).
 
-# Downloads
+# Documentation
 
-Check [website](https://deltaport.io) or [releases](https://github.com/Deltaport-io/deltaport/releases).
+Documentation of Bot sandbox and REST APIs can be found [here](https://github.com/Deltaport-io/deltaport/blob/main/client/src/Main.md)
 
 # Quickstart
 
@@ -50,7 +68,7 @@ Check [website](https://deltaport.io) or [releases](https://github.com/Deltaport
   http://127.0.0.1:3000
   ```
 
-# Dev
+# Dev start
 
 - Clone this repo: 
   ```sh
@@ -74,10 +92,6 @@ Check [website](https://deltaport.io) or [releases](https://github.com/Deltaport
   ```sh
   http://127.0.0.1:3000
   ```
-
-# Documentation
-
-Documentation of Bot and REST APIs can be found [here](https://github.com/Deltaport-io/deltaport/blob/main/client/src/Main.md)
 
 # License
 
