@@ -14,7 +14,7 @@ Docs
 * [Sandbox](#sandbox)
   * [Globals](#globals)
   * [Console](#console) (logging)
-  * [Graph](#graph) (graphs)
+  * [Graph](#graphs) (graphs)
   * [Data](#data)
   * [Exchange](#exchange) 
   * [Ethereum](#ethereum) 

@@ -674,4 +674,10 @@ a.page-link {
 .menuScroll {
     height: calc(100vh - 70px);
     overflow: scroll;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+.menuScroll::-webkit-scrollbar {
+    display: none;
 }

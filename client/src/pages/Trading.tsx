@@ -129,7 +129,10 @@ class Trading extends Component <TradingProps, TradingStates> {
             if (data[ohlc.source] === undefined) {
               data[ohlc.source] = []
             }
-            data[ohlc.source].push(ohlc)
+            data[ohlc.source].push({
+              ...ohlc,
+              timestamp: parseInt(ohlc.timestamp)
+            })
           }
           // process graphs
           const graphs: any = {}
@@ -139,7 +142,7 @@ class Trading extends Component <TradingProps, TradingStates> {
             if (graphs[graph.graph] === undefined) {
               graphs[graph.graph] = []
             }
-            graphs[graph.graph].push({key: graph.key, value: graph.value, timestamp: graph.timestamp})
+            graphs[graph.graph].push({key: graph.key, value: graph.value, timestamp: parseInt(graph.timestamp)})
             // graph keys
             if (graphKeys[graph.graph] === undefined) {
               graphKeys[graph.graph] = []
@@ -177,10 +180,9 @@ class Trading extends Component <TradingProps, TradingStates> {
         }
       }
     }
-    console.log(rawSeries)
     return {
       xAxis: {
-        type: 'category',
+        type: 'time',
       },
       yAxis: {
         type: 'value'
@@ -226,16 +228,15 @@ class Trading extends Component <TradingProps, TradingStates> {
       ],
       xAxis: [
         {
-          type: 'category',
+          type: 'time',
           boundaryGap: false,
-          // inverse: true,
           axisLine: { onZero: false },
           splitLine: { show: false },
           min: 'dataMin',
           max: 'dataMax'
         },
         {
-          type: 'category',
+          type: 'time',
           gridIndex: 1,
           boundaryGap: false,
           axisLine: { onZero: false },
@@ -267,7 +268,7 @@ class Trading extends Component <TradingProps, TradingStates> {
         {
           type: 'inside',
           xAxisIndex: [0, 1],
-          start: 10,
+          start: 0,
           end: 100
         },
         {
@@ -275,7 +276,7 @@ class Trading extends Component <TradingProps, TradingStates> {
           xAxisIndex: [0, 1],
           type: 'slider',
           bottom: 10,
-          start: 10,
+          start: 0,
           end: 100
         }
       ],

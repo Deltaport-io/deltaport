@@ -216,13 +216,14 @@ class Pair extends Component <PairProps, PairStates> {
       },
       grid: [
         {
-          left: '10%',
-          right: '10%',
+          height: 50,
+          left: '5%',
+          right: '1%',
           bottom: 200
         },
         {
-          left: '10%',
-          right: '10%',
+          left: '5%',
+          right: '1%',
           height: 80,
           bottom: 80
         }
@@ -270,7 +271,7 @@ class Pair extends Component <PairProps, PairStates> {
         {
           type: 'inside',
           xAxisIndex: [0, 1],
-          start: 10,
+          start: 0,
           end: 100
         },
         {
@@ -278,7 +279,7 @@ class Pair extends Component <PairProps, PairStates> {
           xAxisIndex: [0, 1],
           type: 'slider',
           bottom: 10,
-          start: 10,
+          start: 0,
           end: 100
         }
       ],
@@ -379,7 +380,7 @@ class Pair extends Component <PairProps, PairStates> {
                   </button>
                 </div>
               </div>
-              <div style={{height: 400}}>
+              <div>
                 <ReactEChartsCore
                   echarts={echarts}
                   option={this.getOHLCChartOption(this.state.data)}
