@@ -131,7 +131,7 @@ class Trading extends Component <TradingProps, TradingStates> {
             }
             data[ohlc.source].push({
               ...ohlc,
-              timestamp: parseInt(ohlc.timestamp)
+              timestamp: moment(parseInt(ohlc.timestamp)).format('YYYY-MM-DD HH:mm:ss')
             })
           }
           // process graphs
@@ -181,6 +181,18 @@ class Trading extends Component <TradingProps, TradingStates> {
       }
     }
     return {
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+          type: 'line'
+        }
+      },
+      grid: [{
+        left: 60,
+        right: 5,
+        top: '7%',
+        bottom: '7%'
+      }],
       xAxis: {
         type: 'time',
       },
@@ -192,10 +204,10 @@ class Trading extends Component <TradingProps, TradingStates> {
   }
 
   getOHLCChartOption = (data: any) => {
-    const upColor = '#ec0000';
-    const upBorderColor = '#8A0000';
-    const downColor = '#00da3c';
-    const downBorderColor = '#008F28';
+    const upColor = colors[2]
+    const upBorderColor = colors[2]
+    const downColor = colors[1]
+    const downBorderColor = colors[1]
     return {
       dataset: {
         source: data
@@ -206,29 +218,23 @@ class Trading extends Component <TradingProps, TradingStates> {
           type: 'line'
         }
       },
-      toolbox: {
-        feature: {
-          dataZoom: {
-            yAxisIndex: false
-          }
-        }
-      },
       grid: [
         {
-          left: '10%',
-          right: '10%',
-          bottom: 200
+          left: 60,
+          right: 5,
+          height: 180,
+          bottom: 100
         },
         {
-          left: '10%',
-          right: '10%',
-          height: 80,
-          bottom: 80
+          left: 60,
+          right: 5,
+          height: 25,
+          bottom: 50
         }
       ],
       xAxis: [
         {
-          type: 'time',
+          type: 'category',
           boundaryGap: false,
           axisLine: { onZero: false },
           splitLine: { show: false },
@@ -236,7 +242,7 @@ class Trading extends Component <TradingProps, TradingStates> {
           max: 'dataMax'
         },
         {
-          type: 'time',
+          type: 'category',
           gridIndex: 1,
           boundaryGap: false,
           axisLine: { onZero: false },
@@ -280,21 +286,6 @@ class Trading extends Component <TradingProps, TradingStates> {
           end: 100
         }
       ],
-      visualMap: {
-        show: false,
-        seriesIndex: 1,
-        dimension: 6,
-        pieces: [
-          {
-            value: 1,
-            color: upColor
-          },
-          {
-            value: -1,
-            color: downColor
-          }
-        ]
-      },
       series: [
         {
           type: 'candlestick',
@@ -310,13 +301,14 @@ class Trading extends Component <TradingProps, TradingStates> {
           }
         },
         {
-          name: 'Volumn',
+          name: 'Volume',
           type: 'bar',
           xAxisIndex: 1,
           yAxisIndex: 1,
           itemStyle: {
-            color: '#7fbe9e'
+            color: '#6c757d'
           },
+          barWidth: '50%',
           large: true,
           encode: {
             x: 'timestamp',

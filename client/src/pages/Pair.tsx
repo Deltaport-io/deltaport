@@ -416,6 +416,9 @@ class Pair extends Component <PairProps, PairStates> {
                           </tr>
                         )
                       })}
+                      {Object.keys(this.state.balances).length === 0 ?
+                        <tr><td colSpan={4} className="py-4 text-center">No balances</td></tr>
+                      : null}
                     </tbody>
                   </Table>
                 </Card.Body>
@@ -529,6 +532,9 @@ class Pair extends Component <PairProps, PairStates> {
                           </tr>
                         )
                       })}
+                      {this.state.positions.length === 0 ?
+                        <tr><td colSpan={6} className="py-4 text-center">No positions yet</td></tr>
+                      : null}
                     </tbody>
                   </Table>
                 </Card.Body>
@@ -562,6 +568,9 @@ class Pair extends Component <PairProps, PairStates> {
                           </tr>
                         )
                       })}
+                      {this.state.orders.length === 0 ?
+                        <tr><td colSpan={7} className="py-4 text-center">No orders yet</td></tr>
+                      : null}
                     </tbody>
                   </Table>
                 </Card.Body>
