@@ -4,21 +4,21 @@ import Dash from '../template/Dash'
 import PageTitle from '../template/PageTitle'
 import { config } from '../config'
 
-interface DashboardProps {
+interface PanelProps {
   history: any,
   location: any,
   match: any
 }
 
-type DashboardStates = {
+type PanelStates = {
   upcoming: any[]
   news: any[]
   updates: any[]
 }
 
-class Dashboard extends Component <DashboardProps, DashboardStates> {
+class Panel extends Component <PanelProps, PanelStates> {
 
-  constructor (props: DashboardProps) {
+  constructor (props: PanelProps) {
     super(props)
     this.state = {
       upcoming: [],
@@ -100,13 +100,13 @@ class Dashboard extends Component <DashboardProps, DashboardStates> {
 
   render() {
     return (
-      <div className="Dashboard">
+      <div className="Panel">
         <Dash>
           <PageTitle
             breadCrumbItems={[
-              { label: 'Dashboard', path: '/dashboard', active: true },
+              { label: 'Panel', path: '/panel', active: true },
             ]}
-            title={'Dashboard'}
+            title={'Panel'}
           />
           <div className="row">
             <div className="col-6">
@@ -189,4 +189,4 @@ class Dashboard extends Component <DashboardProps, DashboardStates> {
   }
 }
 
-export default Dashboard;
+export default Panel;

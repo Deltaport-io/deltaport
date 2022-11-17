@@ -3,7 +3,8 @@ export default (sequelize, DataTypes) => {
     id: { type: DataTypes.CHAR(43), primaryKey: true },
     symbol: { type: DataTypes.STRING },
     name: { type: DataTypes.STRING },
-    decimals: { type: DataTypes.INTEGER(11).UNSIGNED }
+    decimals: { type: DataTypes.INTEGER(11).UNSIGNED },
+    tracking: { type: DataTypes.BOOLEAN, defaultValue: false }
   }, {
     timestamps: false,
     paranoid: false,

@@ -76,7 +76,6 @@
     "ccxt": "^1.93.69",
     "compression": "^1.7.4",
     "debug": "^4.3.3",
-    "devalpha": "^0.3.5",
     "dotenv": "^16.0.2",
     "ethers": "^5.7.1",
     "express": "^4.18.1",

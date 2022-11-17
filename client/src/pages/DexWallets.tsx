@@ -6,7 +6,7 @@ import { withRouter } from 'react-router'
 import { Modal, Button, Card, Table, OverlayTrigger, Tooltip } from 'react-bootstrap'
 import PageTitle from '../template/PageTitle'
 import { Link } from 'react-router-dom'
-import { Wallet, utils } from 'ethers'
+import { utils } from 'ethers'
 
 interface DexWalletsProps {
   history: any,
@@ -37,7 +37,7 @@ class DexWallets extends Component <DexWalletsProps, DexWalletsStates> {
       type: '',
       name: '',
       seedphrase: '',
-      nodeurl: '',
+      nodeurl: 'https://cloudflare-eth.com',
       walletindex: 0,
       txviewer: 'https://etherscan.io/tx/',
       wallets: [],

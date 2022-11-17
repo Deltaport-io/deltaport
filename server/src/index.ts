@@ -23,6 +23,7 @@ import DexTokensRouter from "./routes/DexTokensRouter"
 import HealthcheckRouter from "./routes/HealthcheckRouter"
 import MarketplaceRouter from "./routes/MarketplaceRouter"
 import FollowRouter from "./routes/FollowRouter"
+import AssetsRouter from "./routes/AssetsRouter"
 
 import {
   logger,
@@ -82,6 +83,7 @@ export const start = async () => {
     app.use('/api/v1/healthcheck', HealthcheckRouter)
     app.use('/api/v1/marketplace', MarketplaceRouter)
     app.use('/api/v1/follows', FollowRouter)
+    app.use('/api/v1/assets', AssetsRouter)
     // error logger
     app.use(expressErrorLogger)
     // listen

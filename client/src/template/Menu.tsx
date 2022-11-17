@@ -130,7 +130,8 @@ const AppMenu = (props: AppMenuProps) => {
 
     const baserMenuItems: any[] = [
         { key: 'navigation', label: 'Navigation', isTitle: true },
-        { key: 'dashboard', label: 'Dashboard', isTitle: false, icon: 'uil-home-alt', url: '/dashboard' },
+        { key: 'panel', label: 'Panel', isTitle: false, icon: 'uil-home-alt', url: '/panel' },
+        { key: 'assets', label: 'Assets', isTitle: false, icon: 'uil-wallet', url: '/assets' },
         { key: 'marketplace', label: 'Marketplace', isTitle: false, icon: 'uil-store', url: '/marketplace' },
         { key: 'docs', label: 'Docs', isTitle: false, icon: 'uil-book-alt', url: '/docs' },
         { key: 'automation', label: 'Automation', isTitle: true },
@@ -149,7 +150,8 @@ const AppMenu = (props: AppMenuProps) => {
 
     const minimalMenuItems: any[] = [
         { key: 'navigation', label: '---', isTitle: true },
-        { key: 'dashboard', isTitle: false, icon: 'uil-home-alt', url: '/dashboard' },
+        { key: 'panel', isTitle: false, icon: 'uil-home-alt', url: '/panel' },
+        { key: 'assets', isTitle: false, icon: 'uil-wallet', url: '/assets' },
         { key: 'marketplace', isTitle: false, icon: 'uil-store', url: '/marketplace' },
         { key: 'docs', isTitle: false, icon: 'uil-book-alt', url: '/docs' },
         { key: 'automation', label: '---', isTitle: true },

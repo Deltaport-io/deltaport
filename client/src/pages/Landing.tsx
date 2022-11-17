@@ -47,7 +47,7 @@ class Landing extends Component <LandingProps, LandingStates> {
         .then((response) => { return response.json() })
         .then((json) => {
           if (json.status === 'success') {
-            this.props.history.push('/dashboard')
+            this.props.history.push('/panel')
           }
           if (json.status === 'error') {
             deleteCredentials()
