@@ -3,11 +3,209 @@ import models from './models'
 import { request, gql } from 'graphql-request'
 import { logger } from './logger'
 
+export const importSmartContracts = async () => {
+  try {
+    // load uniswap
+    const endpoint = 'https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3'
+    for (let skip=0;skip<=5000;skip+=1000) {
+      const smartContracts: any[] = []
+      const tokens: any[] = []
+      const tokenToSmartContracts: any[] = []
+      const QUERY = gql`
+      query pools($skip: Int!) {
+        pools(first: 1000, skip: $skip, orderBy: volumeUSD, orderDirection: desc) {
+          id
+          feeTier
+          volumeUSD
+          txCount
+          token0 {
+            id
+            symbol
+            name
+            decimals
+          }
+          token1 {
+            id
+            symbol
+            name
+            decimals
+          }
+        }
+      }
+      `
+      const req = await request(endpoint, QUERY, {skip})
+      for(const entry of req.pools){
+        tokens.push({
+          id: entry.token0.id,
+          symbol: entry.token0.symbol,
+          name: entry.token0.name,
+          decimals: entry.token0.decimals
+        })
+        tokens.push({
+          id: entry.token1.id,
+          symbol: entry.token1.symbol,
+          name: entry.token1.name,
+          decimals: entry.token1.decimals
+        })
+        smartContracts.push({
+          id: entry.id,
+          name: 'Uniswap',
+          description: `Swap between ${entry.token0.symbol} and ${entry.token1.symbol}`,
+          keywords: `swap ${entry.token1.symbol} ${entry.token0.symbol}`,
+          data: {
+            abi: 'biba'
+          }
+        })
+        tokenToSmartContracts.push({
+          dexsmartcontractId: entry.id,
+          dextokenId: entry.token0.id
+        })
+        tokenToSmartContracts.push({
+          dexsmartcontractId: entry.id,
+          dextokenId: entry.token1.id
+        })
+      }
+      await models.dextokens.bulkCreate(tokens, { ignoreDuplicates: true })
+      await models.dexsmartcontracts.bulkCreate(smartContracts, { ignoreDuplicates: true })
+      await models.dexsmartcontractstokens.bulkCreate(tokenToSmartContracts, { ignoreDuplicates: true })
+    }
+  } catch (e) {
+    logger.log('info', 'failed getting uniswap pools ' + e)
+  }
+  /*
+  try {
+    // load aave
+    const endpoint = 'https://cache-api-1.aave.com/graphql'
+    for (let skip=0;skip<=5000;skip+=1000) {
+      const smartContracts: any[] = []
+      const tokens: any[] = []
+      const tokenToSmartContracts: any[] = []
+      const QUERY = gql`
+      query C_ProtocolData($lendingPoolAddressProvider: String!, $chainId: Int!) {
+        protocolData(
+          lendingPoolAddressProvider: $lendingPoolAddressProvider
+          chainId: $chainId
+        ) {
+          reserves {
+            ...ReserveDataFragment
+            __typename
+          }
+          baseCurrencyData {
+            ...BaseCurrencyDataFragment
+            __typename
+          }
+          __typename
+        }
+      }
+      
+      fragment ReserveDataFragment on ReserveData {
+        id
+        underlyingAsset
+        name
+        symbol
+        decimals
+        isActive
+        isFrozen
+        usageAsCollateralEnabled
+        aTokenAddress
+        stableDebtTokenAddress
+        variableDebtTokenAddress
+        borrowingEnabled
+        stableBorrowRateEnabled
+        reserveFactor
+        interestRateStrategyAddress
+        baseLTVasCollateral
+        stableRateSlope1
+        stableRateSlope2
+        averageStableRate
+        stableDebtLastUpdateTimestamp
+        variableRateSlope1
+        variableRateSlope2
+        liquidityIndex
+        reserveLiquidationThreshold
+        reserveLiquidationBonus
+        variableBorrowIndex
+        variableBorrowRate
+        availableLiquidity
+        stableBorrowRate
+        liquidityRate
+        totalPrincipalStableDebt
+        totalScaledVariableDebt
+        lastUpdateTimestamp
+        priceInMarketReferenceCurrency
+        isPaused
+        accruedToTreasury
+        unbacked
+        isolationModeTotalDebt
+        debtCeiling
+        debtCeilingDecimals
+        eModeCategoryId
+        borrowCap
+        supplyCap
+        eModeLtv
+        eModeLiquidationThreshold
+        eModeLiquidationBonus
+        eModePriceSource
+        eModeLabel
+        borrowableInIsolation
+        baseStableBorrowRate
+        baseVariableBorrowRate
+        optimalUsageRatio
+        priceOracle
+        __typename
+      }
+      
+      fragment BaseCurrencyDataFragment on BaseCurrencyData {
+        marketReferenceCurrencyDecimals
+        marketReferenceCurrencyPriceInUsd
+        networkBaseTokenPriceInUsd
+        networkBaseTokenPriceDecimals
+      }
+      `
+      const aaveLendingPool = "0xb53c1a33016b2dc2ff3653530bff1848a515c8c5"
+      const req = await request(endpoint, QUERY, {
+        lendingPoolAddressProvider: aaveLendingPool,
+        chainId: 1
+      })
+      // process
+      smartContracts.push({
+        id: aaveLendingPool,
+        name: 'Aave',
+        description: 'Borrow assets',
+        keywords: 'borrow repay',
+        data: {
+          abi: 'biba aave'
+        }
+      })
+      for(const entry of req.protocolData.reserves){
+        smartContracts[0].keywords = smartContracts[0].keywords + ` ${entry.symbol}`
+        tokens.push({
+          id: entry.underlyingAsset,
+          symbol: entry.symbol,
+          decimals: entry.decimals
+        })
+        tokenToSmartContracts.push({
+          dexsmartcontractId: aaveLendingPool,
+          dextokenId: entry.underlyingAsset
+        })
+      }
+      await models.dextokens.bulkCreate(tokens, { ignoreDuplicates: true })
+      await models.dexsmartcontracts.bulkCreate(smartContracts, { ignoreDuplicates: true })
+      await models.dexsmartcontractstokens.bulkCreate(tokenToSmartContracts, { ignoreDuplicates: true })
+    }
+  } catch (e) {
+    logger.log('info', 'failed getting uniswap pools ' + e)
+  }
+  */
+}
+
 export const importIfNotInPoolsTokens = async () => {
   const count1 = await models.dextokens.count()
   const count2 = await models.dexpools.count()
-  if (count1 === 0 || count2 === 0) {
+  const count3 = await models.dexsmartcontracts.count()
+  if (count1 === 0 || count2 === 0 || count3 === 0) {
     loadDexPoolsTokens()
+    importSmartContracts()
   }
 }
 

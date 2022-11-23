@@ -11,6 +11,8 @@ import DexPools from './pages/DexPools'
 import DexPool from './pages/DexPool'
 import DexTokens from './pages/DexTokens'
 import DexToken from './pages/DexToken'
+import DexSmartContracts from './pages/DexSmartContracts'
+import DexSmartContract from './pages/DexSmartContract'
 import Pair from './pages/Pair'
 import Pairs from './pages/Pairs'
 import Bot from './pages/Bot'
@@ -44,6 +46,8 @@ const routes = <Switch>
   <Route component={DexWallets} path="/dexwallets" />
   <Route component={DexPool} path="/dexpools/:id" />
   <Route component={DexPools} path="/dexpools" />
+  <Route component={DexSmartContracts} path="/dexsmartcontracts" />
+  <Route component={DexSmartContract} path="/dexsmartcontracts/:id" />
   <Route component={DexToken} path="/dextokens/:id" />
   <Route component={DexTokens} path="/dextokens" />
   <Route component={Trading} path="/tradings/:id" />

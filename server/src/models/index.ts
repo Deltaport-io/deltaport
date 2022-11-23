@@ -15,6 +15,8 @@ import bots from "./bots"
 import accounts from "./accounts"
 import dexes from "./dexes"
 import dexwallets from "./dexwallets"
+import dexsmartcontracts from "./dexsmartcontracts"
+import dexsmartcontractstokens from "./dexsmartcontractstokens"
 import dexpools from "./dexpools"
 import dextokens from "./dextokens"
 import dexpooltokens from "./dexpooltokens"
@@ -60,6 +62,8 @@ const models = {
   tradeohlcs: tradeohlcs(sequelize, Sequelize),
   dexes: dexes(sequelize, Sequelize),
   dexwallets: dexwallets(sequelize, Sequelize),
+  dexsmartcontracts: dexsmartcontracts(sequelize, Sequelize),
+  dexsmartcontractstokens: dexsmartcontractstokens(sequelize, Sequelize),
   dexpools: dexpools(sequelize, Sequelize),
   dextokens: dextokens(sequelize, Sequelize),
   dexpooltokens: dexpooltokens(sequelize, Sequelize),

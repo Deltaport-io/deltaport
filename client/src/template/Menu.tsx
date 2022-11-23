@@ -143,6 +143,7 @@ const AppMenu = (props: AppMenuProps) => {
         { key: 'wallets', label: 'Wallets', isTitle: false, icon: 'uil-globe', url: '/dexwallets' },
         { key: 'tokens', label: 'Tokens', isTitle: false, icon: 'uil-layers-alt', url: '/dextokens' },
         { key: 'pools', label: 'Pools', isTitle: false, icon: 'uil-coins', url: '/dexpools' },
+        { key: 'smartcontracts', label: 'Contracts', isTitle: false, icon: 'uil-globe', url: '/dexsmartcontracts' },
         { key: 'exchanges', label: 'Exchanges', isTitle: true },
         { key: 'exchanges', label: 'Exchanges', isTitle: false, icon: 'uil-building', url: '/exchanges' },
         { key: 'pairs', label: 'Pairs', isTitle: false, icon: 'uil-layer-group', url: '/pairs' }
@@ -163,6 +164,7 @@ const AppMenu = (props: AppMenuProps) => {
         { key: 'wallets', isTitle: false, icon: 'uil-globe', url: '/dexwallets' },
         { key: 'tokens', isTitle: false, icon: 'uil-layers-alt', url: '/dextokens' },
         { key: 'pools', isTitle: false, icon: 'uil-coins', url: '/dexpools' },
+        { key: 'smartcontracts', isTitle: false, icon: 'uil-coins', url: '/dexsmartcontracts' },
         { key: 'exchanges', label: '---', isTitle: true },
         { key: 'exchanges', isTitle: false, icon: 'uil-building', url: '/exchanges' },
         { key: 'pairs', isTitle: false, icon: 'uil-layer-group', url: '/pairs' }

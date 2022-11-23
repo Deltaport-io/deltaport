@@ -20,6 +20,7 @@ import BacktestsRouter from "./routes/BacktestsRouter"
 import TradingsRouter from "./routes/TradingsRouter"
 import DexPoolsRouter from "./routes/DexPoolsRouter"
 import DexTokensRouter from "./routes/DexTokensRouter"
+import DexSmartContractsRouter from "./routes/DexSmartContractsRouter"
 import HealthcheckRouter from "./routes/HealthcheckRouter"
 import MarketplaceRouter from "./routes/MarketplaceRouter"
 import FollowRouter from "./routes/FollowRouter"
@@ -78,6 +79,7 @@ export const start = async () => {
     app.use('/api/v1/dexwallets', DexWalletsRouter)
     app.use('/api/v1/dexpools', DexPoolsRouter)
     app.use('/api/v1/dextokens', DexTokensRouter)
+    app.use('/api/v1/dexsmartcontracts', DexSmartContractsRouter)
     app.use('/api/v1/backtests', BacktestsRouter)
     app.use('/api/v1/tradings', TradingsRouter)
     app.use('/api/v1/healthcheck', HealthcheckRouter)
