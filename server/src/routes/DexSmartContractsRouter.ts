@@ -61,7 +61,6 @@ export class DexSmartContractsRouter {
     return res.send({ status: 'success', dexsmartcontracts: dexsmartcontracts.rows, entries: dexsmartcontracts.count })
   }
 
-  /*
   getDexSmartContractInputs = [
     param('id').isLength({ min: 1, max: 128 })
   ]
@@ -77,20 +76,18 @@ export class DexSmartContractsRouter {
     if (!user) {
         return res.send({ status: 'error', message: 'No user' })
     }
-    // get pair
-    const dexpool = await models.dexpools.findOne({
+    // get smartcontract
+    const dexsmartcontract = await models.dexsmartcontracts.findOne({
       where: {id: req.params.id},
-      include: [{
-        model: models.dextokens
-      },{
-        model: models.dexes
-      }],
+      include: {
+        model: models.dexsmartcontractsabis
+      }
     })
     // no pair
-    if (dexpool === null) {
-      return res.send({ status: 'error', message: 'No pool found' })
+    if (dexsmartcontract === null) {
+      return res.send({ status: 'error', message: 'No smart contract found' })
     }
-    // get pool balances and account
+    // get smartcontract views and accounts
     const wallets: any[] =[]
     const dexwallets = await models.dexwallets.findAll({
       where: {
@@ -99,9 +96,80 @@ export class DexSmartContractsRouter {
     })
     const ethereumApi = new EthereumApi()
     for (const dexwallet of dexwallets) {
-      const balances = {}
-      let aave: any = undefined
       const web3Wallet = await ethereumApi.wallet(dexwallet)
+      let data: any = {}
+      /*
+      const AaveData = {
+        view: {
+          ui: {
+            
+          },
+          fn: async (wallet: any, smartcontractData: any) => {
+            const tempData = await wallet.executeReadContractAction('0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9', smartcontractData.dexsmartcontractabis, 'getUserAccountData', [wallet.address])
+            return {
+              totalCollateralETH: tempData.totalCollateralETH.toString(),
+              totalDebtETH: tempData.totalDebtETH.toString(),
+              availableBorrowsETH: tempData.availableBorrowsETH.toString(),
+              currentLiquidationThreshold: tempData.currentLiquidationThreshold.toString(),
+              ltv: tempData.ltv.toString()
+            }
+          }
+        },
+        actions: {
+          swap: {
+            ui: {
+              // kra
+            },
+            fn: {
+              // kra
+            }
+          }
+        }
+      }
+      */
+      const UniswapData = {
+        view: {
+          onload: {
+            ui: {
+              table: [{
+                name: 'Balance BUSD',
+                value: 'token0',
+                type: 'balance',
+                decimals: 18
+              }, {
+                name: 'Balance WETH',
+                value: 'token1',
+                type: 'balance',
+                decimals: 18
+              }]
+            },
+            fn: async (wallet: any, smartcontractData: any) => {
+              const promises = await Promise.all([
+                wallet.token('0x4fabb145d64652a948d72533023f6e7a623c7c53').getBalance(wallet.address),
+                wallet.token('0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2').getBalance(wallet.address)
+              ])
+              return {
+                token0: promises[0].toString(),
+                token1: promises[1].toString()
+              }
+            }
+          }
+        },
+        actions: {
+          swap: {
+            ui: {
+              // kra
+            },
+            fn: {
+              // kra
+            }
+          }
+        }
+      }
+      if (UniswapData && UniswapData.view && UniswapData.view.onload) {
+        data = await UniswapData.view.onload.fn(web3Wallet, dexsmartcontract)
+      }
+      /*
       for (const dextoken of dexpool.dextokens) {
         const token = web3Wallet.token(dextoken.id)
         const balance = (await token.getBalance()).toString()
@@ -118,25 +186,24 @@ export class DexSmartContractsRouter {
           ltv: tempdata.ltv.toString()
         }
       }
+      */
       wallets.push({
         id: dexwallet.id,
         name: dexwallet.name,
-        balances,
-        aave
+        data
       })
     }
     // return data
     return res.send({
       status: 'success',
-      dexpool: dexpool,
+      dexsmartcontract: dexsmartcontract,
       wallets
     })
   }
-  */
 
   init () {
     this.router.get('/', this.getDexSmartContractsInputs, this.getDexSmartContracts)
-    // this.router.get('/:id', this.getDexSmartContractInputs, this.getDexSmartContract)
+    this.router.get('/:id', this.getDexSmartContractInputs, this.getDexSmartContract)
   }
 }
 

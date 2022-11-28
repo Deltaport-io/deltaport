@@ -5,17 +5,11 @@ import { config } from '././config/config'
 import superagent from 'superagent'
 
 export class EthereumApi {
-
-  wallets: any = {}
-
   wallet = async (wallet: any, injectedAbis: any[] = [], options=undefined) =>  {
-    if (this.wallets[wallet.name]) {
-      return this.wallets[wallet.name]
-    }
     const web3Wallet = await ethers.Wallet.fromMnemonic(wallet.seedphrase, "m/44'/60'/0'/0/" + wallet.walletindex)
     const walletAddress = web3Wallet.address
     // prepare injected
-    const injectedABIs = {}
+    const injectedABIs: any = {}
     if (injectedAbis.length > 0) {
       for (const injectedAbi of injectedAbis) {
         injectedABIs[injectedAbi.name] = (contractAddress: string) => {
@@ -35,7 +29,7 @@ export class EthereumApi {
       }
     }
     // create wallet obj
-    this.wallets[wallet.name] = {
+    const walletHolder = {
       getBalance: async (address: string = undefined) => {
         const provider = new ethers.providers.JsonRpcProvider(wallet.nodeurl)
         return provider.getBalance(address ? address : walletAddress)
@@ -328,9 +322,14 @@ export class EthereumApi {
         const web3Provider = web3Wallet.connect(provider)
         const tempContract = new ethers.Contract(address, abi, web3Provider)
         return tempContract[name](...args)
+      },
+      readContractAction: async (address, abi, name, args) => {
+        const provider = new ethers.providers.JsonRpcProvider(wallet.nodeurl)
+        const tempContract = new ethers.Contract(address, abi, provider)
+        return tempContract[name](...args)
       }
     }
-    return this.wallets[wallet.name]
+    return walletHolder
   }
 
   trackActions = async (options: any, action: any) => {

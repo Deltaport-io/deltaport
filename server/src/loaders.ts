@@ -48,13 +48,15 @@ export const importSmartContracts = async () => {
           decimals: entry.token1.decimals
         })
         smartContracts.push({
-          id: entry.id,
+          id: 'Uniswapv3:'+entry.id,
+          address: entry.id,
           name: 'Uniswap',
           description: `Swap between ${entry.token0.symbol} and ${entry.token1.symbol}`,
           keywords: `swap ${entry.token1.symbol} ${entry.token0.symbol}`,
           data: {
             abi: 'biba'
-          }
+          },
+          dexsmartcontractsabiName: 'Uniswapv3'
         })
         tokenToSmartContracts.push({
           dexsmartcontractId: entry.id,
@@ -203,7 +205,8 @@ export const importIfNotInPoolsTokens = async () => {
   const count1 = await models.dextokens.count()
   const count2 = await models.dexpools.count()
   const count3 = await models.dexsmartcontracts.count()
-  if (count1 === 0 || count2 === 0 || count3 === 0) {
+  const count4 = await models.dexsmartcontractsabis.count()
+  if (count1 === 0 || count2 === 0 || count3 === 0 || count4 === 0) {
     loadDexPoolsTokens()
     importSmartContracts()
   }
@@ -475,4 +478,146 @@ export const loadExchanges = async () => {
   // dexes
   await models.dexes.create({name: 'Uniswap'}, { ignoreDuplicates: true })
   await models.dexes.create({name: 'Aave'}, { ignoreDuplicates: true })
+  await models.dexsmartcontractsabis.create({
+    name: 'Uniswapv3',
+    abis: [{
+      "constant":true,
+      "inputs":[
+        {"name":"tokenIn","type":"address"},
+        {"name":"tokenOut","type":"address"},
+        {"name":"fee","type":"uint24"},
+        {"name":"amountIn","type":"uint256"},
+        {"name":"sqrtPriceLimitX96","type":"uint160"}
+      ],
+      "name":"quoteExactInputSingle",
+      "outputs":[
+        {"name":"amountOut","type":"uint256"}
+      ],
+      "type":"function"
+    },
+    // quoteExactOutputSingle
+    {
+      "constant":true,
+      "inputs":[
+        {"name":"tokenIn","type":"address"},
+        {"name":"tokenOut","type":"address"},
+        {"name":"fee","type":"uint24"},
+        {"name":"amountOut","type":"uint256"},
+        {"name":"sqrtPriceLimitX96","type":"uint160"}
+      ],
+      "name":"quoteExactOutputSingle",
+      "outputs":[
+        {"name":"amountIn","type":"uint256"}
+      ],
+      "type":"function"
+    },
+    // exactInputSingle
+    {
+      "constant":true,
+      "inputs":[        {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "tokenIn",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "tokenOut",
+            "type": "address"
+          },
+          {
+            "internalType": "uint24",
+            "name": "fee",
+            "type": "uint24"
+          },
+          {
+            "internalType": "address",
+            "name": "recipient",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "deadline",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amountIn",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amountOutMinimum",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint160",
+            "name": "sqrtPriceLimitX96",
+            "type": "uint160"
+          }
+        ],
+        "internalType": "struct ExactInputSingleParams",
+        "name": "params",
+        "type": "tuple"
+      }],
+      "name":"exactInputSingle",
+      "outputs":[{"name":"amountOut","type":"uint256"}],
+      "type":"function"
+    },
+    // exactOutputSingle
+    {
+      "constant":true,
+      "inputs":[        {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "tokenIn",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "tokenOut",
+            "type": "address"
+          },
+          {
+            "internalType": "uint24",
+            "name": "fee",
+            "type": "uint24"
+          },
+          {
+            "internalType": "address",
+            "name": "recipient",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "deadline",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amountOut",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amountOutMinimum",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint160",
+            "name": "sqrtPriceLimitX96",
+            "type": "uint160"
+          }
+        ],
+        "internalType": "struct ExactOutputSingleParams",
+        "name": "params",
+        "type": "tuple"
+      }],
+      "name":"exactOutputSingle",
+      "outputs":[{"name":"amountIn","type":"uint256"}],
+      "type":"function"
+    }]
+  }, { ignoreDuplicates: true })
 }

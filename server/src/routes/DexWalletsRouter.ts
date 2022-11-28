@@ -197,8 +197,8 @@ export class DexWalletsRouter {
     try {
       const ethereumApi = new EthereumApi()
       const web3Wallet = await ethereumApi.wallet(dexwallet)
-      const tx = await web3Wallet.web3.eth.sendTransaction({to:req.body.address, from:dexwallet.address, value:req.body.amount})
-      return res.send({ status: 'success', message: dexwallet.txviewer + tx.transactionHash})
+      const tx = await web3Wallet.transferEther(req.body.address, req.body.amount)
+      return res.send({ status: 'success', message: dexwallet.txviewer + tx.hash})
     } catch (e) {
       // console.log('error', e)
       return res.send({ status: 'error', message: e.message})

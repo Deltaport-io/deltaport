@@ -16,6 +16,7 @@ import accounts from "./accounts"
 import dexes from "./dexes"
 import dexwallets from "./dexwallets"
 import dexsmartcontracts from "./dexsmartcontracts"
+import dexsmartcontractsabis from "./dexsmartcontractsabis"
 import dexsmartcontractstokens from "./dexsmartcontractstokens"
 import dexpools from "./dexpools"
 import dextokens from "./dextokens"
@@ -64,6 +65,7 @@ const models = {
   dexwallets: dexwallets(sequelize, Sequelize),
   dexsmartcontracts: dexsmartcontracts(sequelize, Sequelize),
   dexsmartcontractstokens: dexsmartcontractstokens(sequelize, Sequelize),
+  dexsmartcontractsabis: dexsmartcontractsabis(sequelize, Sequelize),
   dexpools: dexpools(sequelize, Sequelize),
   dextokens: dextokens(sequelize, Sequelize),
   dexpooltokens: dexpooltokens(sequelize, Sequelize),

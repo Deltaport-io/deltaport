@@ -1,6 +1,7 @@
 export default (sequelize, DataTypes) => {
   const dexsmartcontracts = sequelize.define('dexsmartcontracts', {
     id: { type: DataTypes.STRING(128), primaryKey: true },
+    address: { type: DataTypes.STRING(128) },
     name: { type: DataTypes.STRING(50) },
     description: { type: DataTypes.STRING(300) },
     keywords: { type: DataTypes.TEXT },
@@ -25,8 +26,8 @@ export default (sequelize, DataTypes) => {
     ]
   })
   dexsmartcontracts.associate = function (models) {
-    // models.dexsmartcontracts.belongsTo(models.dexes)
     models.dexsmartcontracts.belongsToMany(models.dextokens, { through: models.dexsmartcontractstokens })
+    models.dexsmartcontracts.belongsTo(models.dexsmartcontractsabis)
   }
   return dexsmartcontracts
 }

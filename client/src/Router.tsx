@@ -46,8 +46,8 @@ const routes = <Switch>
   <Route component={DexWallets} path="/dexwallets" />
   <Route component={DexPool} path="/dexpools/:id" />
   <Route component={DexPools} path="/dexpools" />
-  <Route component={DexSmartContracts} path="/dexsmartcontracts" />
   <Route component={DexSmartContract} path="/dexsmartcontracts/:id" />
+  <Route component={DexSmartContracts} path="/dexsmartcontracts" />
   <Route component={DexToken} path="/dextokens/:id" />
   <Route component={DexTokens} path="/dextokens" />
   <Route component={Trading} path="/tradings/:id" />
