@@ -3,6 +3,7 @@ import { getMeUser } from '../me'
 import models from '../models'
 import { body, query, param, validationResult } from 'express-validator'
 import { EthereumApi } from '../ethereumApi'
+import BigNumber from 'bignumber.js'
 
 export class DexSmartContractsRouter {
   router: express.Router
@@ -131,13 +132,13 @@ export class DexSmartContractsRouter {
         view: {
           onload: {
             ui: {
-              table: [{
-                name: 'Balance BUSD',
+              rows: [{
+                name: 'BUSD',
                 value: 'token0',
                 type: 'balance',
                 decimals: 18
               }, {
-                name: 'Balance WETH',
+                name: 'WETH',
                 value: 'token1',
                 type: 'balance',
                 decimals: 18
@@ -157,11 +158,58 @@ export class DexSmartContractsRouter {
         },
         actions: {
           swap: {
+            title: 'Swap',
             ui: {
-              // kra
+              inputs: [{
+                name: 'Wallet',
+                id: 'walletSelect',
+                type: 'walletSelect'
+              },{
+                name: 'Direction',
+                id: 'swapDirection',
+                type: 'select',
+                options: [{
+                  title: 'BUSD to WETH',
+                  value: '1'
+                },{
+                  title: 'WETH to BUSD',
+                  value: '-1'
+                }]
+              },{
+                name: 'Amount in',
+                conditions: {
+                  swapDirection: 1
+                },
+                id: 'amontIn',
+                type: 'balanceInput',
+                decimals: 18
+              },{
+                name: 'Amount in',
+                conditions: {
+                  swapDirection: -1
+                },
+                id: 'amontIn',
+                type: 'balanceInput',
+                decimals: 18
+              }]
             },
-            fn: {
-              // kra
+            fn: async (wallet: any, smartcontractData: any, inputs: any) => {
+              const allowance = await wallet.readContractAction('0xE592427A0AEce92De3Edee1F18E0157C05861564', smartcontractData.dexsmartcontractabis, 'allowance', [wallet.address])
+              if (allowance.lt(inputs.inputAmount)){
+                const uint256max = new BigNumber(2).pow(256).minus(1)
+                await wallet.executeReadContractAction(inputs.direction ? '0x4fabb145d64652a948d72533023f6e7a623c7c53' : '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2', smartcontractData.dexsmartcontractabis, 'approve', ['0xE592427A0AEce92De3Edee1F18E0157C05861564', uint256max])
+              }
+              const args = [
+                inputs.direction ? '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2' : '0x4fabb145d64652a948d72533023f6e7a623c7c53',
+                inputs.direction ? '0x4fabb145d64652a948d72533023f6e7a623c7c53' : '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+                3,
+                wallet.address,
+                new Date().getTime(),
+                inputs.inputsAmount,
+                0,
+                0
+              ]
+              return wallet.executeContractAction('0xE592427A0AEce92De3Edee1F18E0157C05861564', smartcontractData.dexsmartcontractabis, 'exactInputSingle', args)
             }
           }
         }
@@ -169,24 +217,6 @@ export class DexSmartContractsRouter {
       if (UniswapData && UniswapData.view && UniswapData.view.onload) {
         data = await UniswapData.view.onload.fn(web3Wallet, dexsmartcontract)
       }
-      /*
-      for (const dextoken of dexpool.dextokens) {
-        const token = web3Wallet.token(dextoken.id)
-        const balance = (await token.getBalance()).toString()
-        balances[dextoken.symbol] = balance
-      }
-      if (dexpool.dex.name === 'Aave') {
-        const pool = web3Wallet.pool(dexpool.id)
-        const tempdata = await pool.lendPoolGetUserAccountData(dexwallet.address)
-        aave = {
-          totalCollateralETH: tempdata.totalCollateralETH.toString(),
-          totalDebtETH: tempdata.totalDebtETH.toString(),
-          availableBorrowsETH: tempdata.availableBorrowsETH.toString(),
-          currentLiquidationThreshold: tempdata.currentLiquidationThreshold.toString(),
-          ltv: tempdata.ltv.toString()
-        }
-      }
-      */
       wallets.push({
         id: dexwallet.id,
         name: dexwallet.name,
