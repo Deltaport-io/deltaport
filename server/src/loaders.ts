@@ -48,14 +48,96 @@ export const importSmartContracts = async () => {
           decimals: entry.token1.decimals
         })
         smartContracts.push({
-          id: 'Uniswapv3:'+entry.id,
           address: entry.id,
           name: 'Uniswap',
           description: `Swap between ${entry.token0.symbol} and ${entry.token1.symbol}`,
           keywords: `swap ${entry.token1.symbol} ${entry.token0.symbol}`,
-          data: {
-            abi: 'biba'
-          },
+          data: `{
+            view: {
+              onload: {
+                ui: {
+                  rows: [{
+                    name: '${entry.token0.symbol}',
+                    value: 'token0',
+                    type: 'balance',
+                    decimals: 18
+                  }, {
+                    name: '${entry.token1.symbol}',
+                    value: 'token1',
+                    type: 'balance',
+                    decimals: 18
+                  }]
+                },
+                fn: async () => {
+                  const promises = await Promise.all([
+                    web3Wallet.token('${entry.token0.id}').getBalance(web3Wallet.address),
+                    web3Wallet.token('${entry.token1.id}').getBalance(web3Wallet.address)
+                  ])
+                  return {
+                    token0: promises[0].toString(),
+                    token1: promises[1].toString()
+                  }
+                }
+              }
+            },
+            actions: {
+              swap: {
+                title: 'Swap',
+                ui: {
+                  inputs: [{
+                    name: 'Wallet',
+                    id: 'walletSelect',
+                    type: 'walletSelect'
+                  },{
+                    name: 'Direction',
+                    id: 'swapDirection',
+                    type: 'select',
+                    options: [{
+                      title: '${entry.token0.id} to ${entry.token1.id}',
+                      value: '1'
+                    },{
+                      title: '${entry.token1.id} to ${entry.token0.id}',
+                      value: '-1'
+                    }]
+                  },{
+                    name: 'Amount in',
+                    conditions: {
+                      swapDirection: 1
+                    },
+                    id: 'amontIn',
+                    type: 'balanceInput',
+                    decimals: 18
+                  },{
+                    name: 'Amount in',
+                    conditions: {
+                      swapDirection: -1
+                    },
+                    id: 'amontIn',
+                    type: 'balanceInput',
+                    decimals: 18
+                  }]
+                },
+                fn: async (inputs) => {
+                  const allowance = await web3Wallet.readContractAction('0xE592427A0AEce92De3Edee1F18E0157C05861564', dexsmartcontract.dexsmartcontractabis, 'allowance', [web3Wallet.address])
+                  if (allowance.lt(inputs.inputAmount)){
+                    const uint256max = new BigNumber(2).pow(256).minus(1)
+                    await web3Wallet.executeReadContractAction(inputs.direction ? '${entry.token1.id}' : '${entry.token0.id}', dexsmartcontract.dexsmartcontractabis, 'approve', ['0xE592427A0AEce92De3Edee1F18E0157C05861564', uint256max])
+                  }
+                  const args = [
+                    inputs.direction ? '${entry.token0.id}' : '${entry.token1.id}',
+                    inputs.direction ? '${entry.token1.id}' : '${entry.token0.id}',
+                    3,
+                    web3Wallet.address,
+                    new Date().getTime(),
+                    inputs.inputsAmount,
+                    0,
+                    0
+                  ]
+                  return web3Wallet.executeContractAction('0xE592427A0AEce92De3Edee1F18E0157C05861564', dexsmartcontract.dexsmartcontractabis, 'exactInputSingle', args)
+                }
+              }
+            }
+          }`,
           dexsmartcontractsabiName: 'Uniswapv3'
         })
         tokenToSmartContracts.push({

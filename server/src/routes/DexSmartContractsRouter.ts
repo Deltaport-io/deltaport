@@ -4,6 +4,7 @@ import models from '../models'
 import { body, query, param, validationResult } from 'express-validator'
 import { EthereumApi } from '../ethereumApi'
 import BigNumber from 'bignumber.js'
+import { VM, VMScript } from 'vm2'
 
 export class DexSmartContractsRouter {
   router: express.Router
@@ -78,7 +79,7 @@ export class DexSmartContractsRouter {
         return res.send({ status: 'error', message: 'No user' })
     }
     // get smartcontract
-    const dexsmartcontract = await models.dexsmartcontracts.findOne({
+    let dexsmartcontract = await models.dexsmartcontracts.findOne({
       where: {id: req.params.id},
       include: {
         model: models.dexsmartcontractsabis
@@ -88,6 +89,7 @@ export class DexSmartContractsRouter {
     if (dexsmartcontract === null) {
       return res.send({ status: 'error', message: 'No smart contract found' })
     }
+    dexsmartcontract = dexsmartcontract.toJSON()
     // get smartcontract views and accounts
     const wallets: any[] =[]
     const dexwallets = await models.dexwallets.findAll({
@@ -95,138 +97,31 @@ export class DexSmartContractsRouter {
         userIdusers: user.idusers
       }
     })
+    const baseInject = new VMScript(`const base = ${dexsmartcontract.data}`, 'data.js').compile()
     const ethereumApi = new EthereumApi()
     for (const dexwallet of dexwallets) {
       const web3Wallet = await ethereumApi.wallet(dexwallet)
-      let data: any = {}
-      /*
-      const AaveData = {
-        view: {
-          ui: {
-            
-          },
-          fn: async (wallet: any, smartcontractData: any) => {
-            const tempData = await wallet.executeReadContractAction('0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9', smartcontractData.dexsmartcontractabis, 'getUserAccountData', [wallet.address])
-            return {
-              totalCollateralETH: tempData.totalCollateralETH.toString(),
-              totalDebtETH: tempData.totalDebtETH.toString(),
-              availableBorrowsETH: tempData.availableBorrowsETH.toString(),
-              currentLiquidationThreshold: tempData.currentLiquidationThreshold.toString(),
-              ltv: tempData.ltv.toString()
-            }
-          }
-        },
-        actions: {
-          swap: {
-            ui: {
-              // kra
-            },
-            fn: {
-              // kra
-            }
-          }
+      const vm = new VM({
+        sandbox: {
+          web3Wallet,
+          dexsmartcontract
         }
-      }
-      */
-      const UniswapData = {
-        view: {
-          onload: {
-            ui: {
-              rows: [{
-                name: 'BUSD',
-                value: 'token0',
-                type: 'balance',
-                decimals: 18
-              }, {
-                name: 'WETH',
-                value: 'token1',
-                type: 'balance',
-                decimals: 18
-              }]
-            },
-            fn: async (wallet: any, smartcontractData: any) => {
-              const promises = await Promise.all([
-                wallet.token('0x4fabb145d64652a948d72533023f6e7a623c7c53').getBalance(wallet.address),
-                wallet.token('0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2').getBalance(wallet.address)
-              ])
-              return {
-                token0: promises[0].toString(),
-                token1: promises[1].toString()
-              }
-            }
-          }
-        },
-        actions: {
-          swap: {
-            title: 'Swap',
-            ui: {
-              inputs: [{
-                name: 'Wallet',
-                id: 'walletSelect',
-                type: 'walletSelect'
-              },{
-                name: 'Direction',
-                id: 'swapDirection',
-                type: 'select',
-                options: [{
-                  title: 'BUSD to WETH',
-                  value: '1'
-                },{
-                  title: 'WETH to BUSD',
-                  value: '-1'
-                }]
-              },{
-                name: 'Amount in',
-                conditions: {
-                  swapDirection: 1
-                },
-                id: 'amontIn',
-                type: 'balanceInput',
-                decimals: 18
-              },{
-                name: 'Amount in',
-                conditions: {
-                  swapDirection: -1
-                },
-                id: 'amontIn',
-                type: 'balanceInput',
-                decimals: 18
-              }]
-            },
-            fn: async (wallet: any, smartcontractData: any, inputs: any) => {
-              const allowance = await wallet.readContractAction('0xE592427A0AEce92De3Edee1F18E0157C05861564', smartcontractData.dexsmartcontractabis, 'allowance', [wallet.address])
-              if (allowance.lt(inputs.inputAmount)){
-                const uint256max = new BigNumber(2).pow(256).minus(1)
-                await wallet.executeReadContractAction(inputs.direction ? '0x4fabb145d64652a948d72533023f6e7a623c7c53' : '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2', smartcontractData.dexsmartcontractabis, 'approve', ['0xE592427A0AEce92De3Edee1F18E0157C05861564', uint256max])
-              }
-              const args = [
-                inputs.direction ? '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2' : '0x4fabb145d64652a948d72533023f6e7a623c7c53',
-                inputs.direction ? '0x4fabb145d64652a948d72533023f6e7a623c7c53' : '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
-                3,
-                wallet.address,
-                new Date().getTime(),
-                inputs.inputsAmount,
-                0,
-                0
-              ]
-              return wallet.executeContractAction('0xE592427A0AEce92De3Edee1F18E0157C05861564', smartcontractData.dexsmartcontractabis, 'exactInputSingle', args)
-            }
-          }
-        }
-      }
-      if (UniswapData && UniswapData.view && UniswapData.view.onload) {
-        data = await UniswapData.view.onload.fn(web3Wallet, dexsmartcontract)
-      }
+      })
+      await vm.run(baseInject)
+      const outData = await vm.run(`base.view.onload.fn()`)
       wallets.push({
         id: dexwallet.id,
         name: dexwallet.name,
-        data
+        data: outData
       })
     }
+    const vm = new VM()
+    await vm.run(baseInject)
+    const data = await vm.run(`base`)
     // return data
     return res.send({
       status: 'success',
-      dexsmartcontract: dexsmartcontract,
+      dexsmartcontract: {...dexsmartcontract, data },
       wallets
     })
   }

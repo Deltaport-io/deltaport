@@ -91,6 +91,10 @@ class DexSmartContract extends Component <DexSmartContractProps, DexSmartContrac
                     <td className="font-monospace">{this.state.dexsmartcontract.id}</td>
                   </tr>
                   <tr>
+                    <td>Address</td>
+                    <td className="font-monospace">{this.state.dexsmartcontract.address}</td>
+                  </tr>
+                  <tr>
                     <td>Data</td>
                     <td><Info data={this.state.dexsmartcontract.data}/></td>
                   </tr>
@@ -105,7 +109,29 @@ class DexSmartContract extends Component <DexSmartContractProps, DexSmartContrac
                   <h4 className="header-title mb-2">Wallets</h4>
                   <Table striped className="mb-0" size="xs">
                     <tbody>
-                      
+                      {this.state.wallets.map((wallet:any) => {
+                        return (
+                          <tr key={wallet.id}>
+                            <td>
+                              <div style={{padding: 8, fontWeight: 'bold'}}><Link to={`/dexwallets/${wallet.id}`}>{wallet.name}</Link></div>
+                              <div style={{paddingLeft: 16}}>
+                                <table>
+                                  <tbody>
+                                    {this.state.dexsmartcontract.data.view.onload.ui.rows.map((entry: any) => {
+                                      return (
+                                        <tr key={entry.name}>
+                                          <td>{entry.name}</td>
+                                          <td>{getDisplayBalance(wallet.data[entry.value], entry.decimals)}</td>
+                                        </tr>
+                                      )
+                                    })}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </td>
+                          </tr>
+                        )
+                      })}
                     </tbody>
                   </Table>
                 </Card.Body>

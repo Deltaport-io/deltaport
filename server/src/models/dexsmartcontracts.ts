@@ -1,21 +1,13 @@
+import * as uuid from 'short-uuid'
+
 export default (sequelize, DataTypes) => {
   const dexsmartcontracts = sequelize.define('dexsmartcontracts', {
-    id: { type: DataTypes.STRING(128), primaryKey: true },
+    id: { type: DataTypes.CHAR(22), defaultValue: () => uuid.generate(), primaryKey: true },
     address: { type: DataTypes.STRING(128) },
     name: { type: DataTypes.STRING(50) },
     description: { type: DataTypes.STRING(300) },
     keywords: { type: DataTypes.TEXT },
-    data: {
-      type: DataTypes.JSON,
-      get() {
-        const rawData = this.getDataValue('data');
-        if (typeof rawData === "string") {
-          return JSON.parse(rawData)
-        } else {
-          return rawData
-        }
-      }
-    }
+    data: { type: DataTypes.TEXT }
   }, {
     timestamps: false,
     paranoid: false,
