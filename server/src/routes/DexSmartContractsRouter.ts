@@ -108,7 +108,7 @@ export class DexSmartContractsRouter {
         }
       })
       await vm.run(baseInject)
-      const outData = await vm.run(`base.view.onload.fn()`)
+      const outData = await vm.run(`base.view.fn()`)
       wallets.push({
         id: dexwallet.id,
         name: dexwallet.name,

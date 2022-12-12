@@ -3,7 +3,7 @@ import Dash from '../template/Dash'
 import { getCredentials } from '../credcontrols'
 import { config } from '../config'
 import { withRouter } from 'react-router'
-import { Card, Table } from 'react-bootstrap'
+import { Card, Table, Nav, DropdownButton, Dropdown } from 'react-bootstrap'
 import PageTitle from '../template/PageTitle'
 import { Link } from 'react-router-dom'
 import { getDisplayBalance } from '../utils'
@@ -19,7 +19,12 @@ interface DexSmartContractProps {
 
 type DexSmartContractStates = {
   dexsmartcontract: any
-  wallets: any[]
+  wallets: any[],
+  inputObj: any,
+  inputAction: any
+  error: string
+  success: string
+  formLoading: boolean
 }
 
 class DexSmartContract extends Component <DexSmartContractProps, DexSmartContractStates> {
@@ -27,7 +32,12 @@ class DexSmartContract extends Component <DexSmartContractProps, DexSmartContrac
     super(props)
     this.state = {
       dexsmartcontract: {},
-      wallets: []
+      wallets: [],
+      inputObj: {},
+      inputAction: '',
+      error: '',
+      success: '',
+      formLoading: false
     }
   }
 
@@ -95,6 +105,10 @@ class DexSmartContract extends Component <DexSmartContractProps, DexSmartContrac
                     <td className="font-monospace">{this.state.dexsmartcontract.address}</td>
                   </tr>
                   <tr>
+                    <td>Description</td>
+                    <td className="font-monospace">{this.state.dexsmartcontract.description}</td>
+                  </tr>
+                  <tr>
                     <td>Data</td>
                     <td><Info data={this.state.dexsmartcontract.data}/></td>
                   </tr>
@@ -117,7 +131,7 @@ class DexSmartContract extends Component <DexSmartContractProps, DexSmartContrac
                               <div style={{paddingLeft: 16}}>
                                 <table>
                                   <tbody>
-                                    {this.state.dexsmartcontract.data.view.onload.ui.rows.map((entry: any) => {
+                                    {this.state.dexsmartcontract.data.view.ui.map((entry: any) => {
                                       return (
                                         <tr key={entry.name}>
                                           <td>{entry.name}</td>
@@ -137,16 +151,61 @@ class DexSmartContract extends Component <DexSmartContractProps, DexSmartContrac
                 </Card.Body>
               </Card>
             </div>
-            { /*
             <div className="col-md-6">
-              {this.state.dexpool?.dex?.name! === 'Aave' ?
-                <AaveActions dexpool={this.state.dexpool} wallets={this.state.wallets} loadDexPool={this.loadDexPool}/>
-              :null}
-              {this.state.dexpool?.dex?.name! === 'Uniswap' ?
-                <UniswapActions dexpool={this.state.dexpool} wallets={this.state.wallets} loadDexPool={this.loadDexPool}/>
-              :null}
+              <Card>
+                <Card.Body>
+                  { this.state.dexsmartcontract.data && this.state.dexsmartcontract.data.actions && this.state.dexsmartcontract.data.actions.length > 1 ?
+                    <>
+                      <h4 className="header-title mb-3">Actions</h4>
+                      <Nav
+                        as="ul"
+                        variant="pills"
+                        className="nav nav-pills bg-nav-pills nav-justified mb-3"
+                        activeKey={this.state.inputAction}
+                        onSelect={(selectedKey) => this.setState({inputAction: selectedKey!, inputObj: {}, error: '', success: '', formLoading: false})}
+                      >
+                        <Nav.Item as="li" className="nav-item">
+                          <Nav.Link href="#" eventKey="borrow" className="nav-link rounded-0">
+                            <span className="d-none d-lg-block">Borrow</span>
+                          </Nav.Link>
+                        </Nav.Item>
+                        <Nav.Item as="li" className="nav-item">
+                          <Nav.Link href="#" eventKey="deposit" className="nav-link rounded-0">
+                            <span className="d-none d-lg-block">Deposit</span>
+                          </Nav.Link>
+                        </Nav.Item>
+                        <Nav.Item as="li">
+                          <Nav.Link href="#" eventKey="withdraw" className="nav-link rounded-0">
+                            <span className="d-none d-lg-block">Withdraw</span>
+                          </Nav.Link>
+                        </Nav.Item>
+                        <Nav.Item as="li">
+                          <Nav.Link href="#" eventKey="repay" className="nav-link rounded-0">
+                            <span className="d-none d-lg-block">Repay</span>
+                          </Nav.Link>
+                        </Nav.Item>
+                      </Nav>
+                    </>
+                  :null}
+                  { this.state.dexsmartcontract.data && this.state.dexsmartcontract.data.actions && this.state.dexsmartcontract.data.actions.length === 1 ?
+                    <h4 className="header-title mb-3">{this.state.dexsmartcontract.data.actions[0].title}</h4>
+                  :null}
+                  {this.state.dexsmartcontract.data ? this.state.dexsmartcontract.data.actions['swap'].ui.map((entry: any) => {
+                    return (
+                      entry.type === 'walletSelect' ? 
+                        <input placeholder='wallet select'/>
+                      : entry.type === 'select' ?
+                        <input placeholder='select'/>
+                      : entry.type === 'balanceInput' ?
+                        <input placeholder='balance input'/>
+                      : entry.type === 'balanceInput' ?
+                        <input placeholder='balance input'/>
+                      : null
+                    )
+                  }) : null}
+                </Card.Body>
+              </Card>
             </div>
-            */ }
           </div>
         </Dash>
       </div>
