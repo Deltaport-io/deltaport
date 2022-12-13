@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom'
 import { getDisplayBalance } from '../utils'
 import AaveActions from '../components/poolactions/AaveActions'
 import UniswapActions from '../components/poolactions/UniswapActions'
+import DynamicInput from '../components/DynamicInput'
 import { Info } from '../template/Info'
 
 interface DexSmartContractProps {
@@ -190,19 +191,13 @@ class DexSmartContract extends Component <DexSmartContractProps, DexSmartContrac
                   { this.state.dexsmartcontract.data && this.state.dexsmartcontract.data.actions && this.state.dexsmartcontract.data.actions.length === 1 ?
                     <h4 className="header-title mb-3">{this.state.dexsmartcontract.data.actions[0].title}</h4>
                   :null}
-                  {this.state.dexsmartcontract.data ? this.state.dexsmartcontract.data.actions['swap'].ui.map((entry: any) => {
-                    return (
-                      entry.type === 'walletSelect' ? 
-                        <input placeholder='wallet select'/>
-                      : entry.type === 'select' ?
-                        <input placeholder='select'/>
-                      : entry.type === 'balanceInput' ?
-                        <input placeholder='balance input'/>
-                      : entry.type === 'balanceInput' ?
-                        <input placeholder='balance input'/>
-                      : null
-                    )
-                  }) : null}
+                  <Table className="mb-0 table-sm table-borderless">
+                    <tbody>
+                      {this.state.dexsmartcontract.data ? this.state.dexsmartcontract.data.actions['swap'].ui.map((entry: any) => {
+                        return <DynamicInput entry={entry} state={this.state.inputObj} wallets={this.state.wallets}/>
+                      }) : null}
+                    </tbody>
+                  </Table>
                 </Card.Body>
               </Card>
             </div>
