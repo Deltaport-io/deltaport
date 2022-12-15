@@ -194,7 +194,14 @@ class DexSmartContract extends Component <DexSmartContractProps, DexSmartContrac
                   <Table className="mb-0 table-sm table-borderless">
                     <tbody>
                       {this.state.dexsmartcontract.data ? this.state.dexsmartcontract.data.actions['swap'].ui.map((entry: any) => {
-                        return <DynamicInput entry={entry} state={this.state.inputObj} wallets={this.state.wallets}/>
+                        return <DynamicInput
+                          entry={entry}
+                          inputObj={this.state.inputObj}
+                          setState={(newInputObj:any)=>{
+                            this.setState((prevState)=>({...prevState, inputObj: {...prevState.inputObj, ...newInputObj}}))
+                          }}
+                          wallets={this.state.wallets}
+                        />
                       }) : null}
                     </tbody>
                   </Table>

@@ -8,8 +8,9 @@ interface DynamicInputProps {
   location: any
   match: any
   entry: any
-  state: any
+  inputObj: any
   wallets: any
+  setState: any
 }
 
 type DynamicInputStates = {
@@ -25,16 +26,24 @@ class DynamicInput extends Component <DynamicInputProps, DynamicInputStates> {
   }
 
   componentDidMount () {
-    // TODO: if type needs info loaded
-    // this.loadBot()
+    this.selectDefaults()
+  }
+
+  selectDefaults = async() => {
+    if(this.props.entry.type === 'select' && this.props.inputObj[this.props.entry.id] === undefined){
+      this.props.setState({[this.props.entry.id]: this.props.entry.options[0].value})
+    }
+    if(this.props.entry.type === 'walletSelect' && this.props.inputObj[this.props.entry.id] === undefined && this.props.wallets.length > 0){
+      this.props.setState({[this.props.entry.id]: this.props.wallets[0].id})
+    }
   }
 
   componentWillUnmount () {
 
   }
 
-  inputChange = (event: any) => {
-    this.setState({ [event.currentTarget.name]: event.currentTarget.value } as DynamicInputStates)
+  componentDidUpdate(prevProps: Readonly<DynamicInputProps>, prevState: Readonly<DynamicInputStates>, snapshot?: any): void {
+    console.log('newInputObj', this.props.inputObj)
   }
 
   render() {
@@ -46,12 +55,11 @@ class DynamicInput extends Component <DynamicInputProps, DynamicInputStates> {
               <td className="text-end align-middle">{this.props.entry.name}</td>
               <td>
                 <DropdownButton
-                  // title={activeAccount ? activeAccount.name : ''}
-                  title={'kra'}
+                  title={this.props.inputObj[this.props.entry.id] && this.props.wallets.length > 0 ? this.props.wallets.find((wallet:any)=> wallet.id === this.props.inputObj[this.props.entry.id]).name : ''}
                   size="sm"
                 >
                   {this.props.wallets.map((wallet:any) => {
-                    return <Dropdown.Item key={wallet.id} onClick={() => this.setState({wallet:wallet.id})}>{wallet.name}</Dropdown.Item>
+                    return <Dropdown.Item key={wallet.id} onClick={() => this.props.setState({[this.props.entry.id]: wallet.id})}>{wallet.name}</Dropdown.Item>
                   })}
                 </DropdownButton>
               </td>
@@ -61,12 +69,11 @@ class DynamicInput extends Component <DynamicInputProps, DynamicInputStates> {
               <td className="text-end align-middle">{this.props.entry.name}</td>
               <td>
                 <DropdownButton
-                  // title={this.state.direction === 0 ? this.props.dexpool.data?.token0?.symbol+' to '+this.props.dexpool.data?.token1?.symbol : this.props.dexpool.data?.token1?.symbol+' to '+this.props.dexpool.data?.token0?.symbol}
-                  title={'kra'}
+                  title={this.props.inputObj[this.props.entry.id] ? this.props.entry.options.find((option:any)=> option.value === this.props.inputObj[this.props.entry.id]).title : ''}
                   size="sm"
                 >
-                  {this.props.entry.options.map((options:any)=>{
-                    return <Dropdown.Item /*onClick={() => this.setState({direction:0}, ()=>{this.swapQuote()})}*/>{options.title}</Dropdown.Item>
+                  {this.props.entry.options.map((option:any)=>{
+                    return <Dropdown.Item onClick={() => this.props.setState({[this.props.entry.id]: option.value})}>{option.title}</Dropdown.Item>
                   })}
                 </DropdownButton>
               </td>
@@ -74,7 +81,7 @@ class DynamicInput extends Component <DynamicInputProps, DynamicInputStates> {
           : this.props.entry.type === 'balanceInput' ?
             <tr>
               <td className="text-end align-middle">{this.props.entry.name}</td>
-              <td><input type="text" value={this.props.state[this.props.entry.id]} name="amount" className="form-control form-control-sm" placeholder="Amount" required onChange={this.inputChange}/></td>
+              <td><input type="text" value={this.props.inputObj[this.props.entry.id]} name="amount" className="form-control form-control-sm" placeholder="Amount" required/></td>
             </tr>
           : null
         }
