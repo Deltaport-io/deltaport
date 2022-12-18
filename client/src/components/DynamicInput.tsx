@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import { withRouter } from 'react-router'
-import { config } from '../config'
-import { Modal, Card, Button, Dropdown, DropdownButton } from 'react-bootstrap'
+import { Dropdown, DropdownButton } from 'react-bootstrap'
 
 interface DynamicInputProps {
   history: any
@@ -47,6 +46,13 @@ class DynamicInput extends Component <DynamicInputProps, DynamicInputStates> {
   }
 
   render() {
+    let conditionsFullfiled = this.props.entry.conditions === undefined ? true : false
+    for(const key in this.props.entry.conditions){
+      if(this.props.entry.conditions[key] !== this.props.inputObj[key]){
+        conditionsFullfiled = false
+        break
+      }
+    }
     return (
       <>
         {
@@ -78,10 +84,20 @@ class DynamicInput extends Component <DynamicInputProps, DynamicInputStates> {
                 </DropdownButton>
               </td>
             </tr>
-          : this.props.entry.type === 'balanceInput' ?
+          : this.props.entry.type === 'balanceInput' && conditionsFullfiled ?
             <tr>
               <td className="text-end align-middle">{this.props.entry.name}</td>
-              <td><input type="text" value={this.props.inputObj[this.props.entry.id]} name="amount" className="form-control form-control-sm" placeholder="Amount" required/></td>
+              <td>
+                <input
+                  type="text"
+                  value={this.props.inputObj[this.props.entry.id]}
+                  name="amount"
+                  onChange={(event: any) => this.props.setState({[this.props.entry.id]: event.currentTarget.value})}
+                  className="form-control form-control-sm"
+                  placeholder="Amount"
+                  required
+                />
+              </td>
             </tr>
           : null
         }

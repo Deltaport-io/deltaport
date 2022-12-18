@@ -97,7 +97,7 @@ export const importSmartContracts = async () => {
                   },{
                     name: 'Amount in',
                     conditions: {
-                      swapDirection: 1
+                      swapDirection: '1'
                     },
                     id: 'amontIn',
                     type: 'balanceInput',
@@ -105,7 +105,7 @@ export const importSmartContracts = async () => {
                   },{
                     name: 'Amount in',
                     conditions: {
-                      swapDirection: -1
+                      swapDirection: '-1'
                     },
                     id: 'amontIn',
                     type: 'balanceInput',
