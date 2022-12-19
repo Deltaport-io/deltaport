@@ -41,12 +41,8 @@ class DynamicInput extends Component <DynamicInputProps, DynamicInputStates> {
 
   }
 
-  componentDidUpdate(prevProps: Readonly<DynamicInputProps>, prevState: Readonly<DynamicInputStates>, snapshot?: any): void {
-    console.log('newInputObj', this.props.inputObj)
-  }
-
   render() {
-    let conditionsFullfiled = this.props.entry.conditions === undefined ? true : false
+    let conditionsFullfiled = true
     for(const key in this.props.entry.conditions){
       if(this.props.entry.conditions[key] !== this.props.inputObj[key]){
         conditionsFullfiled = false
@@ -85,6 +81,21 @@ class DynamicInput extends Component <DynamicInputProps, DynamicInputStates> {
               </td>
             </tr>
           : this.props.entry.type === 'balanceInput' && conditionsFullfiled ?
+            <tr>
+              <td className="text-end align-middle">{this.props.entry.name}</td>
+              <td>
+                <input
+                  type="text"
+                  value={this.props.inputObj[this.props.entry.id]}
+                  name="amount"
+                  onChange={(event: any) => this.props.setState({[this.props.entry.id]: event.currentTarget.value})}
+                  className="form-control form-control-sm"
+                  placeholder="Amount"
+                  required
+                />
+              </td>
+            </tr>
+          : this.props.entry.type === 'input' && conditionsFullfiled ?
             <tr>
               <td className="text-end align-middle">{this.props.entry.name}</td>
               <td>

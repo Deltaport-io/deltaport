@@ -60,7 +60,8 @@ class DexSmartContract extends Component <DexSmartContractProps, DexSmartContrac
         if (json.status === 'success') {
           this.setState({
             dexsmartcontract: json.dexsmartcontract,
-            wallets: json.wallets
+            wallets: json.wallets,
+            inputAction: json.dexsmartcontract.data.actions && Object.keys(json.dexsmartcontract.data.actions).length > 0 ? Object.keys(json.dexsmartcontract.data.actions)[0] : null
           })
         }
       })
@@ -153,7 +154,7 @@ class DexSmartContract extends Component <DexSmartContractProps, DexSmartContrac
             <div className="col-md-6">
               <Card>
                 <Card.Body>
-                  { this.state.dexsmartcontract.data && this.state.dexsmartcontract.data.actions && this.state.dexsmartcontract.data.actions.length > 1 ?
+                  { this.state.dexsmartcontract.data && this.state.dexsmartcontract.data.actions && Object.keys(this.state.dexsmartcontract.data.actions).length > 1 ?
                     <>
                       <h4 className="header-title mb-3">Actions</h4>
                       <Nav
@@ -186,12 +187,12 @@ class DexSmartContract extends Component <DexSmartContractProps, DexSmartContrac
                       </Nav>
                     </>
                   :null}
-                  { this.state.dexsmartcontract.data && this.state.dexsmartcontract.data.actions && this.state.dexsmartcontract.data.actions.length === 1 ?
-                    <h4 className="header-title mb-3">{this.state.dexsmartcontract.data.actions[0].title}</h4>
+                  { this.state.dexsmartcontract.data && this.state.dexsmartcontract.data.actions && Object.keys(this.state.dexsmartcontract.data.actions).length === 1 ?
+                    <h4 className="header-title mb-3">{Object.keys(this.state.dexsmartcontract.data.actions)[0]}</h4>
                   :null}
                   <Table className="mb-0 table-sm table-borderless">
                     <tbody>
-                      {this.state.dexsmartcontract.data ? this.state.dexsmartcontract.data.actions['swap'].ui.map((entry: any) => {
+                      {this.state.dexsmartcontract.data ? this.state.dexsmartcontract.data.actions[this.state.inputAction].ui.map((entry: any) => {
                         return <DynamicInput
                           entry={entry}
                           inputObj={this.state.inputObj}
@@ -201,6 +202,39 @@ class DexSmartContract extends Component <DexSmartContractProps, DexSmartContrac
                           wallets={this.state.wallets}
                         />
                       }) : null}
+                      <tr>
+                        <td></td>
+                        <td>
+                          { this.state.formLoading ?
+                            <button className="btn btn-primary btn-sm" type="button">
+                              <div className="spinner-border spinner-border-sm">
+                                <span className="sr-only"></span>
+                              </div>
+                            </button>
+                          :
+                            <button className="btn btn-primary btn-sm" type="button">Execute</button>
+                          }
+                        </td>
+                      </tr>
+                      { this.state.success !== '' || this.state.error !== '' ?
+                        <tr>
+                          <td></td>
+                          <td>
+                            { this.state.success !== ''
+                              ? <div className="alert alert-success mb-0">
+                                Success <a target="_blank" rel="noreferrer" href={ this.state.success }>Tx details <i className="uil uil-external-link-alt"></i></a>
+                              </div>
+                              : null
+                            }
+                            { this.state.error !== ''
+                              ? <div className="alert alert-danger mb-0">
+                                {this.state.error}
+                              </div>
+                              : null
+                            }
+                          </td>
+                        </tr>
+                      : null }
                     </tbody>
                   </Table>
                 </Card.Body>
