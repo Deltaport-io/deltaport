@@ -6,7 +6,7 @@ import { withRouter } from 'react-router'
 import { Card, Table, Nav } from 'react-bootstrap'
 import PageTitle from '../template/PageTitle'
 import { Link } from 'react-router-dom'
-import { getDisplayBalance } from '../utils'
+import { getDisplayBalance, fromDisplayBalance } from '../utils'
 import DynamicInput from '../components/DynamicInput'
 import { Info } from '../template/Info'
 
@@ -62,6 +62,56 @@ class DexSmartContract extends Component <DexSmartContractProps, DexSmartContrac
             dexsmartcontract: json.dexsmartcontract,
             wallets: json.wallets,
             inputAction: json.dexsmartcontract.data.actions && Object.keys(json.dexsmartcontract.data.actions).length > 0 ? Object.keys(json.dexsmartcontract.data.actions)[0] : null
+          })
+        }
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+  }
+
+  execute = () => {
+    this.setState({error: '', success: '', formLoading: true})
+    const { id } = this.props.match.params
+    const { token } = getCredentials()
+    const inputObj = this.state.inputObj
+    for (const input of this.state.dexsmartcontract.data.actions[this.state.inputAction].ui) {
+      let fullfiledConditions = true
+      if (input.conditions) {
+        for(const key in input.conditions){
+          if(input.conditions[key] !== this.state.inputObj[key]){
+            fullfiledConditions = false
+          }
+        }
+      }
+      if (input.type === 'balanceInput' && fullfiledConditions) {
+        inputObj[input.id] = fromDisplayBalance(inputObj[input.id], input.decimals)
+      }
+    }
+    fetch(
+      config.app.apiUri + '/api/v1/smartcontracts/'+id+'/'+this.state.inputAction, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token
+        },
+        body: JSON.stringify({
+          input: inputObj
+        })
+      })
+      .then((response) => { return response.json() })
+      .then((json) => {
+        if (json.status === 'success') {
+          this.setState({
+            inputObj: {},
+            success: json.message,
+            formLoading: false
+          })
+          this.loadDexSmartcontract()
+        } else {
+          this.setState({
+            error: json.message,
+            formLoading: false
           })
         }
       })
@@ -212,7 +262,7 @@ class DexSmartContract extends Component <DexSmartContractProps, DexSmartContrac
                               </div>
                             </button>
                           :
-                            <button className="btn btn-primary btn-sm" type="button">Execute</button>
+                            <button className="btn btn-primary btn-sm" onClick={()=>this.execute()} type="button">Execute</button>
                           }
                         </td>
                       </tr>

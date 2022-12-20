@@ -5,6 +5,7 @@ import { body, query, param, validationResult } from 'express-validator'
 import { EthereumApi } from '../ethereumApi'
 import BigNumber from 'bignumber.js'
 import { VM, VMScript } from 'vm2'
+import { input } from '@tensorflow/tfjs'
 
 export class DexSmartContractsRouter {
   router: express.Router
@@ -126,9 +127,61 @@ export class DexSmartContractsRouter {
     })
   }
 
+  executeDexSmartContractInputs = [
+    param('id').isLength({ min: 1, max: 128 }),
+    param('action').isLength({ min: 1, max: 128 }),
+    body('input').isObject()
+  ]
+
+  public async executeDexSmartContract (req: express.Request, res: express.Response) {
+    // validations
+    const result = validationResult(req)
+    if (!result.isEmpty()) {
+        return res.send({ status: 'error', message: 'Input validation failed.', errors: result.mapped() })
+    }
+    // get logged user
+    const user = await getMeUser(req.header('Authorization'))
+    if (!user) {
+        return res.send({ status: 'error', message: 'No user' })
+    }
+    // get smartcontract
+    let dexsmartcontract = await models.dexsmartcontracts.findOne({
+      where: {id: req.params.id},
+      include: {
+        model: models.dexsmartcontractsabis
+      }
+    })
+    // no pair
+    if (dexsmartcontract === null) {
+      return res.send({ status: 'error', message: 'No smart contract found' })
+    }
+    dexsmartcontract = dexsmartcontract.toJSON()
+    const ethereumApi = new EthereumApi()
+    const dexwallets = await models.dexwallets.findAll({
+      where: { userIdusers: user.idusers }
+    })
+    const web3Wallets: any[] = []
+    for (const dexwallet of dexwallets) {
+      const web3Wallet = await ethereumApi.wallet(dexwallet)
+      web3Wallets.push(web3Wallet)
+    }
+    const vm = new VM({
+      sandbox: {
+        web3Wallets,
+        dexsmartcontract,
+        inputs: req.body.input
+      }
+    })
+    const baseInject = new VMScript(`const base = ${dexsmartcontract.data}`, 'data.js').compile()
+    await vm.run(baseInject)
+    // const outData = await vm.run(`base.view.fn()`)
+
+  }
+
   init () {
     this.router.get('/', this.getDexSmartContractsInputs, this.getDexSmartContracts)
     this.router.get('/:id', this.getDexSmartContractInputs, this.getDexSmartContract)
+    this.router.post('/:id/execute/:action', this.executeDexSmartContractInputs, this.executeDexSmartContract)
   }
 }
 
