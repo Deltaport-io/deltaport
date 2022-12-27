@@ -156,10 +156,82 @@ export class DexTokensRouter {
     }
   }
 
+  trackDexTokenInputs = [
+  ]
+
+  public async trackDexToken (req: express.Request, res: express.Response) {
+    // validations
+    const result = validationResult(req)
+    if (!result.isEmpty()) {
+        return res.send({ status: 'error', message: 'Input validation failed.', errors: result.mapped() })
+    }
+    // get logged user
+    const user = await getMeUser(req.header('Authorization'))
+    if (!user) {
+        return res.send({ status: 'error', message: 'No user' })
+    }
+    // get token
+    const dextoken = await models.dextokens.findOne({
+      where: {id: req.params.id}
+    })
+    // no token
+    if (dextoken === null) {
+      return res.send({ status: 'error', message: 'No token found' })
+    }
+    // create mapping
+    try {
+      await models.usersdextokens.create({
+        dextokenId: req.params.id,
+        userIdusers: user.idusers
+      })
+      return res.send({ status: 'success' })
+    } catch (e) {
+      return res.send({ status: 'error' })
+    }
+  }
+
+  untrackDexTokenInputs = [
+  ]
+
+  public async untrackDexToken (req: express.Request, res: express.Response) {
+    // validations
+    const result = validationResult(req)
+    if (!result.isEmpty()) {
+        return res.send({ status: 'error', message: 'Input validation failed.', errors: result.mapped() })
+    }
+    // get logged user
+    const user = await getMeUser(req.header('Authorization'))
+    if (!user) {
+        return res.send({ status: 'error', message: 'No user' })
+    }
+    // get token
+    const dextoken = await models.dextokens.findOne({
+      where: {id: req.params.id}
+    })
+    // no token
+    if (dextoken === null) {
+      return res.send({ status: 'error', message: 'No token found' })
+    }
+    // remove mapping
+    try {
+      await models.usersdextokens.destroy({
+        where: {
+          dextokenId: req.params.id,
+          userIdusers: user.idusers
+        }
+      })
+      return res.send({ status: 'success' })
+    } catch (e) {
+      return res.send({ status: 'error' })
+    }
+  }
+
   init () {
     this.router.get('/', this.getDexTokensInputs, this.getDexTokens)
     this.router.get('/:id', this.getDexTokenInputs, this.getDexToken)
     this.router.post('/:id/transfer', this.createDexTokenTransferInputs, this.createDexTokenTransfer)
+    this.router.post('/:id/track', this.trackDexTokenInputs, this.trackDexToken)
+    this.router.post('/:id/untrack', this.untrackDexTokenInputs, this.untrackDexToken)
   }
 }
 

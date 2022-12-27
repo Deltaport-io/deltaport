@@ -28,8 +28,10 @@ export class AssetsRouter {
     // resolve return
     const dataToReturn = []
     // wallets
-    const trackedTokens = await models.dextokens.findAll({
-      where: { tracking: true }
+    const trackedTokens = await models.usersdextokens.findAll({
+      include: {
+        model: models.dextokens
+      }
     })
     // get & loop accounts
     const wallets = await models.dexwallets.findAll({
@@ -46,8 +48,8 @@ export class AssetsRouter {
         })())
         for (const trackedToken of trackedTokens) {
           balances.push((async () => {
-            const balance = (await web3Account.token(trackedToken.id).getBalance()).toString()
-            return {name: trackedToken.name, id: trackedToken.id, symbol: trackedToken.symbol, balance}
+            const balance = (await web3Account.token(trackedToken.dextoken.id).getBalance()).toString()
+            return {name: trackedToken.dextoken.name, id: trackedToken.dextoken.id, symbol: trackedToken.dextoken.symbol, balance}
           })())
         }
         const returningBalances = await Promise.all(balances)

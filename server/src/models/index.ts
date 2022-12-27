@@ -13,6 +13,7 @@ import users from "./users";
 import passreset from "./passreset"
 import bots from "./bots"
 import accounts from "./accounts"
+import usersdextokens from "./usersdextokens"
 import dexes from "./dexes"
 import dexwallets from "./dexwallets"
 import dexsmartcontracts from "./dexsmartcontracts"
@@ -55,6 +56,7 @@ const models = {
   backtestohlcs: backtestohlcs(sequelize, Sequelize),
   sessions: sessions(sequelize, Sequelize),
   users: users(sequelize, Sequelize),
+  usersdextokens: usersdextokens(sequelize, Sequelize),
   passreset: passreset(sequelize, Sequelize),
   exchanges: exchanges(sequelize, Sequelize),
   pairs: pairs(sequelize, Sequelize),
