@@ -132,7 +132,6 @@ class DexSmartContract extends Component <DexSmartContractProps, DexSmartContrac
             ]}
             title={'SmartContract'}
           />
-
           <Card>
             <Card.Body>
               <h4 className="header-title mb-2">

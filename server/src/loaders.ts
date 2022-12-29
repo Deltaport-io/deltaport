@@ -65,23 +65,14 @@ export const importSmartContracts = async () => {
                   type: 'balance',
                   decimals: 18
               }],
-              fn: async () => {
-                // TODO: loop over wallets
-                const data = []
-                for (const wallet of web3Wallets) {
-                  const promises = await Promise.all([
-                    web3Wallet.token('${entry.token0.id}').getBalance(web3Wallet.address),
-                    web3Wallet.token('${entry.token1.id}').getBalance(web3Wallet.address)
-                  ])
-                  data.push({
-                    id: wallet.id,
-                    name: wallet.name,
-                    data: outData
-                  })
-                  return {
-                    token0: promises[0].toString(),
-                    token1: promises[1].toString()
-                  }
+              fn: async (walletId) => {
+                const promises = await Promise.all([
+                  web3Wallets[walletId].token('${entry.token0.id}').getBalance(web3Wallets[walletId].address),
+                  web3Wallets[walletId].token('${entry.token1.id}').getBalance(web3Wallets[walletId].address)
+                ])
+                return {
+                  token0: promises[0].toString(),
+                  token1: promises[1].toString()
                 }
               }
             },

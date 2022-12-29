@@ -92,37 +92,36 @@ export class DexSmartContractsRouter {
     }
     dexsmartcontract = dexsmartcontract.toJSON()
     // get smartcontract views and accounts
-    const wallets: any[] =[]
     const dexwallets = await models.dexwallets.findAll({
-      where: {
-        userIdusers: user.idusers
+      where: {userIdusers: user.idusers}
+    })
+    const ethereumApi = new EthereumApi()
+    const web3Wallets: any = {}
+    for (const dexwallet of dexwallets) {
+      const web3Wallet = await ethereumApi.wallet(dexwallet)
+      web3Wallets[dexwallet.id] = web3Wallet
+    }
+    const vm = new VM({
+      sandbox: {
+        web3Wallets,
+        dexsmartcontract
       }
     })
     const baseInject = new VMScript(`const base = ${dexsmartcontract.data}`, 'data.js').compile()
-    const ethereumApi = new EthereumApi()
+    await vm.run(baseInject)
+    const wallets: any[] = []
     for (const dexwallet of dexwallets) {
-      const web3Wallet = await ethereumApi.wallet(dexwallet)
-      const vm = new VM({
-        sandbox: {
-          web3Wallet,
-          dexsmartcontract
-        }
-      })
-      await vm.run(baseInject)
-      const outData = await vm.run(`base.view.fn()`)
+      const outData = await vm.run(`base.view.fn("${dexwallet.id}")`)
       wallets.push({
         id: dexwallet.id,
         name: dexwallet.name,
         data: outData
       })
     }
-    const vm = new VM()
-    await vm.run(baseInject)
-    const data = await vm.run(`base`)
-    // return data
+    const base = await vm.run(`base`)
     return res.send({
       status: 'success',
-      dexsmartcontract: {...dexsmartcontract, data },
+      dexsmartcontract: {...dexsmartcontract, data: base},
       wallets
     })
   }
