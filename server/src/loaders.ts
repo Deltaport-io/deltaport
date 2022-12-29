@@ -111,23 +111,23 @@ export const importSmartContracts = async () => {
                     type: 'balanceInput',
                     decimals: 18
                 }],
-                fn: async (inputs) => {
-                  const allowance = await web3Wallet.readContractAction('0xE592427A0AEce92De3Edee1F18E0157C05861564', dexsmartcontract.dexsmartcontractabis, 'allowance', [web3Wallet.address])
+                fn: async () => {
+                  const allowance = await web3Wallets[inputs.walletSelect].readContractAction('0xE592427A0AEce92De3Edee1F18E0157C05861564', dexsmartcontract.dexsmartcontractabis, 'allowance', [web3Wallets[inputs.walletSelect].address])
                   if (allowance.lt(inputs.inputAmount)){
                     const uint256max = new BigNumber(2).pow(256).minus(1)
-                    await web3Wallet.executeReadContractAction(inputs.direction ? '${entry.token1.id}' : '${entry.token0.id}', dexsmartcontract.dexsmartcontractabis, 'approve', ['0xE592427A0AEce92De3Edee1F18E0157C05861564', uint256max])
+                    await web3Wallets[inputs.walletSelect].executeReadContractAction(inputs.swapDirection ? '${entry.token1.id}' : '${entry.token0.id}', dexsmartcontract.dexsmartcontractabis, 'approve', ['0xE592427A0AEce92De3Edee1F18E0157C05861564', uint256max])
                   }
                   const args = [
-                    inputs.direction ? '${entry.token0.id}' : '${entry.token1.id}',
-                    inputs.direction ? '${entry.token1.id}' : '${entry.token0.id}',
+                    inputs.swapDirection ? '${entry.token0.id}' : '${entry.token1.id}',
+                    inputs.swapDirection ? '${entry.token1.id}' : '${entry.token0.id}',
                     3,
-                    web3Wallet.address,
+                    web3Wallets[inputs.walletSelect].address,
                     new Date().getTime(),
                     inputs.inputsAmount,
                     0,
                     0
                   ]
-                  return web3Wallet.executeContractAction('0xE592427A0AEce92De3Edee1F18E0157C05861564', dexsmartcontract.dexsmartcontractabis, 'exactInputSingle', args)
+                  return web3Wallets[inpus.walletSelect].executeContractAction('0xE592427A0AEce92De3Edee1F18E0157C05861564', dexsmartcontract.dexsmartcontractabis, 'exactInputSingle', args)
                 }
               }
             }

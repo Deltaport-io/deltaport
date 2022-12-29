@@ -155,14 +155,14 @@ export class DexSmartContractsRouter {
       return res.send({ status: 'error', message: 'No smart contract found' })
     }
     dexsmartcontract = dexsmartcontract.toJSON()
-    const ethereumApi = new EthereumApi()
     const dexwallets = await models.dexwallets.findAll({
       where: { userIdusers: user.idusers }
     })
-    const web3Wallets: any[] = []
+    const ethereumApi = new EthereumApi()
+    const web3Wallets: any = {}
     for (const dexwallet of dexwallets) {
       const web3Wallet = await ethereumApi.wallet(dexwallet)
-      web3Wallets.push(web3Wallet)
+      web3Wallets[dexwallet.id] = web3Wallet
     }
     const vm = new VM({
       sandbox: {
@@ -173,8 +173,11 @@ export class DexSmartContractsRouter {
     })
     const baseInject = new VMScript(`const base = ${dexsmartcontract.data}`, 'data.js').compile()
     await vm.run(baseInject)
-    // const outData = await vm.run(`base.view.fn()`)
-
+    const outData = await vm.run(`base.view.actions["${req.params.action}"].fn()`)
+    return res.send({
+      status: 'success',
+      data: outData
+    })
   }
 
   init () {

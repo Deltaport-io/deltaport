@@ -3,6 +3,7 @@ import BigNumber from 'bignumber.js'
 import models from './models'
 import { config } from '././config/config'
 import superagent from 'superagent'
+import { VM, VMScript } from 'vm2'
 
 export class EthereumApi {
   wallet = async (wallet: any, injectedAbis: any[] = [], options=undefined) =>  {
@@ -317,6 +318,28 @@ export class EthereumApi {
           return marketplaceContract.closeEntry(entryId)
         }
       },
+      /*
+      smartcontracts: async (contractId: string, inputs: any) => {
+        let dexsmartcontract = await models.dexsmartcontracts.findOne({
+          where: {id: contractId},
+          include: {
+            model: models.dexsmartcontractsabis
+          }
+        })
+        // no pair
+        if (dexsmartcontract === null) {
+          return 'error'
+        }
+        dexsmartcontract = dexsmartcontract.toJSON()
+        const vm = new VM({
+          sandbox: {
+            web3Wallets: {[wallet.id]: walletHolder},
+            dexsmartcontract,
+            inputs
+          }
+        })
+      },
+      */
       executeContractAction: async (address, abi, name, args) => {
         const provider = new ethers.providers.JsonRpcProvider(wallet.nodeurl)
         const web3Provider = web3Wallet.connect(provider)
