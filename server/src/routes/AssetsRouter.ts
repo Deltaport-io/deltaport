@@ -44,12 +44,14 @@ export class AssetsRouter {
         const balances: any[] = []
         balances.push((async () => {
           const balance = (await web3Account.getBalance()).toString()
-          return {name: 'ETH', id: '', balance}
+          return {name: 'ETH', id: '', balance, decimals: 18}
         })())
         for (const trackedToken of trackedTokens) {
+          const balance = (await web3Account.token(trackedToken.dextoken.id).getBalance()).toString()
+          if (balance === "0") continue
           balances.push((async () => {
             const balance = (await web3Account.token(trackedToken.dextoken.id).getBalance()).toString()
-            return {name: trackedToken.dextoken.name, id: trackedToken.dextoken.id, symbol: trackedToken.dextoken.symbol, balance}
+            return {name: trackedToken.dextoken.name, id: trackedToken.dextoken.id, symbol: trackedToken.dextoken.symbol, balance, decimals: trackedToken.dextoken.decimals}
           })())
         }
         const returningBalances = await Promise.all(balances)

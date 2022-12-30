@@ -16,6 +16,7 @@ export default class TradeSession {
 
   exchanges: any = {}
   ethereum: any = {}
+  smartcontracts: any = {}
   loadingData: any[] = []
   stopping: string = ""
   finished
@@ -208,6 +209,34 @@ export default class TradeSession {
         }
       }
     }
+    this.smartcontracts = async (id: string, action: string, inputs: any) => {
+      let dexsmartcontract = await models.dexsmartcontracts.findOne({
+        where: {id: id},
+        include: {
+          model: models.dexsmartcontractsabis
+        }
+      })
+      dexsmartcontract = dexsmartcontract.toJSON()
+      const dexwallets = await models.dexwallets.findAll({
+        where: { userIdusers: this.session.userIdusers }
+      })
+      const ethereumApi = new EthereumApi()
+      const web3Wallets: any = {}
+      for (const dexwallet of dexwallets) {
+        const web3Wallet = await ethereumApi.wallet(dexwallet)
+        web3Wallets[dexwallet.id] = web3Wallet
+      }
+      const vm = new VM({
+        sandbox: {
+          web3Wallets,
+          dexsmartcontract,
+          inputs
+        }
+      })
+      const baseInject = new VMScript(`const base = ${dexsmartcontract.data}`, 'data.js').compile()
+      await vm.run(baseInject)
+      return await vm.run(`base.view.actions["${action}"].fn()`)
+    }
   }
 
   startTask = async () => {
@@ -272,6 +301,7 @@ export default class TradeSession {
       data,
       exchanges: this.exchanges,
       ethereum: this.ethereum,
+      smartcontracts: this.smartcontracts,
       tf: config.app.sandbox_tf ? tf : undefined,
       superagent: config.app.sandbox_superagent ? superagent : undefined,
       BigNumber: BigNumber,

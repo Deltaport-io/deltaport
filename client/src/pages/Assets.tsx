@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
-import { Card, Table, OverlayTrigger } from 'react-bootstrap'
+import { Card, Table } from 'react-bootstrap'
 import Dash from '../template/Dash'
 import PageTitle from '../template/PageTitle'
 import { config } from '../config'
 import { getCredentials } from '../credcontrols'
-import Moment from 'react-moment'
 import { Link } from 'react-router-dom'
+import { getDisplayBalance } from '../utils'
 
 interface AssetsProps {
   history: any,
@@ -78,14 +78,14 @@ class Assets extends Component <AssetsProps, AssetsStates> {
                     return (
                       <>
                         <tr key={asset.id}>
-                          <td><Link to={`/bots/${asset.id}`}>{asset.name}</Link></td>
+                          <td><Link to={`/dexwallets/${asset.id}`}>{asset.name}</Link></td>
                           <td></td>
                         </tr>
                         {asset.balances.map((item: any) => {
                           return (
                             <tr key={asset.id+'+'+item.id}>
                               <td style={{paddingLeft: 30}}>{item.name}</td>
-                              <td>{item.balance}</td>
+                              <td>{getDisplayBalance(item.balance, item.decimals)}</td>
                             </tr>
                           )
                         })}
@@ -109,7 +109,7 @@ class Assets extends Component <AssetsProps, AssetsStates> {
                     return (
                       <>
                         <tr key={asset.id}>
-                          <td><Link to={`/bots/${asset.id}`}>{asset.name}</Link></td>
+                          <td><Link to={`/exchanges/${asset.id}`}>{asset.name}</Link></td>
                           <td></td>
                         </tr>
                         {Object.keys(asset.balances).map((key: string) => {

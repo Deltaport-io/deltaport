@@ -3,7 +3,6 @@ import BigNumber from 'bignumber.js'
 import models from './models'
 import { config } from '././config/config'
 import superagent from 'superagent'
-import { VM, VMScript } from 'vm2'
 
 export class EthereumApi {
   wallet = async (wallet: any, injectedAbis: any[] = [], options=undefined) =>  {

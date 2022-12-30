@@ -150,7 +150,7 @@ export class DexSmartContractsRouter {
         model: models.dexsmartcontractsabis
       }
     })
-    // no pair
+    // no smart contract
     if (dexsmartcontract === null) {
       return res.send({ status: 'error', message: 'No smart contract found' })
     }
