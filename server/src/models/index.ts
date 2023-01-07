@@ -13,15 +13,14 @@ import users from "./users";
 import passreset from "./passreset"
 import bots from "./bots"
 import accounts from "./accounts"
+import dexchains from "./dexchains"
 import usersdextokens from "./usersdextokens"
 import dexes from "./dexes"
 import dexwallets from "./dexwallets"
 import dexsmartcontracts from "./dexsmartcontracts"
 import dexsmartcontractsabis from "./dexsmartcontractsabis"
 import dexsmartcontractstokens from "./dexsmartcontractstokens"
-import dexpools from "./dexpools"
 import dextokens from "./dextokens"
-import dexpooltokens from "./dexpooltokens"
 import tradegraphs from "./tradegraphs"
 import backtestgraphs from "./backtestgraphs"
 import followtrading from "./followtrading"
@@ -64,13 +63,12 @@ const models = {
   accounts: accounts(sequelize, Sequelize),
   tradeohlcs: tradeohlcs(sequelize, Sequelize),
   dexes: dexes(sequelize, Sequelize),
+  dexchains: dexchains(sequelize, Sequelize),
   dexwallets: dexwallets(sequelize, Sequelize),
   dexsmartcontracts: dexsmartcontracts(sequelize, Sequelize),
   dexsmartcontractstokens: dexsmartcontractstokens(sequelize, Sequelize),
   dexsmartcontractsabis: dexsmartcontractsabis(sequelize, Sequelize),
-  dexpools: dexpools(sequelize, Sequelize),
   dextokens: dextokens(sequelize, Sequelize),
-  dexpooltokens: dexpooltokens(sequelize, Sequelize),
   tradegraphs: tradegraphs(sequelize, Sequelize),
   backtestgraphs: backtestgraphs(sequelize, Sequelize),
   followtrading: followtrading(sequelize, Sequelize),

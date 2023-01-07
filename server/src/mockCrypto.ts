@@ -74,35 +74,6 @@ export class mockCrypto {
             return this.mockTransaction(tokenAddress)
           }
         }
-      },
-      pool: async(poolAddress: string) => {
-        const pool = await models.dexpools.findOne({where:{id:poolAddress}})
-        if (pool === null) {
-          throw new Error('Failed loading pool')
-        }
-        return {
-          swap: async (toAddress: string, zeroForOne: boolean, amount: number) => {
-            throw new Error('Swaping not supported')
-          },
-          swapQuote: async (toAddress: string, zeroForOne: boolean, amount: number) => {
-            throw new Error('Swaping not supported')
-          },
-          lendPoolGetUserAccountData: async (address?: string) => {
-            throw new Error('Lending not supported')
-          },
-          lendDeposit: async (amount: number) => {
-            throw new Error('Lending not supported')
-          },
-          lendBorrow: async (amount: string, interestMode: string) => {
-            throw new Error('Lending not supported')
-          },
-          lendWithdraw: async (amount: string) => {
-            throw new Error('Lending not supported')
-          },
-          lendRepay: async (amount: string, interestMode: string) => {
-            throw new Error('Lending not supported')
-          }
-        }
       }
     }
     return this.wallets[wallet.name]

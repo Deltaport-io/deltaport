@@ -12,7 +12,7 @@ export default (sequelize, DataTypes) => {
     collate: 'utf8mb4_general_ci'
   })
   dextokens.associate = function (models) {
-    models.dextokens.belongsToMany(models.dexpools, { through: models.dexpooltokens })
+    // models.dextokens.belongsToMany(models.dexpools, { through: models.dexpooltokens })
   }
   return dextokens
 }

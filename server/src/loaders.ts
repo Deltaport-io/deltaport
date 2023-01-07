@@ -278,218 +278,26 @@ export const importSmartContracts = async () => {
 }
 
 export const importIfNotInPoolsTokens = async () => {
+  const count0 = await models.dexchains.count()
   const count1 = await models.dextokens.count()
-  const count2 = await models.dexpools.count()
-  const count3 = await models.dexsmartcontracts.count()
-  const count4 = await models.dexsmartcontractsabis.count()
-  if (count1 === 0 || count2 === 0 || count3 === 0 || count4 === 0) {
-    loadDexPoolsTokens()
+  const count2 = await models.dexsmartcontracts.count()
+  const count3 = await models.dexsmartcontractsabis.count()
+  if (count0 === 0 || count1 === 0 || count2 === 0 || count3 === 0) {
+    importChains()
     importSmartContracts()
   }
 }
 
-export const loadDexPoolsTokens = async () => {
-  try {
-    // load uniswap
-    const dex = await models.dexes.findOne({where:{name:'Uniswap'}})
-    const endpoint = 'https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3'
-    for (let skip=0;skip<=5000;skip+=1000) {
-      const pools: any[] = []
-      const tokens: any[] = []
-      const tokenToPools: any[] = []
-      const QUERY = gql`
-      query pools($skip: Int!) {
-        pools(first: 1000, skip: $skip, orderBy: volumeUSD, orderDirection: desc) {
-          id
-          feeTier
-          volumeUSD
-          txCount
-          token0 {
-            id
-            symbol
-            name
-            decimals
-          }
-          token1 {
-            id
-            symbol
-            name
-            decimals
-          }
-        }
-      }
-      `
-      const req = await request(endpoint, QUERY, {skip})
-      for(const entry of req.pools){
-        tokens.push({
-          id: entry.token0.id,
-          symbol: entry.token0.symbol,
-          name: entry.token0.name,
-          decimals: entry.token0.decimals
-        })
-        tokens.push({
-          id: entry.token1.id,
-          symbol: entry.token1.symbol,
-          name: entry.token1.name,
-          decimals: entry.token1.decimals
-        })
-        pools.push({
-          id: entry.id,
-          data: {
-            volume: entry.volumeUSD,
-            txcount: entry.txCount,
-            feetier: entry.feeTier,
-            token1: {
-              id: entry.token1.id,
-              symbol: entry.token1.symbol
-            },
-            token0: {
-              id: entry.token0.id,
-              symbol: entry.token0.symbol
-            }
-          },
-          dexId: dex.id
-        })
-        tokenToPools.push({
-          dexpoolId: entry.id,
-          dextokenId: entry.token0.id
-        })
-        tokenToPools.push({
-          dexpoolId: entry.id,
-          dextokenId: entry.token1.id
-        })
-      }
-      await models.dextokens.bulkCreate(tokens, { ignoreDuplicates: true })
-      await models.dexpools.bulkCreate(pools, { ignoreDuplicates: true })
-      await models.dexpooltokens.bulkCreate(tokenToPools, { ignoreDuplicates: true })
-    }
-  } catch (e) {
-    logger.log('info', 'failed getting uniswap pools ' + e)
-  }
-  try {
-    // load aave
-    const dex = await models.dexes.findOne({where:{name:'Aave'}})
-    const endpoint = 'https://cache-api-1.aave.com/graphql'
-    for (let skip=0;skip<=5000;skip+=1000) {
-      const pools: any[] = []
-      const tokens: any[] = []
-      const tokenToPools: any[] = []
-      const QUERY = gql`
-      query C_ProtocolData($lendingPoolAddressProvider: String!, $chainId: Int!) {
-        protocolData(
-          lendingPoolAddressProvider: $lendingPoolAddressProvider
-          chainId: $chainId
-        ) {
-          reserves {
-            ...ReserveDataFragment
-            __typename
-          }
-          baseCurrencyData {
-            ...BaseCurrencyDataFragment
-            __typename
-          }
-          __typename
-        }
-      }
-      
-      fragment ReserveDataFragment on ReserveData {
-        id
-        underlyingAsset
-        name
-        symbol
-        decimals
-        isActive
-        isFrozen
-        usageAsCollateralEnabled
-        aTokenAddress
-        stableDebtTokenAddress
-        variableDebtTokenAddress
-        borrowingEnabled
-        stableBorrowRateEnabled
-        reserveFactor
-        interestRateStrategyAddress
-        baseLTVasCollateral
-        stableRateSlope1
-        stableRateSlope2
-        averageStableRate
-        stableDebtLastUpdateTimestamp
-        variableRateSlope1
-        variableRateSlope2
-        liquidityIndex
-        reserveLiquidationThreshold
-        reserveLiquidationBonus
-        variableBorrowIndex
-        variableBorrowRate
-        availableLiquidity
-        stableBorrowRate
-        liquidityRate
-        totalPrincipalStableDebt
-        totalScaledVariableDebt
-        lastUpdateTimestamp
-        priceInMarketReferenceCurrency
-        isPaused
-        accruedToTreasury
-        unbacked
-        isolationModeTotalDebt
-        debtCeiling
-        debtCeilingDecimals
-        eModeCategoryId
-        borrowCap
-        supplyCap
-        eModeLtv
-        eModeLiquidationThreshold
-        eModeLiquidationBonus
-        eModePriceSource
-        eModeLabel
-        borrowableInIsolation
-        baseStableBorrowRate
-        baseVariableBorrowRate
-        optimalUsageRatio
-        priceOracle
-        __typename
-      }
-      
-      fragment BaseCurrencyDataFragment on BaseCurrencyData {
-        marketReferenceCurrencyDecimals
-        marketReferenceCurrencyPriceInUsd
-        networkBaseTokenPriceInUsd
-        networkBaseTokenPriceDecimals
-      }
-      `
-      const req = await request(endpoint, QUERY, {
-        lendingPoolAddressProvider:"0xb53c1a33016b2dc2ff3653530bff1848a515c8c5",
-        chainId:1
-      })
-      // process
-      for(const entry of req.protocolData.reserves){
-        pools.push({
-          id: entry.id,
-          data: {
-            reserveFactor: entry.reserveFactor,
-            stableRateSlope1: entry.stableRateSlope1,
-            stableRateSlope2: entry.stableRateSlope2,
-            variableRateSlope1: entry.variableRateSlope1,
-            variableRateSlope2: entry.variableRateSlope2
-          },
-          dexId: dex.id
-        })
-        tokens.push({
-          id: entry.underlyingAsset,
-          symbol: entry.symbol,
-          decimals: entry.decimals
-        })
-        tokenToPools.push({
-          dexpoolId: entry.id,
-          dextokenId: entry.underlyingAsset
-        })
-      }
-      await models.dextokens.bulkCreate(tokens, { ignoreDuplicates: true })
-      await models.dexpools.bulkCreate(pools, { ignoreDuplicates: true })
-      await models.dexpooltokens.bulkCreate(tokenToPools, { ignoreDuplicates: true })
-    }
-  } catch (e) {
-    logger.log('info', 'failed getting uniswap pools ' + e)
-  }
+export const importChains = async () => {
+  await models.dexchains.create({id: 1, name: 'Ethereum', currency: 'ETH', rpc:'https://ethereum.publicnode.com', txexplorer: 'https://etherscan.io/tx/', derivationPath: "m/44'/60'/0'/0/" }, { ignoreDuplicates: true })
+  await models.dexchains.create({id: 56, name: 'Binance Smart Chain', currency: 'BNB', rpc:'https://bsc-dataseed.binance.org', txexplorer: 'https://bscscan.com/tx/', derivationPath: "m/44'/714'/0'/0/" }, { ignoreDuplicates: true })
+  await models.dexchains.create({id: 137, name: 'Polygon', currency: 'MATIC', rpc:'https://polygon-bor.publicnode.com', txexplorer: 'https://polygonscan.com/tx/', derivationPath: "m/44'/966'/0'/0/" }, { ignoreDuplicates: true })
+  await models.dexchains.create({id: 42161, name: 'Arbitrum One', currency: 'ETH', rpc:'https://arb1.arbitrum.io/rpc', txexplorer: 'https://arbiscan.io/tx/', derivationPath: "m/44'/60'/0'/0/" }, { ignoreDuplicates: true })
+  await models.dexchains.create({id: 10, name: 'Optimism', currency: 'ETH', rpc:'https://mainnet.optimism.io', txexplorer: 'https://optimistic.etherscan.io/tx/', derivationPath: "m/44'/60'/0'/0/" }, { ignoreDuplicates: true })
+  await models.dexchains.create({id: 43114, name: 'Avalance C-Chain', currency: 'AVAX', rpc:'https://avalanche-evm.publicnode.com', txexplorer: 'https://snowtrace.io/tx/', derivationPath: "m/44'/9000'/0'/0/" }, { ignoreDuplicates: true })
+  await models.dexchains.create({id: 250, name: 'Fantom Opera', currency: 'FTM', rpc:'https://rpcapi.fantom.network', txexplorer: 'https://ftmscan.com/tx/', derivationPath: "m/44'/1007'/0'/0/" }, { ignoreDuplicates: true })
+  await models.dexchains.create({id: 100, name: 'Gnosis', currency: 'xDAI', rpc:'https://xdai-rpc.gateway.pokt.network', txexplorer: 'https://gnosisscan.io/tx/', derivationPath: "m/44'/700'/0'/0/" }, { ignoreDuplicates: true })
+  await models.dexchains.create({id: 42220, name: 'Celo', currency: 'CELO', rpc:'https://forno.celo.org', txexplorer: 'https://celoscan.io/tx/', derivationPath: "m/44'/52752'/0'/0/" }, { ignoreDuplicates: true })
 }
 
 export const loadExchanges = async () => {

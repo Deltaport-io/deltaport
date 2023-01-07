@@ -6,14 +6,14 @@ import superagent from 'superagent'
 
 export class EthereumApi {
   wallet = async (wallet: any, injectedAbis: any[] = [], options=undefined) =>  {
-    const web3Wallet = await ethers.Wallet.fromMnemonic(wallet.seedphrase, "m/44'/60'/0'/0/" + wallet.walletindex)
+    const web3Wallet = await ethers.Wallet.fromMnemonic(wallet.seedphrase, wallet.dexchain.derivationPath + wallet.walletindex)
     const walletAddress = web3Wallet.address
     // prepare injected
     const injectedABIs: any = {}
     if (injectedAbis.length > 0) {
       for (const injectedAbi of injectedAbis) {
         injectedABIs[injectedAbi.name] = (contractAddress: string) => {
-          const provider = new ethers.providers.JsonRpcProvider(wallet.nodeurl)
+          const provider = new ethers.providers.JsonRpcProvider(wallet.dexchain.rpc)
           const web3Provider = web3Wallet.connect(provider)
           const injectedContract = new ethers.Contract(contractAddress, injectedAbi.abi, web3Provider)
           const returnObj = {}
@@ -31,18 +31,18 @@ export class EthereumApi {
     // create wallet obj
     const walletHolder = {
       getBalance: async (address: string = undefined) => {
-        const provider = new ethers.providers.JsonRpcProvider(wallet.nodeurl)
+        const provider = new ethers.providers.JsonRpcProvider(wallet.dexchain.rpc)
         return provider.getBalance(address ? address : walletAddress)
       },
       transferEther: async (toAddress: string, amount: number) => {
-        const provider = new ethers.providers.JsonRpcProvider(wallet.nodeurl)
+        const provider = new ethers.providers.JsonRpcProvider(wallet.dexchain.rpc)
         const web3Provider = web3Wallet.connect(provider)
         this.trackActions(options, {action: 'transferEther', from: walletAddress, to: toAddress, value: amount})
         if (options && options.noTrading === true) return
         return web3Provider.sendTransaction({from: walletAddress, to: toAddress, value: amount})
       },
       token: (tokenAddress: string) => {
-        const provider = new ethers.providers.JsonRpcProvider(wallet.nodeurl)
+        const provider = new ethers.providers.JsonRpcProvider(wallet.dexchain.rpc)
         const web3Provider = web3Wallet.connect(provider)
         const contract = new ethers.Contract(tokenAddress, erc20ABI, web3Provider)
         const readContract = new ethers.Contract(tokenAddress, erc20ABI, provider)
@@ -65,288 +65,47 @@ export class EthereumApi {
           }
         }
       },
-      pool: (poolAddress: string) => {
-        const provider = new ethers.providers.JsonRpcProvider(wallet.nodeurl)
-        const web3Provider = web3Wallet.connect(provider)
-        const quoterContract = new ethers.Contract('0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6', uniswapQuoterABI, web3Provider)
-        const readQuoterContract = new ethers.Contract('0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6', uniswapQuoterABI, provider)
-        const routerContract = new ethers.Contract('0xE592427A0AEce92De3Edee1F18E0157C05861564', uniswapRouterABI, web3Provider)
-        const aaveContract = new ethers.Contract('0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9', aaveLendPoolABI, web3Provider)
-        return {
-          swap: async (toAddress: string, direction: boolean, amount: string) => {
-            const dexpool = await models.dexpools.findOne({
-              where: {id: poolAddress},
-              include: [{
-                model: models.dexes
-              }]
-            })
-            if (dexpool === null) {
-              throw new Error('Pool not in database')
-            }
-            if (dexpool.dex.name !== 'Uniswap') {
-              throw new Error('Pool does not support swap function')
-            }
-            const bnAmount = new BigNumber(amount)
-            let outAmount = '0'
-            let tokenContract
-            let readTokenContract
-            if (direction) {
-              tokenContract = new ethers.Contract(dexpool.token0Id, erc20ABI, web3Provider)
-              readTokenContract = new ethers.Contract(dexpool.token0Id, erc20ABI, provider)
-              outAmount = await quoterContract.quoteExactInputSingle(
-                dexpool.token1Id,
-                dexpool.token0Id,
-                dexpool.feetier,
-                amount,
-                0
-              ).call()
-            } else {
-              tokenContract = new ethers.Contract(dexpool.token1Id, erc20ABI, web3Provider)
-              readTokenContract = new ethers.Contract(dexpool.token0Id, erc20ABI, provider)
-              outAmount = await quoterContract.quoteExactInputSingle(
-                dexpool.token0Id,
-                dexpool.token1Id,
-                dexpool.feetier,
-                amount,
-                0
-              ).call()
-            }
-            const allowance = await readTokenContract.allowance(wallet.address, '0xE592427A0AEce92De3Edee1F18E0157C05861564')
-            if (new BigNumber(allowance).lt(bnAmount)){
-              const uint256max = new BigNumber(2).pow(256).minus(1)
-              this.trackActions(options, {action: 'contractInteraction', abi: erc20ABI.find(e => e.name === 'approve'), address: '0xE592427A0AEce92De3Edee1F18E0157C05861564', args: ['0xE592427A0AEce92De3Edee1F18E0157C05861564', uint256max]})
-              if (options && options.noTrading === true) return
-              await tokenContract.approve('0xE592427A0AEce92De3Edee1F18E0157C05861564', uint256max)
-            }
-            const args = [
-              direction ? dexpool.token1Id : dexpool.token0Id,
-              direction ? dexpool.token0Id : dexpool.token1Id,
-              dexpool.feetier,
-              toAddress,
-              new Date().getTime(),
-              amount,
-              outAmount,
-              0
-            ]
-            await this.trackActions(options, {action: 'contractInteraction', abi: uniswapRouterABI.find(e => e.name === 'exactInputSingle'), address: '0xE592427A0AEce92De3Edee1F18E0157C05861564', args: [args]})
-            if (options && options.noTrading === true) return
-            return routerContract.exactInputSingle(args)
-          },
-          swapQuote: async (direction: boolean, amount: string) => {
-            const dexpool = await models.dexpools.findOne({
-              where: {id: poolAddress},
-              include: [{
-                model: models.dexes
-              }]
-            })
-            if (dexpool === null) {
-              throw new Error('Pool not in database')
-            }
-            if (dexpool.dex.name !== 'Uniswap') {
-              throw new Error('Pool does not support swapQuote function')
-            }
-            if (direction) {
-              return await readQuoterContract.quoteExactInputSingle(
-                dexpool.token1Id,
-                dexpool.token0Id,
-                dexpool.feetier,
-                amount,
-                0
-              )
-            } else {
-              return await readQuoterContract.quoteExactInputSingle(
-                dexpool.token0Id,
-                dexpool.token1Id,
-                dexpool.feetier,
-                amount,
-                0
-              )
-            }
-          },
-          lendPoolGetUserAccountData: async (address?: string) => {
-            const dexpool = await models.dexpools.findOne({
-              where: {id: poolAddress},
-              include: [{
-                model: models.dexes
-              }]
-            })
-            if (dexpool === null) {
-              throw new Error('Pool not in database')
-            }
-            if (dexpool.dex.name !== 'Aave') {
-              throw new Error('Pool does not support GetUserAccountData function')
-            }
-            if (address) {
-              return aaveContract.getUserAccountData(
-                wallet.address
-              )
-            } else {
-              return aaveContract.getUserAccountData(
-                address
-              )
-            }
-          },
-          lendDeposit: async (amount: string) => {
-            const dexpool = await models.dexpools.findOne({
-              where: {id: poolAddress},
-              include: [{
-                model: models.dextokens
-              },{
-                model: models.dexes
-              }]
-            })
-            if (dexpool === null) {
-              throw new Error('Pool not in database')
-            }
-            if (dexpool.dex.name !== 'Aave') {
-              throw new Error('Pool does not support Deposit function')
-            }
-            await this.trackActions(options, {action: 'contractInteraction', abi: aaveLendPoolABI.find(e => e.name === 'deposit'), address: '0xE592427A0AEce92De3Edee1F18E0157C05861564', args: [dexpool.dextokens[0].id, amount, wallet.address, 0]})
-            if (options && options.noTrading === true) return
-            return await aaveContract.deposit(
-              dexpool.dextokens[0].id,
-              amount,
-              wallet.address,
-              0
-            )
-          },
-          lendBorrow: async (amount: string, interestMode: string) => {
-            const dexpool = await models.dexpools.findOne({
-              where: {id: poolAddress},
-              include: [{
-                model: models.dextokens
-              },{
-                model: models.dexes
-              }]
-            })
-            if (dexpool === null) {
-              throw new Error('Pool not in database')
-            }
-            if (dexpool.dex.name !== 'Aave') {
-              throw new Error('Pool does not support Borrow function')
-            }
-            await this.trackActions(options, {action: 'contractInteraction', abi: aaveLendPoolABI.find(e => e.name === 'borrow'), address: '0xE592427A0AEce92De3Edee1F18E0157C05861564', args: [dexpool.dextokens[0].id, amount, interestMode, 0, wallet.address]})
-            if (options && options.noTrading === true) return
-            return await aaveContract.borrow(
-              dexpool.dextokens[0].id,
-              amount,
-              interestMode,
-              0,
-              wallet.address
-            )
-          },
-          lendWithdraw: async (amount: string) => {
-            const dexpool = await models.dexpools.findOne({
-              where: {id: poolAddress},
-              include: [{
-                model: models.dextokens
-              },{
-                model: models.dexes
-              }]
-            })
-            if (dexpool === null) {
-              throw new Error('Pool not in database')
-            }
-            if (dexpool.dex.name !== 'Aave') {
-              throw new Error('Pool does not support Withdraw function')
-            }
-            await this.trackActions(options, {action: 'contractInteraction', abi: aaveLendPoolABI.find(e => e.name === 'withdraw'), address: '0xE592427A0AEce92De3Edee1F18E0157C05861564', args: [dexpool.dextokens[0].id, amount, wallet.address]})
-            if (options && options.noTrading === true) return
-            return await aaveContract.withdraw(
-              dexpool.dextokens[0].id,
-              amount,
-              wallet.address
-            )
-          },
-          lendRepay: async (amount: string, interestMode: string) => {
-            const dexpool = await models.dexpools.findOne({
-              where: {id: poolAddress},
-              include: [{
-                model: models.dextokens
-              },{
-                model: models.dexes
-              }]
-            })
-            if (dexpool === null) {
-              throw new Error('Pool not in database')
-            }
-            if (dexpool.dex.name !== 'Aave') {
-              throw new Error('Pool does not support Repay function')
-            }
-            await this.trackActions(options, {action: 'contractInteraction', abi: aaveLendPoolABI.find(e => e.name === 'repay'), address: '0xE592427A0AEce92De3Edee1F18E0157C05861564', args: [dexpool.dextokens[0].id, amount, interestMode, wallet.address]})
-            if (options && options.noTrading === true) return
-            return await aaveContract.repay(
-              dexpool.dextokens[0].id,
-              amount,
-              interestMode,
-              wallet.address
-            )
-          },
-        }
-      },
       injectedABIs: injectedABIs,
       marketplace: {
         addToMarketplace: async (entryType: number, price: string) => {
-          const provider = new ethers.providers.JsonRpcProvider(wallet.nodeurl)
+          const provider = new ethers.providers.JsonRpcProvider(wallet.dexchain.rpc)
           const web3Provider = web3Wallet.connect(provider)
           const marketplaceContract = new ethers.Contract(config.app.marketplaceAddress, marketplaceABI, web3Provider)
           return marketplaceContract.addEntry(entryType,price,{value: 500})
         },
         purchase: async (entryId: string, price: string) => {
-          const provider = new ethers.providers.JsonRpcProvider(wallet.nodeurl)
+          const provider = new ethers.providers.JsonRpcProvider(wallet.dexchain.rpc)
           const web3Provider = web3Wallet.connect(provider)
           const marketplaceContract = new ethers.Contract(config.app.marketplaceAddress, marketplaceABI, web3Provider)
           return marketplaceContract.purchase(entryId,{value: price})
         },
         subscribe: async (entryId: string, price: string) => {
-          const provider = new ethers.providers.JsonRpcProvider(wallet.nodeurl)
+          const provider = new ethers.providers.JsonRpcProvider(wallet.dexchain.rpc)
           const web3Provider = web3Wallet.connect(provider)
           const marketplaceContract = new ethers.Contract(config.app.marketplaceAddress, marketplaceABI, web3Provider)
           return marketplaceContract.addUpdateSubPayee(entryId,{value: price})
         },
         unsubscribe: async (entryId: string) => {
-          const provider = new ethers.providers.JsonRpcProvider(wallet.nodeurl)
+          const provider = new ethers.providers.JsonRpcProvider(wallet.dexchain.rpc)
           const web3Provider = web3Wallet.connect(provider)
           const marketplaceContract = new ethers.Contract(config.app.marketplaceAddress, marketplaceABI, web3Provider)
           return marketplaceContract.endUpdateSubPayee(entryId)
         },
         close: async (entryId: string) => {
-          const provider = new ethers.providers.JsonRpcProvider(wallet.nodeurl)
+          const provider = new ethers.providers.JsonRpcProvider(wallet.dexchain.rpc)
           const web3Provider = web3Wallet.connect(provider)
           const marketplaceContract = new ethers.Contract(config.app.marketplaceAddress, marketplaceABI, web3Provider)
           return marketplaceContract.closeEntry(entryId)
         }
       },
-      /*
-      smartcontracts: async (contractId: string, inputs: any) => {
-        let dexsmartcontract = await models.dexsmartcontracts.findOne({
-          where: {id: contractId},
-          include: {
-            model: models.dexsmartcontractsabis
-          }
-        })
-        // no pair
-        if (dexsmartcontract === null) {
-          return 'error'
-        }
-        dexsmartcontract = dexsmartcontract.toJSON()
-        const vm = new VM({
-          sandbox: {
-            web3Wallets: {[wallet.id]: walletHolder},
-            dexsmartcontract,
-            inputs
-          }
-        })
-      },
-      */
       executeContractAction: async (address, abi, name, args) => {
-        const provider = new ethers.providers.JsonRpcProvider(wallet.nodeurl)
+        const provider = new ethers.providers.JsonRpcProvider(wallet.dexchain.rpc)
         const web3Provider = web3Wallet.connect(provider)
         const tempContract = new ethers.Contract(address, abi, web3Provider)
         return tempContract[name](...args)
       },
       readContractAction: async (address, abi, name, args) => {
-        const provider = new ethers.providers.JsonRpcProvider(wallet.nodeurl)
+        const provider = new ethers.providers.JsonRpcProvider(wallet.dexchain.rpc)
         const tempContract = new ethers.Contract(address, abi, provider)
         return tempContract[name](...args)
       }

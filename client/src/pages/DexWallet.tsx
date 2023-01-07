@@ -124,7 +124,6 @@ class DexWallet extends Component <DexWalletProps, DexWalletStates> {
             ]}
             title={'Wallet'}
           />
-
           <Card>
             <Card.Body>
               <h4 className="header-title mb-2">{this.state.dexwallet.name}</h4>
@@ -141,8 +140,8 @@ class DexWallet extends Component <DexWalletProps, DexWalletStates> {
                     <td>{this.state.dexwallet.name}</td>
                   </tr>
                   <tr>
-                    <td>Node Url</td>
-                    <td>{this.state.dexwallet.nodeurl}</td>
+                    <td>Chain</td>
+                    <td>{this.state.dexwallet.dexchain ? this.state.dexwallet.dexchain.name : ''}</td>
                   </tr>
                   <tr>
                     <td>Address</td>
@@ -151,10 +150,6 @@ class DexWallet extends Component <DexWalletProps, DexWalletStates> {
                   <tr>
                     <td>Wallet index</td>
                     <td>{this.state.dexwallet.walletindex}</td>
-                  </tr>
-                  <tr>
-                    <td>Tx viewer</td>
-                    <td>{this.state.dexwallet.txviewer}</td>
                   </tr>
                 </tbody>
               </Table>

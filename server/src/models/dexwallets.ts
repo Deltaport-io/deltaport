@@ -5,10 +5,8 @@ export default (sequelize, DataTypes) => {
     id: { type: DataTypes.CHAR(22), defaultValue: () => uuid.generate(), primaryKey: true },
     name: { type: DataTypes.STRING },
     seedphrase: { type: DataTypes.STRING },
-    nodeurl: { type: DataTypes.STRING },
     address: { type: DataTypes.STRING },
     walletindex: { type: DataTypes.INTEGER },
-    txviewer: { type: DataTypes.STRING }
   }, {
     timestamps: true,
     charset: 'utf8mb4',
@@ -19,6 +17,7 @@ export default (sequelize, DataTypes) => {
   })
   dexwallets.associate = function (models) {
     models.dexwallets.belongsTo(models.users);
+    models.dexwallets.belongsTo(models.dexchains);
   }
   return dexwallets
 }

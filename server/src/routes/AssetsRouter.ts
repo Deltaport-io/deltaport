@@ -35,7 +35,10 @@ export class AssetsRouter {
     })
     // get & loop accounts
     const wallets = await models.dexwallets.findAll({
-      where: {userIdusers: user.idusers}
+      where: {userIdusers: user.idusers},
+      include: {
+        model: models.dexchains
+      }
     })
     const ethereumApi = new EthereumApi()
     for (const wallet of wallets) {

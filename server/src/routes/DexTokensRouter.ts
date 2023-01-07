@@ -76,12 +76,15 @@ export class DexTokensRouter {
     // get token
     const dextoken = await models.dextokens.findOne({
       where: {id: req.params.id},
+      // TODO: smartcontracts
+      /*
       include: [{
         model: models.dexpools,
         include: [{
           model: models.dextokens
         }]
       }]
+      */
     })
     // no token
     if (dextoken === null) {

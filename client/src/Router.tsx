@@ -7,8 +7,6 @@ import Register from './pages/Register'
 import Panel from './pages/Panel'
 import DexWallets from './pages/DexWallets'
 import DexWallet from './pages/DexWallet'
-import DexPools from './pages/DexPools'
-import DexPool from './pages/DexPool'
 import DexTokens from './pages/DexTokens'
 import DexToken from './pages/DexToken'
 import DexSmartContracts from './pages/DexSmartContracts'
@@ -44,8 +42,6 @@ const routes = <Switch>
   <Route component={Exchanges} path="/exchanges" />
   <Route component={DexWallet} path="/dexwallets/:id" />
   <Route component={DexWallets} path="/dexwallets" />
-  <Route component={DexPool} path="/dexpools/:id" />
-  <Route component={DexPools} path="/dexpools" />
   <Route component={DexSmartContract} path="/dexsmartcontracts/:id" />
   <Route component={DexSmartContracts} path="/dexsmartcontracts" />
   <Route component={DexToken} path="/dextokens/:id" />
