@@ -13,6 +13,7 @@ export default (sequelize, DataTypes) => {
   })
   dextokens.associate = function (models) {
     // models.dextokens.belongsToMany(models.dexpools, { through: models.dexpooltokens })
+    models.dextokens.belongsTo(models.dexchains)
   }
   return dextokens
 }

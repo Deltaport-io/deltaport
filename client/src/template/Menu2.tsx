@@ -38,8 +38,8 @@ class Menu extends Component <MenuProps, MenuStates> {
         <a className="logo text-center logo-light" href="/">
           <span className="logo-lg">
             {this.state.menuExtended ?
-              <img src="/logo-big.png" alt="logo" height="32"/> :
-              <img src="/logo-only.png" alt="logo" height="32"/>
+              <img src="/logo-big-dark.png" alt="logo" height="32"/> :
+              <img src="/logo-only-dark.png" alt="logo" height="32"/>
             }
           </span>
         </a>

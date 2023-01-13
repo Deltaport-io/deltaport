@@ -75,7 +75,7 @@ body {
 
 .leftside-menu {
   flex-shrink: 0;
-  background: #313a46;
+  background: #fff;
   box-shadow: $box-shadow;
   position: relative;
 }
@@ -283,10 +283,10 @@ body {
 
 body {
   .leftside-menu {
-      background: #313a46;
+      background: #fff;
 
       .logo {
-          background: #313a46 !important;
+          background: #fff !important;
       }
   }
 
@@ -296,13 +296,13 @@ body {
           &:hover,
           &:focus,
           &:active {
-              color: #bccee4;
+              color: #6c757d;
           }
       }
   
       .menuitem-active {
           > a {
-              color: #ffffff !important;
+              color: #6c757d !important;
           }
       }
   
@@ -318,12 +318,12 @@ body {
                   color: #8391a2;
                   &:focus,
                   &:hover {
-                      color: #bccee4;
+                      color: #6c757d;
                   }
               }
               &.active {
                   >a {
-                      color: #ffffff;
+                      color: #6c757d;
                   }
               }
           }

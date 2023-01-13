@@ -20,6 +20,7 @@ export default (sequelize, DataTypes) => {
   dexsmartcontracts.associate = function (models) {
     models.dexsmartcontracts.belongsToMany(models.dextokens, { through: models.dexsmartcontractstokens })
     models.dexsmartcontracts.belongsTo(models.dexsmartcontractsabis)
+    models.dexsmartcontracts.belongsTo(models.dexchains)
   }
   return dexsmartcontracts
 }

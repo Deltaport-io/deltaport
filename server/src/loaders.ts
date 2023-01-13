@@ -6,6 +6,7 @@ import { logger } from './logger'
 export const importSmartContracts = async () => {
   try {
     // load uniswap
+    const chainId = 1
     const endpoint = 'https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3'
     for (let skip=0;skip<=5000;skip+=1000) {
       const smartContracts: any[] = []
@@ -39,19 +40,22 @@ export const importSmartContracts = async () => {
           id: entry.token0.id,
           symbol: entry.token0.symbol,
           name: entry.token0.name,
-          decimals: entry.token0.decimals
+          decimals: entry.token0.decimals,
+          dexchainId: chainId
         })
         tokens.push({
           id: entry.token1.id,
           symbol: entry.token1.symbol,
           name: entry.token1.name,
-          decimals: entry.token1.decimals
+          decimals: entry.token1.decimals,
+          dexchainId: chainId
         })
         smartContracts.push({
           address: entry.id,
           name: 'Uniswap',
           description: `Swap between ${entry.token0.symbol} and ${entry.token1.symbol}`,
           keywords: `swap ${entry.token1.symbol} ${entry.token0.symbol}`,
+          dexchainId: chainId,
           data: `{
             view: {
               ui: [{
