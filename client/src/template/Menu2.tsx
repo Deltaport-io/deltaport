@@ -32,7 +32,7 @@ class Menu extends Component <MenuProps, MenuStates> {
   render() {
     return (
       <div className="leftside-menu" style={{width: this.state.menuExtended ? 220 : 70}}>
-        <div onClick={()=>this.extendMenu()} className="menuOpener" style={{right: this.state.menuExtended ? 0 : -3 }}>
+        <div onClick={()=>this.extendMenu()} className="menu-opener">
           {this.state.menuExtended ? <i className="uil uil-angle-left"/> : <i className="uil uil-angle-right"/>}
         </div>
         <a className="logo text-center logo-light" href="/">
@@ -43,7 +43,7 @@ class Menu extends Component <MenuProps, MenuStates> {
             }
           </span>
         </a>
-        <div className="menuScroll">
+        <div className="menu-scroll">
           <AppMenu menuExtended={this.state.menuExtended}/>
         </div>
       </div>

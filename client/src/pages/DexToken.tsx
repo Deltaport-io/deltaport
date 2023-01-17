@@ -218,34 +218,6 @@ class DexToken extends Component <DexTokenProps, DexTokenStates> {
             </Card.Body>
           </Card>
 
-          <Card>
-            <Card.Body>
-              <h4 className="header-title mb-2">Pools - <Link to={`/dexpools?search=${this.state.dextoken.symbol}`}>See all</Link></h4> 
-              <Table striped hover className="mb-0" size="sm">
-                <thead>
-                  <tr>
-                    <th>Id</th>
-                    <th>Pairs</th>
-                    <th><i className="mdi mdi-information text-secondary"></i></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {this.state.dextoken.dexpools?.map((pool:any) => {
-                    return <tr key={pool.id}>
-                      <td className="font-monospace"><Link to={`/dexpools/${pool.id}`}>{truncate(pool.id, 16)}</Link></td>
-                      <td>
-                        {pool.dextokens?.map((dextoken :any) => {
-                          return <Link key={dextoken.id} to={`/dextokens/${dextoken.id}`}>{dextoken.symbol+' '}</Link>
-                        })}
-                      </td>
-                      <td><Info data={pool.data}/></td>
-                    </tr>
-                  })}
-                </tbody>
-              </Table>
-            </Card.Body>
-          </Card>
-
           <div className="row">
             <div className="col-md-6">
               <Card>

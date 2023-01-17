@@ -69,7 +69,6 @@ body {
   position: relative;
   overflow: hidden;
   padding: 0px 12px 65px;
-  min-height: 100vh;
   flex-grow: 1;
 }
 
@@ -657,13 +656,13 @@ a.page-link {
     color: #6c757d;
 }
 
-.mainHolder {
+.main-holder {
     display: flex;
 }
 
-.menuOpener {
+.menu-opener {
     position: absolute;
-    right: 0px;
+    right: -30px;
     top: 17px;
     z-index: 99999999;
     font-size: 28px;
@@ -671,13 +670,57 @@ a.page-link {
     color: #8391a2;
 }
 
-.menuScroll {
+.menu-scroll {
     height: calc(100vh - 70px);
     overflow: scroll;
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
 }
 
-.menuScroll::-webkit-scrollbar {
+.menu-scroll::-webkit-scrollbar {
     display: none;
+}
+
+.navbar-custom {
+    padding: 0 $grid-gutter-width;
+    background-color: $bg-topbar;
+    box-shadow: $box-shadow-menu;
+    min-height: $topbar-height;
+    z-index: 9999;
+
+    .topbar-menu {
+        position: relative;
+        z-index: 1;
+        
+        li {
+            float: left;
+            max-height: $topbar-height;
+
+            .show {
+                &.nav-link {
+                    color: $gray-700;
+                }
+            }
+        }
+        .nav-link {
+            padding: 0;
+            color: $gray-600;
+            min-width: 32px;
+            display: block;
+            text-align: center;
+            margin: 0 10px;
+            position: relative;
+        }
+    }
+
+    .app-search {
+        position: static;
+        overflow-y: hidden;
+        padding: calc(#{$topbar-height - 38px} / 2) 5px calc(#{$topbar-height - 38px} / 2) 0;
+
+        .react-select__control, .react-select__menu {
+            overflow: hidden;
+            width: 320px !important;
+        }
+    }
 }
