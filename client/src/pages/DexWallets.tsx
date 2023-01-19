@@ -264,7 +264,7 @@ class DexWallets extends Component <DexWalletsProps, DexWalletsStates> {
                 </DropdownButton>
               </div>
               <div className="mb-3">
-                <label className="form-label">Seedphrase <i onClick={()=>this.generateSeedphrase()} className="uil uil-redo"></i></label>
+                <label className="form-label seedphrase-generate">Seedphrase <i onClick={()=>this.generateSeedphrase()} className="uil uil-redo"></i></label>
                 <input type="text" className="form-control" name="seedphrase" value={this.state.seedphrase} onChange={this.inputChange} placeholder="Seedphrase"/>
               </div>
               <div className="mb-3">

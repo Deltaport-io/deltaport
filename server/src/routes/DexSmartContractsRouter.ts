@@ -93,7 +93,10 @@ export class DexSmartContractsRouter {
     dexsmartcontract = dexsmartcontract.toJSON()
     // get smartcontract views and accounts
     const dexwallets = await models.dexwallets.findAll({
-      where: {userIdusers: user.idusers}
+      where: {userIdusers: user.idusers},
+      include: {
+        model: models.dexchains
+      }
     })
     const ethereumApi = new EthereumApi()
     const web3Wallets: any = {}
@@ -156,7 +159,10 @@ export class DexSmartContractsRouter {
     }
     dexsmartcontract = dexsmartcontract.toJSON()
     const dexwallets = await models.dexwallets.findAll({
-      where: { userIdusers: user.idusers }
+      where: { userIdusers: user.idusers },
+      include: {
+        model: models.dexchains
+      }
     })
     const ethereumApi = new EthereumApi()
     const web3Wallets: any = {}

@@ -83,7 +83,10 @@ export class DexTokensRouter {
     }
     // get & loop accounts
     const wallets = await models.dexwallets.findAll({
-      where: {userIdusers: user.idusers}
+      where: {userIdusers: user.idusers},
+      include: {
+        model: models.dexchains
+      }
     })
     const balances: any[] = []
     const ethereumApi = new EthereumApi()
@@ -133,6 +136,9 @@ export class DexTokensRouter {
       where: {
         id: req.body.wallet,
         userIdusers: user.idusers
+      },
+      include: {
+        model: models.dexchains
       }
     })
     if (dexwallet === null) {

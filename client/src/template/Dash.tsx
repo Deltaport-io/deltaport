@@ -11,6 +11,8 @@ interface DashProps {
 }
 
 type DashStates = {
+  search: string
+  profileOpen: boolean
 }
 
 class Dash extends Component <DashProps, DashStates> {
@@ -18,36 +20,49 @@ class Dash extends Component <DashProps, DashStates> {
   constructor (props: DashProps) {
     super(props)
     this.state = {
+      search: '',
+      profileOpen: false
     }
+  }
+
+  inputChange = (event: any) => {
+    this.setState({ [event.currentTarget.name]: event.currentTarget.value } as DashStates)
+  }
+
+  logout = () => {
+    localStorage.removeItem('accounts')
+    this.props.history.push('/')
   }
 
   render () {
     return (
       <>
-
         <div className="wrapper main-holder">
           <Menu2/>
-
-          <div style={{width:'100%', display: 'flex', flexDirection: 'column'}}>
-
+          <div className="content-with-topbar-holder">
             <div className="navbar-custom">
-              <div className="container-fluid">
-                <ul className="list-unstyled topbar-menu mb-0">
-                  <li className="dropdown notification-list">
-                    Search
-                  </li>
-                </ul>
-                <ul className="list-unstyled topbar-menu float-end mb-0">
-                  <li className="dropdown notification-list">
-                    Profile dropdown
-                  </li>
-                </ul>
-                <button className="button-menu-mobile open-left disable-btn" onClick={()=>console.log('kra')}>
-                  <i className="mdi mdi-menu" />
-                </button>
+              <div className="topbar-search">
+                <form onSubmit={() => {/*this.searchMarketplace*/}} className="me-1">
+                  <div className="input-group input-group-sm">
+                    <input type="text" className="form-control form-control-sm" name="search" value={this.state.search} onChange={this.inputChange} placeholder=""/>
+                    <button className="btn btn-primary" type="submit">Search</button>
+                  </div>
+                </form>
+              </div>
+              <div className="topbar-profile">
+                <i className="dripicons dripicons-user topbar-usericon" onClick={() => this.setState({profileOpen: !this.state.profileOpen})}/>
+                {this.state.profileOpen ?
+                  <div className="topbar-profile-dropdown">
+                    <div className="icon-holder">
+                      <i className="dripicons dripicons-user"/>
+                    </div>
+                    <div className="topbar-logout" onClick={() => this.logout()}>
+                      Logout
+                    </div>
+                  </div>
+                : null}
               </div>
             </div>
-
             <div className="content-page">
               <div className="content">
                 <Container fluid>

@@ -47,8 +47,8 @@ body {
 
 .logo {
   display: block;
-  line-height: 70px;
-  height: 70px;
+  line-height: 55px;
+  height: 55px;
 
   span.logo-lg {
       display: block;
@@ -663,7 +663,7 @@ a.page-link {
 .menu-opener {
     position: absolute;
     right: -30px;
-    top: 17px;
+    top: 8px;
     z-index: 99999999;
     font-size: 28px;
     cursor: pointer;
@@ -686,41 +686,58 @@ a.page-link {
     background-color: $bg-topbar;
     box-shadow: $box-shadow-menu;
     min-height: $topbar-height;
-    z-index: 9999;
+    z-index: 1000;
+    position: relative;
+    
+    .topbar-search {
+        position: absolute;
+        left: 45%;
+        transform: translateX(-50%);
+        margin-top: 12px;
+        width: 350px;
+    }
 
-    .topbar-menu {
+    .topbar-profile {
+        margin-top: 13px;
+        float: right;
+        font-size: 1.1rem;
+        color: #8391a2;
         position: relative;
-        z-index: 1;
-        
-        li {
-            float: left;
-            max-height: $topbar-height;
 
-            .show {
-                &.nav-link {
-                    color: $gray-700;
-                }
+        .topbar-usericon {
+            cursor: pointer;
+        }
+
+        .icon-holder {
+            font-size: 1.5rem;
+            padding-top: 10px;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+
+        .topbar-profile-dropdown {
+            position: absolute;
+            right: 0;
+            font-size: 1rem;
+            top: $topbar-height - 10;
+            background-color: $bg-topbar;
+            padding: 7px 60px;
+            border-radius: $border-radius;
+            box-shadow: $box-shadow-menu;
+
+            .topbar-logout {
+                cursor: pointer;
             }
         }
-        .nav-link {
-            padding: 0;
-            color: $gray-600;
-            min-width: 32px;
-            display: block;
-            text-align: center;
-            margin: 0 10px;
-            position: relative;
-        }
     }
+}
 
-    .app-search {
-        position: static;
-        overflow-y: hidden;
-        padding: calc(#{$topbar-height - 38px} / 2) 5px calc(#{$topbar-height - 38px} / 2) 0;
+.seedphrase-generate {
+    cursor: pointer;
+}
 
-        .react-select__control, .react-select__menu {
-            overflow: hidden;
-            width: 320px !important;
-        }
-    }
+.content-with-topbar-holder {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
 }

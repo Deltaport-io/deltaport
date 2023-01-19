@@ -140,7 +140,7 @@ const AppMenu = (props: AppMenuProps) => {
         { key: 'trading', label: 'Trading', isTitle: false, icon: 'uil-chart', url: '/tradings' },
         { key: 'following', label: 'Following', isTitle: false, icon: 'uil-copy-landscape', url: '/follows' },
         { key: 'ethereum', label: 'Ethereum', isTitle: true },
-        { key: 'wallets', label: 'Wallets', isTitle: false, icon: 'uil-globe', url: '/dexwallets' },
+        { key: 'wallets', label: 'Wallets', isTitle: false, icon: 'uil-wallet', url: '/dexwallets' },
         { key: 'tokens', label: 'Tokens', isTitle: false, icon: 'uil-layers-alt', url: '/dextokens' },
         { key: 'smartcontracts', label: 'Contracts', isTitle: false, icon: 'uil-globe', url: '/dexsmartcontracts' },
         { key: 'exchanges', label: 'Exchanges', isTitle: true },
@@ -240,26 +240,6 @@ const AppMenu = (props: AppMenuProps) => {
                         </React.Fragment>
                     );
                 })}
-            </ul>
-            <ul className="side-nav mt-4">
-                <li className="side-nav-item">
-                    <a
-                        onClick={() => logout()}
-                        className="side-nav-link-ref side-sub-nav-link side-nav-link"
-                        href='#'
-                    >
-                        { props.menuExtended ?
-                            <>
-                                <i className="uil uil-exit"></i>
-                                <span>Logout</span>
-                            </>
-                        :
-                            <>
-                                <i className="uil uil-exit"></i>
-                            </>
-                        }
-                    </a>
-                </li>
             </ul>
         </>
     );
