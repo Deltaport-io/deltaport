@@ -14,7 +14,7 @@ export class DexTokensRouter {
   getDexTokensInputs = [
     query('search').optional({ nullable: true, checkFalsy: true }).notEmpty(),
     query('include').optional({ nullable: true, checkFalsy: true }).notEmpty(),
-    query('limit').optional({ nullable: true, checkFalsy: true }).isInt({ min: 0, max: 10 }),
+    query('limit').optional({ nullable: true, checkFalsy: true }).isInt({ min: 0, max: 50 }),
     query('offset').optional({ nullable: true, checkFalsy: true }).isInt({ min: 0 }),
   ]
 
@@ -30,7 +30,7 @@ export class DexTokensRouter {
       return res.send({ status: 'error', message: 'No user' })
     }
     // query defaults
-    let limit = 20
+    let limit = 50
     if (req.query.limit) {
       limit = parseInt(req.query.limit as any)
     }

@@ -21,7 +21,7 @@ type PairsStates = {
   page: number
 }
 
-const itemsPerPage = 20
+const itemsPerPage = 50
 
 class Pairs extends Component <PairsProps, PairsStates> {
 
@@ -63,8 +63,8 @@ class Pairs extends Component <PairsProps, PairsStates> {
     }
     const { token } = getCredentials()
     const query = this.state.search !== '' ?
-      `?search=${this.state.search}&offset=${this.state.page * itemsPerPage}` :
-      `?offset=${this.state.page * itemsPerPage}`
+      `?search=${this.state.search}&offset=${this.state.page * itemsPerPage}&limit=${itemsPerPage}` :
+      `?offset=${this.state.page * itemsPerPage}&limit=${itemsPerPage}`
     fetch(
       config.app.apiUri + '/api/v1/pairs'+query, {
         method: 'GET',

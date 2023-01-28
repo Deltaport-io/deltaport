@@ -22,7 +22,7 @@ type DexTokensStates = {
   page: number
 }
 
-const itemsPerPage = 20
+const itemsPerPage = 50
 
 class DexTokens extends Component <DexTokensProps, DexTokensStates> {
 
@@ -64,8 +64,8 @@ class DexTokens extends Component <DexTokensProps, DexTokensStates> {
     }
     const { token } = getCredentials()
     const query = this.state.search !== '' ?
-      `?search=${this.state.search}&offset=${this.state.page * itemsPerPage}` :
-      `?offset=${this.state.page * itemsPerPage}`
+      `?search=${this.state.search}&offset=${this.state.page * itemsPerPage}&limit=${itemsPerPage}` :
+      `?offset=${this.state.page * itemsPerPage}&limit=${itemsPerPage}`
     fetch(
       config.app.apiUri + '/api/v1/dextokens'+query, {
         method: 'GET',
