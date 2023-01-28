@@ -81,7 +81,9 @@ export class DexSmartContractsRouter {
     }
     // get smartcontract
     let dexsmartcontract = await models.dexsmartcontracts.findOne({
-      where: {id: req.params.id},
+      where: {
+        id: req.params.id
+      },
       include: {
         model: models.dexsmartcontractsabis
       }
@@ -93,7 +95,10 @@ export class DexSmartContractsRouter {
     dexsmartcontract = dexsmartcontract.toJSON()
     // get smartcontract views and accounts
     const dexwallets = await models.dexwallets.findAll({
-      where: {userIdusers: user.idusers},
+      where: {
+        userIdusers: user.idusers,
+        dexchainId: dexsmartcontract.dexchainId
+      },
       include: {
         model: models.dexchains
       }
