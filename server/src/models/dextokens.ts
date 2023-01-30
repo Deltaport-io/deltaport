@@ -1,6 +1,7 @@
 export default (sequelize, DataTypes) => {
   const dextokens = sequelize.define('dextokens', {
-    id: { type: DataTypes.CHAR(43), primaryKey: true },
+    id: { type: DataTypes.CHAR(64), primaryKey: true },
+    address: { type: DataTypes.CHAR(43) },
     symbol: { type: DataTypes.STRING },
     name: { type: DataTypes.STRING },
     decimals: { type: DataTypes.INTEGER(11).UNSIGNED },

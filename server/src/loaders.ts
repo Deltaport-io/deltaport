@@ -2,6 +2,7 @@ import * as ccxt from "ccxt"
 import models from './models'
 import { request, gql } from 'graphql-request'
 import { logger } from './logger'
+import * as uuid from 'short-uuid'
 
 export const importSmartContracts = async () => {
   try {
@@ -36,21 +37,27 @@ export const importSmartContracts = async () => {
       `
       const req = await request(endpoint, QUERY, {skip})
       for(const entry of req.pools){
+        const token0Id = '' + chainId + '-' + entry.token0.id
         tokens.push({
-          id: entry.token0.id,
+          id: token0Id,
+          address: entry.token0.id,
           symbol: entry.token0.symbol,
           name: entry.token0.name,
           decimals: entry.token0.decimals,
           dexchainId: chainId
         })
+        const token1Id = '' + chainId + '-' + entry.token1.id
         tokens.push({
-          id: entry.token1.id,
+          id: token1Id,
+          address: entry.token1.id,
           symbol: entry.token1.symbol,
           name: entry.token1.name,
           decimals: entry.token1.decimals,
           dexchainId: chainId
         })
+        const smartConractId = uuid.generate()
         smartContracts.push({
+          id: smartConractId,
           address: entry.id,
           name: 'Uniswap',
           description: `Swap between ${entry.token0.symbol} and ${entry.token1.symbol}`,
@@ -139,12 +146,12 @@ export const importSmartContracts = async () => {
           dexsmartcontractsabiName: 'Uniswapv3'
         })
         tokenToSmartContracts.push({
-          dexsmartcontractId: entry.id,
-          dextokenId: entry.token0.id
+          dexsmartcontractId: smartConractId,
+          dextokenId: token0Id
         })
         tokenToSmartContracts.push({
-          dexsmartcontractId: entry.id,
-          dextokenId: entry.token1.id
+          dexsmartcontractId: smartConractId,
+          dextokenId: token1Id
         })
       }
       await models.dextokens.bulkCreate(tokens, { ignoreDuplicates: true })

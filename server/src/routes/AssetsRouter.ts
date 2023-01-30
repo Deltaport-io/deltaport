@@ -50,7 +50,7 @@ export class AssetsRouter {
         const balances: any[] = []
         balances.push((async () => {
           const balance = (await web3Account.getBalance()).toString()
-          return {name: 'ETH', id: '', balance, decimals: 18}
+          return {name: wallet.dexchain.currency, id: '', balance, decimals: 18}
         })())
         for (const trackedToken of trackedTokens) {
           if (wallet.dexchainId === trackedToken.dexchainId) {

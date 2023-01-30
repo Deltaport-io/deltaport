@@ -48,9 +48,12 @@ export class DexTokensRouter {
         symbol: includeArray
       }
     }
-    // get my pairs
+    // get tokens
     const tokens = await models.dextokens.findAndCountAll({
         where,
+        include: {
+          model: models.dexchains
+        },
         offset,
         limit,
         order: [['symbol']]

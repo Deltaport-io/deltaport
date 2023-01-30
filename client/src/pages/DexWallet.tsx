@@ -170,7 +170,7 @@ class DexWallet extends Component <DexWalletProps, DexWalletStates> {
                     </thead>
                     <tbody>
                       <tr>
-                        <td>ETH</td>
+                        <td>{this.state.dexwallet.dexchain ? this.state.dexwallet.dexchain.currency : ''}</td>
                         <td>{getDisplayBalance(this.state.balance, '18')}</td>
                       </tr>
                     </tbody>
@@ -203,7 +203,6 @@ class DexWallet extends Component <DexWalletProps, DexWalletStates> {
                                   <span className="sr-only"></span>
                                 </div>
                               </button>
-                              
                             :
                               <button className="btn btn-sm btn-primary" type="submit">Send</button>
                             }

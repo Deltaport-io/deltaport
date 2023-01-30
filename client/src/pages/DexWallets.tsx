@@ -216,6 +216,7 @@ class DexWallets extends Component <DexWalletsProps, DexWalletsStates> {
                 <thead>
                   <tr>
                     <th scope="col">Alias</th>
+                    <th scope="col">Chain</th>
                     <th scope="col">Address</th>
                     <th scope="col">Actions</th>
                   </tr>
@@ -225,6 +226,7 @@ class DexWallets extends Component <DexWalletsProps, DexWalletsStates> {
                     return (
                       <tr key={wallet.name}>
                         <td><Link to={`/dexwallets/${wallet.id}`}>{wallet.name}</Link></td>
+                        <td className="font-monospace">{wallet.dexchain.name}</td>
                         <td className="font-monospace">{wallet.address}</td>
                         <td>
                           <OverlayTrigger placement="bottom" overlay={<Tooltip> Remove </Tooltip>}>

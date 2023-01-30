@@ -49,17 +49,21 @@ export class DexSmartContractsRouter {
         where,
         include: [{
           model: models.dextokens
+        },{
+          model: models.dexchains
         }]
       })
       return res.send({ status: 'success', dexsmartcontracts: dexsmartcontracts.rows, entries: dexsmartcontracts.count })
     }
     // get default
     const dexsmartcontracts = await models.dexsmartcontracts.findAndCountAll({
-        offset,
-        limit,
-        include: [{
-          model: models.dextokens
-        }]
+      offset,
+      limit,
+      include: [{
+        model: models.dextokens
+      },{
+        model: models.dexchains
+      }]
     })
     return res.send({ status: 'success', dexsmartcontracts: dexsmartcontracts.rows, entries: dexsmartcontracts.count })
   }
@@ -164,7 +168,10 @@ export class DexSmartContractsRouter {
     }
     dexsmartcontract = dexsmartcontract.toJSON()
     const dexwallets = await models.dexwallets.findAll({
-      where: { userIdusers: user.idusers },
+      where: {
+        userIdusers: user.idusers,
+        dexchainId: dexsmartcontract.dexchainId
+      },
       include: {
         model: models.dexchains
       }

@@ -15,6 +15,7 @@ interface AssetsProps {
 
 type AssetsStates = {
   assets: any[]
+  isLoading: boolean
 }
 
 class Assets extends Component <AssetsProps, AssetsStates> {
@@ -22,7 +23,8 @@ class Assets extends Component <AssetsProps, AssetsStates> {
   constructor (props: AssetsProps) {
     super(props)
     this.state = {
-      assets: []
+      assets: [],
+      isLoading: true
     }
   }
 
@@ -44,12 +46,16 @@ class Assets extends Component <AssetsProps, AssetsStates> {
       .then((json) => {
         if (json.status === 'success') {
           this.setState({
-            assets: json.assets
+            assets: json.assets,
+            isLoading: false
           })
         }
       })
       .catch((error) => {
         console.log(error)
+        this.setState({
+          isLoading: false
+        })
       })
   }
 
@@ -92,8 +98,11 @@ class Assets extends Component <AssetsProps, AssetsStates> {
                       </>
                     )
                   })}
-                  {this.state.assets.length === 0 ?
-                    <tr><td colSpan={4} className="py-4 text-center">No wallets or connected exchanges.</td></tr>
+                  {this.state.assets.filter(asset => asset.type === 'wallet').length === 0 && this.state.isLoading === false ?
+                    <tr><td colSpan={4} className="py-4 text-center">No wallets added.</td></tr>
+                  : null}
+                  {this.state.isLoading === true?
+                    <tr><td colSpan={4} className="py-4 text-center">Loading...</td></tr>
                   : null}
                 </tbody>
               </Table>
@@ -124,8 +133,11 @@ class Assets extends Component <AssetsProps, AssetsStates> {
                       </>
                     )
                   })}
-                  {this.state.assets.length === 0 ?
-                    <tr><td colSpan={4} className="py-4 text-center">No wallets or connected exchanges.</td></tr>
+                  {this.state.assets.filter(asset => asset.type === 'exchange').length === 0 && this.state.isLoading === false ?
+                    <tr><td colSpan={4} className="py-4 text-center">No connected exchanges.</td></tr>
+                  : null}
+                  {this.state.isLoading === true?
+                    <tr><td colSpan={4} className="py-4 text-center">Loading...</td></tr>
                   : null}
                 </tbody>
               </Table>

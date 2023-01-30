@@ -124,7 +124,8 @@ class DexSmartContracts extends Component <DexSmartContractsProps, DexSmartContr
                 <thead>
                   <tr>
                     <th scope="col" style={{width: 31}}><i className="mdi mdi-star text-secondary"></i></th>
-                    <th scope="col">Id / Address</th>
+                    <th scope="col">Id</th>
+                    <th scope="col">Chain</th>
                     <th scope="col">Provider</th>
                     <th scope="col">Description</th>
                     <th scope="col"><i className="mdi mdi-information text-secondary"></i></th>
@@ -136,12 +137,10 @@ class DexSmartContracts extends Component <DexSmartContractsProps, DexSmartContr
                       <tr key={smartcontract.id}>
                         <td>{ promotedToken(smartcontract.dextokens) ? <i className="mdi mdi-star text-warning"></i> : null }</td>
                         <td className="font-monospace">
-                          <Link to={`/dexsmartcontracts/${smartcontract.id}`}>{truncate(smartcontract.id, 16)}</Link>
-                          <CopyToClipboard text={smartcontract.id}>
-                            <i className="mdi mdi-clipboard-outline link-primary" style={{cursor: 'pointer'}}></i>
-                          </CopyToClipboard>
+                          <Link to={`/dexsmartcontracts/${smartcontract.id}`}>{truncate(smartcontract.id, 10)}</Link>
                         </td>
-                        <td>{smartcontract.name} </td>
+                        <td>{smartcontract.dexchain.name}</td>
+                        <td>{smartcontract.name}</td>
                         <td>{smartcontract.description}</td>
                         <td><Info data={smartcontract.data}/></td>
                       </tr>
