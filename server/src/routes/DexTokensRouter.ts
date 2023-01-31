@@ -40,7 +40,7 @@ export class DexTokensRouter {
     }
     let where:any = {}
     if (req.query.search) {
-      where = models.Sequelize.literal(`CONCAT(symbol, ' ',name) LIKE "%${req.query.search.toString().toUpperCase()}%"`)
+      where = models.Sequelize.literal(`CONCAT(dextokens.symbol, ' ',dextokens.name) LIKE "%${req.query.search.toString().toUpperCase()}%"`)
     }
     if (req.query.include) {
       const includeArray = req.query.include.toString().split('-')

@@ -724,7 +724,7 @@ a.page-link {
             background-color: $bg-topbar;
             padding: 7px 60px;
             border-radius: $border-radius;
-            box-shadow: $box-shadow-menu;
+            box-shadow: $box-shadow;
 
             .topbar-logout {
                 cursor: pointer;
@@ -742,4 +742,11 @@ a.page-link {
     height: 100vh;
     display: flex;
     flex-direction: column;
+}
+
+.search-results {
+    position: absolute;
+    top: 50px;
+    width: 55vw;
+    padding: 10px;
 }
