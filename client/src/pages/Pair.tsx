@@ -18,6 +18,7 @@ import {
   DatasetComponent
 } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
+import moment from 'moment'
 
 // include required
 echarts.use(
@@ -61,6 +62,15 @@ type PairStates = {
   formLoading: boolean
   isLoading: boolean
 }
+
+const style = getComputedStyle(document.body)
+const colors = [
+  style.getPropertyValue('--bs-primary'),
+  style.getPropertyValue('--bs-danger'),
+  style.getPropertyValue('--bs-success'),
+  style.getPropertyValue('--bs-warning'),
+  style.getPropertyValue('--bs-info')
+]
 
 class Pair extends Component <PairProps, PairStates> {
 
@@ -121,10 +131,16 @@ class Pair extends Component <PairProps, PairStates> {
       .then((response) => { return response.json() })
       .then((json) => {
         if (json.status === 'success') {
-          console.log('data', json.data)
+          const data: any[] = []
+          for (const d of json.data) {
+            data.push({
+              ...d,
+              timestamp: moment(parseInt(d.timestamp)).format('YYYY-MM-DD HH:mm:ss')
+            })
+          }
           this.setState({
             pair: json.pair,
-            data: json.data,
+            data,
             balances: json.balances,
             positions: json.positions,
             timeframes: json.timeframes,
@@ -193,10 +209,10 @@ class Pair extends Component <PairProps, PairStates> {
   }
 
   getOHLCChartOption = (data: any) => {
-    const upColor = '#ec0000';
-    const upBorderColor = '#8A0000';
-    const downColor = '#00da3c';
-    const downBorderColor = '#008F28';
+    const upColor = colors[2]
+    const upBorderColor = colors[2]
+    const downColor = colors[1]
+    const downBorderColor = colors[1]
     return {
       dataset: {
         source: data
@@ -207,32 +223,24 @@ class Pair extends Component <PairProps, PairStates> {
           type: 'line'
         }
       },
-      toolbox: {
-        feature: {
-          dataZoom: {
-            yAxisIndex: false
-          }
-        }
-      },
       grid: [
         {
-          height: 50,
-          left: '5%',
-          right: '1%',
-          bottom: 200
+          left: 8,
+          right: 50,
+          height: 300,
+          bottom: 170
         },
         {
-          left: '5%',
-          right: '1%',
-          height: 80,
-          bottom: 80
+          left: 8,
+          right: 50,
+          height: 70,
+          bottom: 70
         }
       ],
       xAxis: [
         {
           type: 'category',
-          boundaryGap: false,
-          // inverse: true,
+          boundaryGap: true,
           axisLine: { onZero: false },
           splitLine: { show: false },
           min: 'dataMin',
@@ -241,7 +249,7 @@ class Pair extends Component <PairProps, PairStates> {
         {
           type: 'category',
           gridIndex: 1,
-          boundaryGap: false,
+          boundaryGap: true,
           axisLine: { onZero: false },
           axisTick: { show: false },
           splitLine: { show: false },
@@ -253,9 +261,11 @@ class Pair extends Component <PairProps, PairStates> {
       yAxis: [
         {
           scale: true,
-          splitArea: {
-            show: true
-          }
+          splitArea: { show: false },
+          axisLine: { show: false },
+          axisTick: { show: false },
+          splitLine: { show: false },
+          position: 'right',
         },
         {
           scale: true,
@@ -272,32 +282,21 @@ class Pair extends Component <PairProps, PairStates> {
           type: 'inside',
           xAxisIndex: [0, 1],
           start: 0,
-          end: 100
+          end: 100,
+          zoomLock: true
         },
         {
+          zoomLock: false,
           show: true,
           xAxisIndex: [0, 1],
           type: 'slider',
-          bottom: 10,
+          bottom: 15,
+          height: 40,
           start: 0,
-          end: 100
+          end: 1000,
+          borderColor: 'transparent',
         }
       ],
-      visualMap: {
-        show: false,
-        seriesIndex: 1,
-        dimension: 6,
-        pieces: [
-          {
-            value: 1,
-            color: upColor
-          },
-          {
-            value: -1,
-            color: downColor
-          }
-        ]
-      },
       series: [
         {
           type: 'candlestick',
@@ -313,13 +312,14 @@ class Pair extends Component <PairProps, PairStates> {
           }
         },
         {
-          name: 'Volumn',
+          name: 'Volume',
           type: 'bar',
           xAxisIndex: 1,
           yAxisIndex: 1,
           itemStyle: {
-            color: '#7fbe9e'
+            color: '#6c757d'
           },
+          barWidth: '50%',
           large: true,
           encode: {
             x: 'timestamp',
@@ -382,6 +382,7 @@ class Pair extends Component <PairProps, PairStates> {
               </div>
               <div>
                 <ReactEChartsCore
+                  style={{height: 500}}
                   echarts={echarts}
                   option={this.getOHLCChartOption(this.state.data)}
                   notMerge={true}

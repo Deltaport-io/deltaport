@@ -283,7 +283,7 @@ onEnd = async() => {
                 <button className="btn btn-primary btn-sm ms-1" type="submit" onClick={this.openTradingModal}>Trade</button>
               </div>
               <form>
-                <div style={{height: 'calc(100vh - 265px)',position:'relative'}}>
+                <div style={{height: 'calc(100vh - 288px)',position:'relative'}}>
                   <AceEditor
                     mode="javascript"
                     theme="github"

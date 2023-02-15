@@ -125,7 +125,10 @@ class Backtest extends Component <BacktestProps, BacktestStates> {
             if (data[ohlc.source] === undefined) {
               data[ohlc.source] = []
             }
-            data[ohlc.source].push(ohlc)
+            data[ohlc.source].push({
+              ...ohlc,
+              timestamp: moment(parseInt(ohlc.timestamp)).format('YYYY-MM-DD HH:mm:ss')
+            })
           }
           // process graphs
           const graphs: any = {}
@@ -185,10 +188,10 @@ class Backtest extends Component <BacktestProps, BacktestStates> {
   }
 
   getOHLCChartOption = (data: any) => {
-    const upColor = '#ec0000';
-    const upBorderColor = '#8A0000';
-    const downColor = '#00da3c';
-    const downBorderColor = '#008F28';
+    const upColor = colors[2]
+    const upBorderColor = colors[2]
+    const downColor = colors[1]
+    const downBorderColor = colors[1]
     return {
       dataset: {
         source: data
@@ -199,31 +202,24 @@ class Backtest extends Component <BacktestProps, BacktestStates> {
           type: 'line'
         }
       },
-      toolbox: {
-        feature: {
-          dataZoom: {
-            yAxisIndex: false
-          }
-        }
-      },
       grid: [
         {
-          left: '10%',
-          right: '10%',
-          bottom: 200
+          left: 8,
+          right: 50,
+          height: 300,
+          bottom: 170
         },
         {
-          left: '10%',
-          right: '10%',
-          height: 80,
-          bottom: 80
+          left: 8,
+          right: 50,
+          height: 70,
+          bottom: 70
         }
       ],
       xAxis: [
         {
           type: 'category',
-          boundaryGap: false,
-          // inverse: true,
+          boundaryGap: true,
           axisLine: { onZero: false },
           splitLine: { show: false },
           min: 'dataMin',
@@ -232,7 +228,7 @@ class Backtest extends Component <BacktestProps, BacktestStates> {
         {
           type: 'category',
           gridIndex: 1,
-          boundaryGap: false,
+          boundaryGap: true,
           axisLine: { onZero: false },
           axisTick: { show: false },
           splitLine: { show: false },
@@ -244,9 +240,11 @@ class Backtest extends Component <BacktestProps, BacktestStates> {
       yAxis: [
         {
           scale: true,
-          splitArea: {
-            show: true
-          }
+          splitArea: { show: false },
+          axisLine: { show: false },
+          axisTick: { show: false },
+          splitLine: { show: false },
+          position: 'right',
         },
         {
           scale: true,
@@ -262,33 +260,22 @@ class Backtest extends Component <BacktestProps, BacktestStates> {
         {
           type: 'inside',
           xAxisIndex: [0, 1],
-          start: 10,
-          end: 100
+          start: 0,
+          end: 100,
+          zoomLock: true
         },
         {
+          zoomLock: false,
           show: true,
           xAxisIndex: [0, 1],
           type: 'slider',
-          bottom: 10,
-          start: 10,
-          end: 100
+          bottom: 15,
+          height: 40,
+          start: 0,
+          end: 1000,
+          borderColor: 'transparent',
         }
       ],
-      visualMap: {
-        show: false,
-        seriesIndex: 1,
-        dimension: 6,
-        pieces: [
-          {
-            value: 1,
-            color: upColor
-          },
-          {
-            value: -1,
-            color: downColor
-          }
-        ]
-      },
       series: [
         {
           type: 'candlestick',
@@ -304,13 +291,14 @@ class Backtest extends Component <BacktestProps, BacktestStates> {
           }
         },
         {
-          name: 'Volumn',
+          name: 'Volume',
           type: 'bar',
           xAxisIndex: 1,
           yAxisIndex: 1,
           itemStyle: {
-            color: '#7fbe9e'
+            color: '#6c757d'
           },
+          barWidth: '50%',
           large: true,
           encode: {
             x: 'timestamp',
@@ -375,6 +363,7 @@ class Backtest extends Component <BacktestProps, BacktestStates> {
               <Card.Body>
                 <h4 className="header-title d-inline-block mb-2">{source}</h4>
                 <ReactEChartsCore
+                  style={{height: 500}}
                   echarts={echarts}
                   option={this.getOHLCChartOption(this.state.data[source])}
                   notMerge={true}

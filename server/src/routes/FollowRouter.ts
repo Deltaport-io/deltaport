@@ -3,7 +3,6 @@ import { getMeUser } from '../me'
 import models from '../models'
 import { query, body, param, validationResult } from 'express-validator'
 import { taskQueue } from '../taskqueue'
-import { id } from 'ethers/lib/utils'
 
 export class FollowRouter {
   router: express.Router

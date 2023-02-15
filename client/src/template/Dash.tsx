@@ -268,7 +268,6 @@ class Dash extends Component <DashProps, DashStates> {
                 </div>
               </footer>
             </div>
-
           </div>
         </div>
       </>

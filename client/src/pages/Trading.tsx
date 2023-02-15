@@ -220,22 +220,22 @@ class Trading extends Component <TradingProps, TradingStates> {
       },
       grid: [
         {
-          left: 60,
-          right: 5,
-          height: 180,
-          bottom: 100
+          left: 8,
+          right: 50,
+          height: 300,
+          bottom: 170
         },
         {
-          left: 60,
-          right: 5,
-          height: 25,
-          bottom: 50
+          left: 8,
+          right: 50,
+          height: 70,
+          bottom: 70
         }
       ],
       xAxis: [
         {
           type: 'category',
-          boundaryGap: false,
+          boundaryGap: true,
           axisLine: { onZero: false },
           splitLine: { show: false },
           min: 'dataMin',
@@ -244,7 +244,7 @@ class Trading extends Component <TradingProps, TradingStates> {
         {
           type: 'category',
           gridIndex: 1,
-          boundaryGap: false,
+          boundaryGap: true,
           axisLine: { onZero: false },
           axisTick: { show: false },
           splitLine: { show: false },
@@ -256,9 +256,11 @@ class Trading extends Component <TradingProps, TradingStates> {
       yAxis: [
         {
           scale: true,
-          splitArea: {
-            show: true
-          }
+          splitArea: { show: false },
+          axisLine: { show: false },
+          axisTick: { show: false },
+          splitLine: { show: false },
+          position: 'right',
         },
         {
           scale: true,
@@ -275,15 +277,19 @@ class Trading extends Component <TradingProps, TradingStates> {
           type: 'inside',
           xAxisIndex: [0, 1],
           start: 0,
-          end: 100
+          end: 100,
+          zoomLock: true
         },
         {
+          zoomLock: false,
           show: true,
           xAxisIndex: [0, 1],
           type: 'slider',
-          bottom: 10,
+          bottom: 15,
+          height: 40,
           start: 0,
-          end: 100
+          end: 1000,
+          borderColor: 'transparent',
         }
       ],
       series: [
@@ -374,6 +380,7 @@ class Trading extends Component <TradingProps, TradingStates> {
               <Card.Body>
                 <h4 className="header-title d-inline-block mb-2">{source}</h4>
                 <ReactEChartsCore
+                  style={{height: 500}}
                   echarts={echarts}
                   option={this.getOHLCChartOption(this.state.data[source])}
                   notMerge={true}
