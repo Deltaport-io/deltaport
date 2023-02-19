@@ -63,6 +63,21 @@ export const importSmartContracts = async () => {
           description: `Swap between ${entry.token0.symbol} and ${entry.token1.symbol}`,
           keywords: `swap ${entry.token1.symbol} ${entry.token0.symbol}`,
           dexchainId: chainId,
+          apiguide: `
+/*
+  id: "${smartConractId}"
+  action: "swap"
+  inputs: {
+    // wallet alias
+    walletSelect: "myWallet",
+    // direction of swap: 1 or -1
+    swapDirection: 1,
+    // amount in wei
+    inputsAmount: "1000000"
+  }
+*/
+await this.smartcontracts(id, action, inputs)
+          `,
           data: `{
             view: {
               ui: [{

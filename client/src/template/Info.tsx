@@ -13,7 +13,7 @@ export function Info(props: any) {
       <Modal show={show} onHide={handleClose} animation={false}>
         <Modal.Header closeButton>Info</Modal.Header>
         <Modal.Body>
-          <pre>{ JSON.stringify(props.data, null, 2) }</pre>
+          <pre>{ props.data }</pre>
         </Modal.Body>
       </Modal>
     </>

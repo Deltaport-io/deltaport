@@ -158,8 +158,8 @@ class DexSmartContract extends Component <DexSmartContractProps, DexSmartContrac
                     <td className="font-monospace">{this.state.dexsmartcontract.description}</td>
                   </tr>
                   <tr>
-                    <td>Data</td>
-                    <td><Info data={this.state.dexsmartcontract.data}/></td>
+                    <td>Sandbox API</td>
+                    <td><Info data={this.state.dexsmartcontract.apiguide}/></td>
                   </tr>
                 </tbody>
               </Table>

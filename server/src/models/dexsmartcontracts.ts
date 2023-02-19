@@ -7,6 +7,7 @@ export default (sequelize, DataTypes) => {
     name: { type: DataTypes.STRING(50) },
     description: { type: DataTypes.STRING(300) },
     keywords: { type: DataTypes.TEXT },
+    apiguide: { type: DataTypes.TEXT },
     data: { type: DataTypes.TEXT }
   }, {
     timestamps: false,
