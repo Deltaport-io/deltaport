@@ -68,30 +68,35 @@ export class EthereumApi {
       injectedABIs: injectedABIs,
       marketplace: {
         addToMarketplace: async (entryType: number, price: string) => {
+          if (wallet.dexchain.id !== 1) throw Error("action needs ethereum wallet")
           const provider = new ethers.providers.JsonRpcProvider(wallet.dexchain.rpc)
           const web3Provider = web3Wallet.connect(provider)
           const marketplaceContract = new ethers.Contract(config.app.marketplaceAddress, marketplaceABI, web3Provider)
           return marketplaceContract.addEntry(entryType,price,{value: 500})
         },
         purchase: async (entryId: string, price: string) => {
+          if (wallet.dexchain.id !== 1) throw Error("action needs ethereum wallet")
           const provider = new ethers.providers.JsonRpcProvider(wallet.dexchain.rpc)
           const web3Provider = web3Wallet.connect(provider)
           const marketplaceContract = new ethers.Contract(config.app.marketplaceAddress, marketplaceABI, web3Provider)
           return marketplaceContract.purchase(entryId,{value: price})
         },
         subscribe: async (entryId: string, price: string) => {
+          if (wallet.dexchain.id !== 1) throw Error("action needs ethereum wallet")
           const provider = new ethers.providers.JsonRpcProvider(wallet.dexchain.rpc)
           const web3Provider = web3Wallet.connect(provider)
           const marketplaceContract = new ethers.Contract(config.app.marketplaceAddress, marketplaceABI, web3Provider)
           return marketplaceContract.addUpdateSubPayee(entryId,{value: price})
         },
         unsubscribe: async (entryId: string) => {
+          if (wallet.dexchain.id !== 1) throw Error("action needs ethereum wallet")
           const provider = new ethers.providers.JsonRpcProvider(wallet.dexchain.rpc)
           const web3Provider = web3Wallet.connect(provider)
           const marketplaceContract = new ethers.Contract(config.app.marketplaceAddress, marketplaceABI, web3Provider)
           return marketplaceContract.endUpdateSubPayee(entryId)
         },
         close: async (entryId: string) => {
+          if (wallet.dexchain.id !== 1) throw Error("action needs ethereum wallet")
           const provider = new ethers.providers.JsonRpcProvider(wallet.dexchain.rpc)
           const web3Provider = web3Wallet.connect(provider)
           const marketplaceContract = new ethers.Contract(config.app.marketplaceAddress, marketplaceABI, web3Provider)
