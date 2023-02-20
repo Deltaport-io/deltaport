@@ -13,7 +13,8 @@ export class DexWalletsRouter {
   }
 
   getDexWalletsInputs = [
-    query('search').optional({ nullable: true, checkFalsy: true }).notEmpty()
+    query('search').optional({ nullable: true, checkFalsy: true }).notEmpty(),
+    query('chain').optional({ nullable: true, checkFalsy: true }).notEmpty()
   ]
 
   public async getDexWallets (req: express.Request, res: express.Response) {
@@ -41,6 +42,9 @@ export class DexWalletsRouter {
           [models.Sequelize.Op.like]: `%${req.query.search}%`
         }
       }
+    }
+    if (req.query.chain) {
+      where['dexchainId'] = req.query.chain
     }
     // add user check
     where.userIdusers = user.idusers
