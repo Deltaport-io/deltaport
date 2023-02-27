@@ -35,7 +35,7 @@ type MarketplaceAddItemStates = {
   selectedWallet: any
 }
 
-const types = ['Bot', 'Script', 'Subscription', 'Job']
+const types = ['Bot', 'Script', /*'Subscription',*/ 'Job']
 
 class MarketplaceAddItem extends Component <MarketplaceAddItemProps, MarketplaceAddItemStates> {
 

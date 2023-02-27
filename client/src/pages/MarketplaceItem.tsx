@@ -113,7 +113,7 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
   loadDexWallets = () => {
     const { token } = getCredentials()
     fetch(
-      config.app.apiUri + '/api/v1/dexwallets/?chain=1', {
+      config.app.apiUri + '/api/v1/dexwallets', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

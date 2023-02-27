@@ -156,7 +156,7 @@ class Marketplace extends Component <MarketplaceProps, MarketplaceStates> {
                 <div className="d-flex">
                   <div className="mb-1 me-1 btn-group">
                     <button onClick={()=>this.setState({viewBots: this.state.viewBots ? false : true}, ()=>this.searchMarketplace())} type="button" className={this.state.viewBots ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Bots</button>
-                    <button onClick={()=>this.setState({viewSubscriptions: this.state.viewSubscriptions ? false : true}, ()=>this.searchMarketplace())} type="button" className={this.state.viewSubscriptions ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Subscriptions</button>
+                    {/*<button onClick={()=>this.setState({viewSubscriptions: this.state.viewSubscriptions ? false : true}, ()=>this.searchMarketplace())} type="button" className={this.state.viewSubscriptions ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Subscriptions</button>*/}
                     <button onClick={()=>this.setState({viewScripts: this.state.viewScripts ? false : true}, ()=>this.searchMarketplace())} type="button" className={this.state.viewScripts ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Scripts</button>
                     <button onClick={()=>this.setState({viewJobs: this.state.viewJobs ? false : true}, ()=>this.searchMarketplace())} type="button" className={this.state.viewJobs ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Jobs</button>
                   </div>

@@ -15,7 +15,7 @@ const wait1sec = () => new Promise(resolve => setTimeout(resolve, 1000))
 export default class TradeSession {
 
   exchanges: any = {}
-  ethereum: any = {}
+  crypto: any = {}
   smartcontracts: any = {}
   loadingData: any[] = []
   stopping: string = ""
@@ -185,26 +185,26 @@ export default class TradeSession {
         exchangesToLoadIndex++
       }
     }
-    // load ethereum
-    if (toLoad.ethereum) {
+    // load crypto
+    if (toLoad.crypto) {
       let walletToLoadIndex = 0
-      for (const ethereum of toLoad.ethereum) {
+      for (const crypto of toLoad.crypto) {
         if (this.stopping !== "") {
           await this.close()
           return
         }
         const wallet = await models.dexwallets.findOne({
           where: {
-            name: ethereum.wallet,
+            name: crypto.wallet,
             userIdusers: this.session.userIdusers
           }
         })
         if (wallet) {
           const ethereumApi = new EthereumApi()
-          this.ethereum[ethereum.wallet] = await ethereumApi.wallet(wallet, ethereum.injectedABIs ? ethereum.injectedABIs : undefined, {id: this.options.id, index: walletToLoadIndex, noTrading: ethereum.noTrading && ethereum.noTrading === true ? true : false})
+          this.crypto[crypto.wallet] = await ethereumApi.wallet(wallet, crypto.injectedABIs ? crypto.injectedABIs : undefined, {id: this.options.id, index: walletToLoadIndex, noTrading: crypto.noTrading && crypto.noTrading === true ? true : false})
           walletToLoadIndex++
         } else {
-          this.saveLog('error', 'Wallet not found '+ethereum.wallet)
+          this.saveLog('error', 'Wallet not found '+crypto.wallet)
           this.stopping = 'loader error'
         }
       }
@@ -300,7 +300,7 @@ export default class TradeSession {
       indicators,
       data,
       exchanges: this.exchanges,
-      ethereum: this.ethereum,
+      crypto: this.crypto,
       smartcontracts: this.smartcontracts,
       tf: config.app.sandbox_tf ? tf : undefined,
       superagent: config.app.sandbox_superagent ? superagent : undefined,

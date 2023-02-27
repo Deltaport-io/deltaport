@@ -15,7 +15,7 @@ export default class BacktestSession {
   loaderExchanges: any = {}
   loaderCrypto = new mockCrypto()
   exchanges: any = {}
-  ethereum: any = {}
+  crypto: any = {}
   loadingData: any[] = []
   stopping: string = ""
   finished
@@ -120,23 +120,23 @@ export default class BacktestSession {
         }
       }
     }
-    // load ethereum
-    if (toLoad.ethereum) {
-      for (const ethereum of toLoad.ethereum) {
+    // load crypto
+    if (toLoad.crypto) {
+      for (const crypto of toLoad.crypto) {
         if (this.stopping !== "") {
           await this.close()
           return
         }
         const wallet = await models.dexwallets.findOne({
           where: {
-            name: ethereum.wallet,
+            name: crypto.wallet,
             userIdusers: this.session.userIdusers
           }
         })
         if (wallet) {
-          this.ethereum[ethereum.wallet] = await this.loaderCrypto.wallet(wallet, ethereum.balances ? ethereum.balances : undefined)
+          this.crypto[crypto.wallet] = await this.loaderCrypto.wallet(wallet, crypto.balances ? crypto.balances : undefined)
         } else {
-          this.saveLog('error', 'Wallet not found '+ethereum.wallet)
+          this.saveLog('error', 'Wallet not found '+crypto.wallet)
           this.stopping = 'loader error'
         }
       }
@@ -196,7 +196,7 @@ export default class BacktestSession {
       indicators,
       data,
       exchanges: this.exchanges,
-      ethereum: this.ethereum,
+      crypto: this.crypto,
       tf: config.app.sandbox_tf ? tf : undefined,
       superagent: config.app.sandbox_superagent ? superagent : undefined,
       BigNumber: BigNumber,

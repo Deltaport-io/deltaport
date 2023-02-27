@@ -16,10 +16,11 @@ Docs
   * [Console](#console) (logging)
   * [Graph](#graphs) (graphs)
   * [Data](#data)
-  * [Exchange](#exchange) 
-  * [Ethereum](#ethereum) 
+  * [Crypto](#crypto)
+  * [Exchange](#exchange)
+  * [Smartcontracts](#smartcontracts)
   * [Indicators](#indicators)
-  * [BigNumber](#bignumber) 
+  * [BigNumber](#bignumber)
   * [TF](#tensorflow) (Tensorflow)
   * [Superagent](#superagent) (http requests)
 
@@ -64,8 +65,8 @@ loader = {
             amount: 10
         }]
     }],
-    // OPTIONAL: array of ethereum wallets to load
-    ethereum: [{
+    // OPTIONAL: array of crypto wallets to load
+    crypto: [{
         // identifier of wallet
         wallet: 'MyWallet',
         // OPTIONAL: trading only, don't execute trades (still sends trades to marketplace)
@@ -81,7 +82,7 @@ loader = {
             currency: '0x567eb615575d06917efb8e92f1f754cdcf9b57d1', 
             // amount of tokens
             amount: 1000
-        }]
+        }],
         // OPTIONAL: custom ABIs you want to use
         injectedABIs: [{
             // name of contract
@@ -199,6 +200,25 @@ this.data["BitmexLive"]["ETH/USD"].close[1]
 ...
 ```
 
+### Crypto ###
+
+Loaded crypto wallets can be accessed by this.crypto object where first key represents loaded wallet alias. Transactions can take some time to process depending on chain network weather so use await (blocks execution of bot) or handle it inside bot.
+
+```javascript
+// get myWallet balance
+await this.crypto['MyWallet'].getBalance()
+// get balance of 0x82... address
+await this.crypto['MyWallet'].getBalance('0x82...')
+// get token 0xed... balance of myWallet
+await this.crypto['MyWallet'].token('0xed...').getBalance()
+// get token 0xed... balance of 0x82... address
+await this.crypto['MyWallet'].token('0xed...').getBalance('0x82...')
+// transfer token 0xed... from MyWallet addres to 0x33... of amount 100
+await this.crypto['MyWallet'].token('0xed...').transfer('0x33...', '100')
+// access injected ABIs
+await this.crpto['MyWallet'].injectedABIs['MyContract']('0xcc...').balanceOf('0x33...')
+```
+
 ### Exchange ###
 
 Loaded exchanges and all its functions can be accessed by this.exchanges object.
@@ -219,43 +239,13 @@ await this.exchanges['BitmexLive'].fetchClosedOrders(symbol:optinal, since:optin
 await this.exchanges['BitmexLive'].fetchOrder(id, symbol:optinal)
 ```
 
-### Ethereum ###
+### Smartcontracts ###
 
-Loaded ethereum wallets can be accessed by this.ethereum object where first key represents loaded wallet alias. Transactions can take some time to process depending on ethereum network weather so use await (blocks execution of bot) or handle it inside bot.
+Smart contracts in database can be accessed by this.smartcontracts object.
 
 ```javascript
-// get myWallet balance
-await this.ethereum['MyWallet'].getBalance()
-// get balance of 0x82... address
-await this.ethereum['MyWallet'].getBalance('0x82...')
-// get token 0xed... balance of myWallet
-await this.ethereum['MyWallet'].token('0xed...').getBalance()
-// get token 0xed... balance of 0x82... address
-await this.ethereum['MyWallet'].token('0xed...').getBalance('0x82...')
-// transfer token 0xed... from MyWallet addres to 0x33... of amount 100
-await this.ethereum['MyWallet'].token('0xed...').transfer('0x33...', '100')
-// swap with Uniswap pool 0xcc... from MyWallet addres to 0x33... in primary direction of amount 100
-await this.ethereum['MyWallet'].pool('0xcc...').swap('0x33...', true, '100')
-// get quote for swap with Uniswap pool 0xcc... in primary direction of amount 100
-await this.ethereum['MyWallet'].pool('0xcc...').swapQuote(true, '100')
-// get Aave pool info about MyWallet address
-await this.ethereum['MyWallet'].pool('0xcc...').lendPoolGetUserAccountData()
-// get Aave pool info about address 0x33...
-await this.ethereum['MyWallet'].pool('0xcc...').lendPoolGetUserAccountData('0x33...')
-// Deposit into Aave pool 0xcc...
-await this.ethereum['MyWallet'].pool('0xcc...').lendDeposit('100')
-// Borrow 100 amount from Aave pool 0xcc... with stable rate
-await this.ethereum['MyWallet'].pool('0xcc...').lendBorrow('100', '1')
-// Borrow 100 amount from Aave pool 0xcc... with dynamic rate
-await this.ethereum['MyWallet'].pool('0xcc...').lendBorrow('100', '2')
-// Withdraw 100 amount from Aave 0xcc...
-await this.ethereum['MyWallet'].pool('0xcc...').lendWithdraw('100')
-// Repay 100 amount into Aave pool 0xcc... with stable rate
-await this.ethereum['MyWallet'].pool('0xcc...').lendRepay('100', '1')
-// Repay 100 amount into Aave pool 0xcc... for dynamic rate
-await this.ethereum['MyWallet'].pool('0xcc...').lendRepay('100', '2')
-// access injected ABIs
-await this.ethereum['MyWallet'].injectedABIs['MyContract']('0xcc...').balanceOf('0x33...')
+// execute smart contract
+await this.smartcontracts('smartcontract-id', 'smartcontract-action', inputObject)
 ```
 
 ### Indicators ###
@@ -649,94 +639,6 @@ All endpoints except signup and login require Authorization header with token wh
         status
         message
     ```   
-
-### Pools ###
-
-* GET /api/v1/dexpools
-
-    Get list of all pools available to user
-
-    ```javascript
-    query:
-        search
-        limit
-        offset
-    returns:
-        status
-        dexpools
-            id
-            volume
-            txcount
-            feetier
-            token0
-                id
-                symbol
-                name
-                decimals
-            token1
-                id
-                symbol
-                name
-                decimals
-        entries
-    ```
-
-* GET /api/v1/dexpools/:id
-
-    Get pool details
-
-    ```javascript
-    returns:
-        status
-        dexpool
-            id
-            volume
-            txcount
-            feetier
-            token0
-                id
-                symbol
-                name
-                decimals
-            token1
-                id
-                symbol
-                name
-                decimals
-        wallets
-            id
-            name
-            balance0
-            balance1
-    ```
-
-* POST /api/v1/dexpools/:id/swap
-
-    Swap token over pool
-
-    ```javascript
-    body:
-        wallet
-        amount
-        direction
-    returns:
-        status
-        message
-    ```
-
-* POST /api/v1/dexpools/:id/swapquote
-
-    Get quote for swap token over pool
-
-    ```javascript
-    body:
-        wallet
-        amount
-        direction
-    returns:
-        status
-        amount
-    ```
 
 ### Bots ###
 

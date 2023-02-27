@@ -49,7 +49,7 @@ loader = {
             amount: 10
         }]
     }],
-    ethereum: [{
+    crypto: [{
         wallet: 'MyWallet',
         balances: [{
             currency: 'ETH',

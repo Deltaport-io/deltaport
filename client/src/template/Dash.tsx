@@ -184,7 +184,7 @@ class Dash extends Component <DashProps, DashStates> {
                           <tr>
                             <th scope="col">Contracts</th>
                             <th scope="col">Chain</th>
-                            <th scope="col">Symbol</th>
+                            <th scope="col">Provider</th>
                             <th scope="col">Name</th>
                           </tr>
                         </thead>
