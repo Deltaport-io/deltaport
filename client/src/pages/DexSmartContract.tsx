@@ -89,14 +89,14 @@ class DexSmartContract extends Component <DexSmartContractProps, DexSmartContrac
       }
     }
     fetch(
-      config.app.apiUri + '/api/v1/smartcontracts/'+id+'/'+this.state.inputAction, {
+      config.app.apiUri + '/api/v1/smartcontracts/'+id+'/execute/'+this.state.inputAction, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: token
         },
         body: JSON.stringify({
-          input: inputObj
+          inputs: inputObj
         })
       })
       .then((response) => { return response.json() })
@@ -158,7 +158,7 @@ class DexSmartContract extends Component <DexSmartContractProps, DexSmartContrac
                     <td className="font-monospace">{this.state.dexsmartcontract.description}</td>
                   </tr>
                   <tr>
-                    <td>Sandbox API</td>
+                    <td>Sandbox/Rest APIs</td>
                     <td><Info data={this.state.dexsmartcontract.apiguide}/></td>
                   </tr>
                 </tbody>
@@ -213,26 +213,13 @@ class DexSmartContract extends Component <DexSmartContractProps, DexSmartContrac
                         activeKey={this.state.inputAction}
                         onSelect={(selectedKey) => this.setState({inputAction: selectedKey!, inputObj: {}, error: '', success: '', formLoading: false})}
                       >
-                        <Nav.Item as="li" className="nav-item">
-                          <Nav.Link href="#" eventKey="borrow" className="nav-link rounded-0">
-                            <span className="d-none d-lg-block">Borrow</span>
-                          </Nav.Link>
-                        </Nav.Item>
-                        <Nav.Item as="li" className="nav-item">
-                          <Nav.Link href="#" eventKey="deposit" className="nav-link rounded-0">
-                            <span className="d-none d-lg-block">Deposit</span>
-                          </Nav.Link>
-                        </Nav.Item>
-                        <Nav.Item as="li">
-                          <Nav.Link href="#" eventKey="withdraw" className="nav-link rounded-0">
-                            <span className="d-none d-lg-block">Withdraw</span>
-                          </Nav.Link>
-                        </Nav.Item>
-                        <Nav.Item as="li">
-                          <Nav.Link href="#" eventKey="repay" className="nav-link rounded-0">
-                            <span className="d-none d-lg-block">Repay</span>
-                          </Nav.Link>
-                        </Nav.Item>
+                        {Object.keys(this.state.dexsmartcontract.data.actions).map((key: string)=>{
+                          return <Nav.Item as="li" key={key} className="nav-item">
+                              <Nav.Link href="#" eventKey={key} className="nav-link rounded-0">
+                                <span className="d-none d-lg-block">{key}</span>
+                              </Nav.Link>
+                            </Nav.Item>
+                        })}
                       </Nav>
                     </>
                   :null}

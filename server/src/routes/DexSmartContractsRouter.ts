@@ -141,7 +141,7 @@ export class DexSmartContractsRouter {
   executeDexSmartContractInputs = [
     param('id').isLength({ min: 1, max: 128 }),
     param('action').isLength({ min: 1, max: 128 }),
-    body('input').isObject()
+    body('inputs').isObject()
   ]
 
   public async executeDexSmartContract (req: express.Request, res: express.Response) {
@@ -186,7 +186,7 @@ export class DexSmartContractsRouter {
       sandbox: {
         web3Wallets,
         dexsmartcontract,
-        inputs: req.body.input
+        inputs: req.body.inputs
       }
     })
     const baseInject = new VMScript(`const base = ${dexsmartcontract.data}`, 'data.js').compile()

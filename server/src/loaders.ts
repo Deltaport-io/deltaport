@@ -76,7 +76,22 @@ export const importSmartContracts = async () => {
     inputsAmount: "1000000"
   }
 */
+
+// Sandbox API:
 await this.smartcontracts(id, action, inputs)
+
+// REST API:
+POST: :backend_ip/api/v1/smartcontracts/:id/execute/:action
+JSON Body: {
+  inputs: {
+    // wallet alias
+    walletSelect: "myWallet",
+    // direction of swap: 1 or -1
+    swapDirection: 1,
+    // amount in wei
+    inputsAmount: "1000000"
+  }
+}
           `,
           data: `{
             view: {
