@@ -341,7 +341,7 @@ export default class TradeSession {
             break breaker
           }
           const response = await this.exchanges[pairsource.exchange].fetchOHLCV(pairsource.pair, pairsource.timeframe)
-          if (response[0].length > 0) {
+          if (response.length > 0) {
             let entry
             let maxTime = 0
             for (const res of response) {
@@ -349,6 +349,9 @@ export default class TradeSession {
                 maxTime = res[0]
                 entry = res
               }
+            }
+            if (!entry[1] && !entry[2] && !entry[3] && !entry[4]) {
+              continue
             }
             const pairdata = this.vm.run(`data`)[pairsource.exchange][pairsource.pair]
             if (pairdata.timestamp.length === 0) {

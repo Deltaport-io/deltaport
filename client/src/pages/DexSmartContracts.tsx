@@ -142,7 +142,7 @@ class DexSmartContracts extends Component <DexSmartContractsProps, DexSmartContr
                         <td>{smartcontract.dexchain.name}</td>
                         <td>{smartcontract.name}</td>
                         <td>{smartcontract.description}</td>
-                        <td><Info data={smartcontract.data}/></td>
+                        <td><Info data={smartcontract.apiguide}/></td>
                       </tr>
                     )
                   })}
