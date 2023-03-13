@@ -73,7 +73,7 @@
     "appdirectory": "^0.1.0",
     "bignumber.js": "^9.1.0",
     "bull": "^4.9.0",
-    "ccxt": "^1.93.69",
+    "ccxt": "^2.9.8",
     "compression": "^1.7.4",
     "debug": "^4.3.3",
     "dotenv": "^16.0.2",

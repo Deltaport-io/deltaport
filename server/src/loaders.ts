@@ -35,7 +35,7 @@ export const importSmartContracts = async () => {
         }
       }
       `
-      const req = await request(endpoint, QUERY, {skip})
+      const req:any = await request(endpoint, QUERY, {skip})
       for(const entry of req.pools){
         const token0Id = '' + chainId + '-' + entry.token0.id
         tokens.push({

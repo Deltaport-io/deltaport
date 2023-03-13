@@ -139,6 +139,9 @@ export default class TradeSession {
       },
       fetchOHLCV: async (...args) => {
         return ccxtExchange.fetchOHLCV(...args)
+      },
+      fetchTicker: async (...args) => {
+        return ccxtExchange.fetchTicker(...args)
       }
     }
   }
@@ -340,53 +343,28 @@ export default class TradeSession {
           if (this.stopping !== "") {
             break breaker
           }
-          let response: any[] = []
-          try {
-            response = await this.exchanges[pairsource.exchange].fetchOHLCV(pairsource.pair, pairsource.timeframe)
-          } catch (err) {
-            await this.saveLog('warn', err.message)
-          }
-          if (response.length > 0) {
-            let entry
-            let maxTime = 0
-            for (const res of response) {
-              if (res[0] > maxTime) {
-                maxTime = res[0]
-                entry = res
+          if (pairsource.timeframe === 'tick') {
+            let lastPrice: any = undefined
+            try {
+              const responseRaw = await this.exchanges[pairsource.exchange].fetchTicker(pairsource.pair)
+              if (responseRaw.symbol === pairsource.pair && responseRaw.last) {
+                lastPrice = responseRaw.last
               }
+            } catch (err) {
+              await this.saveLog('error', err.message)
             }
-            if (!entry[1] && !entry[2] && !entry[3] && !entry[4]) {
-              continue
-            }
-            const pairdata = this.vm.run(`data`)[pairsource.exchange][pairsource.pair]
-            if (pairdata.timestamp.length === 0) {
-              await this.vm.run(`
-                data['${pairsource.exchange}']['${pairsource.pair}'].timestamp.unshift(${entry[0]})
-                data['${pairsource.exchange}']['${pairsource.pair}'].open.unshift(${entry[1]})
-                data['${pairsource.exchange}']['${pairsource.pair}'].high.unshift(${entry[2]})
-                data['${pairsource.exchange}']['${pairsource.pair}'].low.unshift(${entry[3]})
-                data['${pairsource.exchange}']['${pairsource.pair}'].close.unshift(${entry[4]})
-                data['${pairsource.exchange}']['${pairsource.pair}'].volume.unshift(${entry[5] ? entry[5] : 0})
-              `)
-              await models.tradeohlcs.create({
-                source: `${pairsource.exchange}-${pairsource.pair}`,
-                timestamp: entry[0],
-                open: entry[1],
-                high: entry[2],
-                low: entry[3],
-                close: entry[4],
-                volume: entry[5] ? entry[5] : 0,
-                tradesessionId: this.options.id
-              })
-              ticksOnSource.push({exchange: pairsource.exchange, pair: pairsource.pair})
-            } else {
-              if (maxTime === pairdata.timestamp[0] && (
-                pairdata.close[0] !== entry[4] ||
-                pairdata.volume[0] !== (entry[5] ? entry[5] : 0) ||
-                pairdata.open[0] !== entry[1] ||
-                pairdata.high[0] !== entry[2] ||
-                pairdata.low[0] !== entry[3]
-              )) {
+            if (lastPrice) {
+              const currentTimestampMinute = Math.floor(new Date().getTime()/1000/60)*1000*60
+              const pairdata = this.vm.run(`data`)[pairsource.exchange][pairsource.pair]
+              if (pairdata.timestamp.length > 0 && pairdata.timestamp[0] === currentTimestampMinute) {
+                const entry = [
+                  currentTimestampMinute,
+                  pairdata.open[0],
+                  lastPrice > pairdata.high[0] ? lastPrice : pairdata.high[0],
+                  lastPrice < pairdata.low[0] ? lastPrice : pairdata.low[0],
+                  lastPrice,
+                  0
+                ]
                 await this.vm.run(`
                   data['${pairsource.exchange}']['${pairsource.pair}'].open[0]=${entry[1]}
                   data['${pairsource.exchange}']['${pairsource.pair}'].high[0]=${entry[2]}
@@ -409,7 +387,8 @@ export default class TradeSession {
                 })
                 ticksOnSource.push({exchange: pairsource.exchange, pair: pairsource.pair, timestamp: entry[0]})
               }
-              if (maxTime > pairdata.timestamp[0]) {
+              if (pairdata.timestamp.length === 0 || pairdata.timestamp[0] !== currentTimestampMinute) {
+                const entry = [currentTimestampMinute, lastPrice, lastPrice, lastPrice, lastPrice, 0]
                 await this.vm.run(`
                   data['${pairsource.exchange}']['${pairsource.pair}'].timestamp.unshift(${entry[0]})
                   data['${pairsource.exchange}']['${pairsource.pair}'].open.unshift(${entry[1]})
@@ -428,7 +407,100 @@ export default class TradeSession {
                   volume: entry[5] ? entry[5] : 0,
                   tradesessionId: this.options.id
                 })
-                ticksOnSource.push({exchange: pairsource.exchange, pair: pairsource.pair, timestamp: entry[0]})
+                ticksOnSource.push({exchange: pairsource.exchange, pair: pairsource.pair})
+              }
+            }
+          } else {
+            let response: any[] = []
+            try {
+              response = await this.exchanges[pairsource.exchange].fetchOHLCV(pairsource.pair, pairsource.timeframe)
+            } catch (err) {
+              await this.saveLog('error', err.message)
+            }
+            if (response.length > 0) {
+              let entry
+              let maxTime = 0
+              for (const res of response) {
+                if (res[0] > maxTime) {
+                  maxTime = res[0]
+                  entry = res
+                }
+              }
+              if (!entry[1] && !entry[2] && !entry[3] && !entry[4]) {
+                continue
+              }
+              const pairdata = this.vm.run(`data`)[pairsource.exchange][pairsource.pair]
+              if (pairdata.timestamp.length === 0) {
+                await this.vm.run(`
+                  data['${pairsource.exchange}']['${pairsource.pair}'].timestamp.unshift(${entry[0]})
+                  data['${pairsource.exchange}']['${pairsource.pair}'].open.unshift(${entry[1]})
+                  data['${pairsource.exchange}']['${pairsource.pair}'].high.unshift(${entry[2]})
+                  data['${pairsource.exchange}']['${pairsource.pair}'].low.unshift(${entry[3]})
+                  data['${pairsource.exchange}']['${pairsource.pair}'].close.unshift(${entry[4]})
+                  data['${pairsource.exchange}']['${pairsource.pair}'].volume.unshift(${entry[5] ? entry[5] : 0})
+                `)
+                await models.tradeohlcs.create({
+                  source: `${pairsource.exchange}-${pairsource.pair}`,
+                  timestamp: entry[0],
+                  open: entry[1],
+                  high: entry[2],
+                  low: entry[3],
+                  close: entry[4],
+                  volume: entry[5] ? entry[5] : 0,
+                  tradesessionId: this.options.id
+                })
+                ticksOnSource.push({exchange: pairsource.exchange, pair: pairsource.pair})
+              } else {
+                if (maxTime === pairdata.timestamp[0] && (
+                  pairdata.close[0] !== entry[4] ||
+                  pairdata.volume[0] !== (entry[5] ? entry[5] : 0) ||
+                  pairdata.open[0] !== entry[1] ||
+                  pairdata.high[0] !== entry[2] ||
+                  pairdata.low[0] !== entry[3]
+                )) {
+                  await this.vm.run(`
+                    data['${pairsource.exchange}']['${pairsource.pair}'].open[0]=${entry[1]}
+                    data['${pairsource.exchange}']['${pairsource.pair}'].high[0]=${entry[2]}
+                    data['${pairsource.exchange}']['${pairsource.pair}'].low[0]=${entry[3]}
+                    data['${pairsource.exchange}']['${pairsource.pair}'].close[0]=${entry[4]}
+                    data['${pairsource.exchange}']['${pairsource.pair}'].volume[0]=${entry[5] ? entry[5] : 0}
+                  `)
+                  await models.tradeohlcs.update({
+                    open: entry[1],
+                    high: entry[2],
+                    low: entry[3],
+                    close: entry[4],
+                    volume: entry[5] ? entry[5] : 0
+                  }, {
+                    where: {
+                      source: `${pairsource.exchange}-${pairsource.pair}`,
+                      timestamp: entry[0],
+                      tradesessionId: this.options.id
+                    }
+                  })
+                  ticksOnSource.push({exchange: pairsource.exchange, pair: pairsource.pair, timestamp: entry[0]})
+                }
+                if (maxTime > pairdata.timestamp[0]) {
+                  await this.vm.run(`
+                    data['${pairsource.exchange}']['${pairsource.pair}'].timestamp.unshift(${entry[0]})
+                    data['${pairsource.exchange}']['${pairsource.pair}'].open.unshift(${entry[1]})
+                    data['${pairsource.exchange}']['${pairsource.pair}'].high.unshift(${entry[2]})
+                    data['${pairsource.exchange}']['${pairsource.pair}'].low.unshift(${entry[3]})
+                    data['${pairsource.exchange}']['${pairsource.pair}'].close.unshift(${entry[4]})
+                    data['${pairsource.exchange}']['${pairsource.pair}'].volume.unshift(${entry[5] ? entry[5] : 0})
+                  `)
+                  await models.tradeohlcs.create({
+                    source: `${pairsource.exchange}-${pairsource.pair}`,
+                    timestamp: entry[0],
+                    open: entry[1],
+                    high: entry[2],
+                    low: entry[3],
+                    close: entry[4],
+                    volume: entry[5] ? entry[5] : 0,
+                    tradesessionId: this.options.id
+                  })
+                  ticksOnSource.push({exchange: pairsource.exchange, pair: pairsource.pair, timestamp: entry[0]})
+                }
               }
             }
           }

@@ -441,7 +441,7 @@ class Trading extends Component <TradingProps, TradingStates> {
                         <tr key={log.id}>
                           <td><Moment format="DD/MM/YYYY kk:mm:ss">{log.timestamp}</Moment></td>
                           <td>{log.type}</td>
-                          <td>{log.msg}</td>
+                          <td style={{wordBreak: 'break-word'}}>{log.msg}</td>
                         </tr>
                       )
                     })}
