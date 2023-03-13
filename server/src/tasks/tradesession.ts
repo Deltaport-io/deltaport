@@ -340,7 +340,12 @@ export default class TradeSession {
           if (this.stopping !== "") {
             break breaker
           }
-          const response = await this.exchanges[pairsource.exchange].fetchOHLCV(pairsource.pair, pairsource.timeframe)
+          let response: any[] = []
+          try {
+            response = await this.exchanges[pairsource.exchange].fetchOHLCV(pairsource.pair, pairsource.timeframe)
+          } catch (err) {
+            await this.saveLog('warn', err.message)
+          }
           if (response.length > 0) {
             let entry
             let maxTime = 0
@@ -439,6 +444,7 @@ export default class TradeSession {
         }
       }
     } catch (err) {
+      this.stopping = 'error'
       await this.saveLog('error', err.message)
     }
     await this.close()
