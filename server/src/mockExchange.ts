@@ -43,7 +43,7 @@ export class mockExchange {
     this.timestamp = 0
   }
 
-  tick = (timestamp: number, prices: any[]) => {
+  tick = async (timestamp: number, prices: any[]) => {
     // update local state
     this.timestamp = timestamp
     for (const price of prices) {
@@ -56,131 +56,145 @@ export class mockExchange {
           const contracts = this.positions[price.symbol][positionIndex].contracts
           const tempNotional = this.prices[price.symbol] * contracts
           this.currencyBalance(this.pairs[price.symbol].quote).total = this.currencyBalance(this.pairs[price.symbol].quote).free + tempNotional
+          if (this.positions[price.symbol][positionIndex].params.stopLossPrice !== undefined) {
+            if (this.positions[price.symbol][positionIndex].side === 'short' && this.prices[price.symbol] >= this.positions[price.symbol][positionIndex].params.stopLossPrice) {
+              await this.createOrder(price.symbol, 'market', 'buy', contracts, this.positions[price.symbol][positionIndex].params.stopLossPrice)
+            }
+            if (this.positions[price.symbol][positionIndex].side === 'long' && this.prices[price.symbol] <= this.positions[price.symbol][positionIndex].params.stopLossPrice) {
+              await this.createOrder(price.symbol, 'market', 'sell', contracts, this.positions[price.symbol][positionIndex].params.stopLossPrice)
+            }
+          }
+          if (this.positions[price.symbol][positionIndex].params.takePrifitPrice !== undefined) {
+            if (this.positions[price.symbol][positionIndex].side === 'short' && this.prices[price.symbol] <= this.positions[price.symbol][positionIndex].params.takePrifitPrice) {
+              await this.createOrder(price.symbol, 'market', 'buy', contracts, this.positions[price.symbol][positionIndex].params.takePrifitPrice)
+            }
+            if (this.positions[price.symbol][positionIndex].side === 'long' && this.prices[price.symbol] >= this.positions[price.symbol][positionIndex].params.takePrifitPrice) {
+              await this.createOrder(price.symbol, 'market', 'sell', contracts, this.positions[price.symbol][positionIndex].params.takePrifitPrice)
+            }
+          }
         }
       }
     }
   }
 
-  createOrder = async (symbol, type, side, amount, price = undefined) => {
+  createOrder = async (symbol, type, side, amount, price = undefined, params = {}) => {
     if (this.pairs[symbol] === undefined) {
       throw new Error('Symbol not found')
     }
     price = this.prices[symbol]
-    if (this.pairs[symbol].spot) {
-      // spot?
-      if (side === 'buy') {
-        this.currencyBalance(this.pairs[symbol].base).total = this.currencyBalance(this.pairs[symbol].base).total + amount
-        this.currencyBalance(this.pairs[symbol].base).free = this.currencyBalance(this.pairs[symbol].base).free + amount
-        this.currencyBalance(this.pairs[symbol].quote).total = this.currencyBalance(this.pairs[symbol].quote).total - amount * price
-        this.currencyBalance(this.pairs[symbol].quote).free = this.currencyBalance(this.pairs[symbol].quote).free - amount * price
+    if (side === 'buy') {
+      this.currencyBalance(this.pairs[symbol].base).total = this.currencyBalance(this.pairs[symbol].base).total + amount
+      this.currencyBalance(this.pairs[symbol].base).free = this.currencyBalance(this.pairs[symbol].base).free + amount
+      this.currencyBalance(this.pairs[symbol].quote).total = this.currencyBalance(this.pairs[symbol].quote).total - amount * price
+      this.currencyBalance(this.pairs[symbol].quote).free = this.currencyBalance(this.pairs[symbol].quote).free - amount * price
+    } else {
+      this.currencyBalance(this.pairs[symbol].base).total = this.currencyBalance(this.pairs[symbol].base).total - amount
+      this.currencyBalance(this.pairs[symbol].base).free = this.currencyBalance(this.pairs[symbol].base).free - amount
+      this.currencyBalance(this.pairs[symbol].quote).total = this.currencyBalance(this.pairs[symbol].quote).total + amount * price
+      this.currencyBalance(this.pairs[symbol].quote).free = this.currencyBalance(this.pairs[symbol].quote).free + amount * price
+    }
+    // POSITION
+    if (this.positions[symbol] === undefined) {
+      this.positions[symbol] = []
+    }
+    // check balance
+    if (amount * price > this.currencyBalance(this.pairs[symbol].quote).free) {
+      throw new Error('No enough balance')
+    }
+    // open position?
+    const positionIndex = this.positions[symbol].findIndex(position => position.status === 'open')
+    if (positionIndex > -1) {
+      // update open position
+      const oldPosition = this.positions[symbol][positionIndex]
+      let newSide
+      let newContracts
+      let newPrice
+      let newMarkPrice
+      let newNotional
+      let newStatus
+      if (
+        (side === 'buy' && oldPosition.side === 'long') ||
+        (side === 'sell' && oldPosition.side === 'short')
+      ) {
+        newContracts = oldPosition.contracts + amount
+        newNotional = oldPosition.notional + (amount * price)
+        newSide = oldPosition.side
+        this.currencyBalance(this.pairs[symbol].quote).free = this.currencyBalance(this.pairs[symbol].quote).free - newNotional
       } else {
-        this.currencyBalance(this.pairs[symbol].base).total = this.currencyBalance(this.pairs[symbol].base).total - amount
-        this.currencyBalance(this.pairs[symbol].base).free = this.currencyBalance(this.pairs[symbol].base).free - amount
-        this.currencyBalance(this.pairs[symbol].quote).total = this.currencyBalance(this.pairs[symbol].quote).total + amount * price
-        this.currencyBalance(this.pairs[symbol].quote).free = this.currencyBalance(this.pairs[symbol].quote).free + amount * price
+        newContracts = oldPosition.contracts - amount
+        newNotional = (amount * price)
+        newSide = oldPosition.side
+        if (newContracts < 0) {
+          newSide = side === 'buy' ? 'short' : 'long'
+          const negativeValue = newContracts * price
+          newContracts = Math.abs(newContracts)
+          const closureValue = oldPosition.contracts * price
+          const updatedValue = closureValue + negativeValue
+          this.currencyBalance(this.pairs[symbol].quote).free += updatedValue
+        } else {
+          this.currencyBalance(this.pairs[symbol].quote).free += newNotional
+        }
+      }
+      // check for 
+      if (newContracts === 0) {
+        newStatus = 'closed'
+        newPrice = price
+        newMarkPrice = newPrice
+      } else {
+        newStatus = 'open'
+        newPrice = newNotional / newContracts
+        newMarkPrice = newPrice
+      }
+      this.positions[symbol][positionIndex] = {
+        id: oldPosition.id,
+        symbol: oldPosition.symbol,
+        timestamp: oldPosition.timestamp,
+        datetime: oldPosition.datetime,
+        isolated: true,
+        hedged: false,
+        side: newSide,
+        contracts: newContracts,
+        price: newPrice,
+        markPrice: newMarkPrice,
+        notional: newNotional,
+        leverage: oldPosition.leverage,
+        collateral: newNotional,
+        initialMargin: newNotional,
+        maintenanceMargin: 0,
+        initialMarginPercentage: 100,
+        maintenanceMarginPercentage: 100,
+        unrealizedPnl: 0,
+        liquidationPrice: 0,
+        status: newStatus,
+        params
       }
     } else {
-      // POSITION
-      if (this.positions[symbol] === undefined) {
-        this.positions[symbol] = []
+      // create new position
+      const position = {
+        id: uuid.generate(),
+        symbol: symbol,
+        timestamp: this.timestamp,
+        datetime: new Date(this.timestamp).toISOString(),
+        isolated: true,
+        hedged: false,
+        side: side === 'buy' ? 'long': 'short',
+        contracts: amount,
+        price: price,
+        markPrice: price,
+        notional: amount * price,
+        leverage: 1,
+        collateral: price,
+        initialMargin: price,
+        maintenanceMargin: 0,
+        initialMarginPercentage: 100,
+        maintenanceMarginPercentage: 100,
+        unrealizedPnl: 0,
+        liquidationPrice: 0,
+        status: 'open',
+        params
       }
-      // check balance
-      if (amount * price > this.currencyBalance(this.pairs[symbol].quote).free) {
-        throw new Error('No enough balance')
-      }
-      // open position?
-      const positionIndex = this.positions[symbol].findIndex(position => position.status === 'open')
-      if (positionIndex > -1) {
-        // update open position
-        const oldPosition = this.positions[symbol][positionIndex]
-        let newSide
-        let newContracts
-        let newPrice
-        let newMarkPrice
-        let newNotional
-        let newStatus
-        if (
-          (side === 'buy' && oldPosition.side === 'long') ||
-          (side === 'sell' && oldPosition.side === 'short')
-        ) {
-          newContracts = oldPosition.contracts + amount
-          newNotional = oldPosition.notional + (amount * price)
-          newSide = oldPosition.side
-          this.currencyBalance(this.pairs[symbol].quote).free = this.currencyBalance(this.pairs[symbol].quote).free - newNotional
-        } else {
-          newContracts = oldPosition.contracts - amount
-          newNotional = (amount * price)
-          newSide = oldPosition.side
-          if (newContracts < 0) {
-            newSide = side === 'buy' ? 'sell' : 'buy'
-            const negativeValue = newContracts * price
-            newContracts = Math.abs(newContracts)
-            const closureValue = oldPosition.contracts * price
-            const updatedValue = closureValue + negativeValue
-            this.currencyBalance(this.pairs[symbol].quote).free += updatedValue
-          } else {
-            this.currencyBalance(this.pairs[symbol].quote).free += newNotional
-          }
-        }
-        // check for 
-        if (newContracts === 0) {
-          newStatus = 'closed'
-          newPrice = price
-          newMarkPrice = newPrice
-        } else {
-          newStatus = 'open'
-          newPrice = newNotional / newContracts
-          newMarkPrice = newPrice
-        }
-        this.positions[symbol][positionIndex] = {
-          id: oldPosition.id,
-          symbol: oldPosition.symbol,
-          timestamp: oldPosition.timestamp,
-          datetime: oldPosition.datetime,
-          isolated: true,
-          hedged: false,
-          side: newSide,
-          contracts: newContracts,
-          price: newPrice,
-          markPrice: newMarkPrice,
-          notional: newNotional,
-          leverage: oldPosition.leverage,
-          collateral: newNotional,
-          initialMargin: newNotional,
-          maintenanceMargin: 0,
-          initialMarginPercentage: 100,
-          maintenanceMarginPercentage: 100,
-          unrealizedPnl: 0,
-          liquidationPrice: 0,
-          status: newStatus
-        }
-      } else {
-        // create new position
-        const position = {
-          id: uuid.generate(),
-          symbol: symbol,
-          timestamp: this.timestamp,
-          datetime: new Date(this.timestamp).toISOString(),
-          isolated: true,
-          hedged: false,
-          side: side === 'buy' ? 'long': 'short',
-          contracts: amount,
-          price: price,
-          markPrice: price,
-          notional: amount * price,
-          leverage: 1,
-          collateral: price,
-          initialMargin: price,
-          maintenanceMargin: 0,
-          initialMarginPercentage: 100,
-          maintenanceMarginPercentage: 100,
-          unrealizedPnl: 0,
-          liquidationPrice: 0,
-          status: 'open'
-        }
-        this.positions[symbol].push(position)
-        this.currencyBalance(this.pairs[symbol].quote).free = this.currencyBalance(this.pairs[symbol].quote).free - position.notional
-      }
+      this.positions[symbol].push(position)
+      this.currencyBalance(this.pairs[symbol].quote).free = this.currencyBalance(this.pairs[symbol].quote).free - position.notional
     }
     // TRADE
     const orderId = uuid.generate()
@@ -237,17 +251,17 @@ export class mockExchange {
     this.orders[symbol].push(order)
     return order
   }
-  createLimitBuyOrder = async (symbol, amount, price) => {
-    return this.createOrder(symbol, 'limit', 'buy', amount, price)
+  createLimitBuyOrder = async (symbol, amount, price, params = {}) => {
+    return this.createOrder(symbol, 'limit', 'buy', amount, price, params)
   }
-  createLimitSellOrder = async (symbol, amount, price) => {
-    return this.createOrder(symbol, 'limit', 'sell', amount, price)
+  createLimitSellOrder = async (symbol, amount, price, params = {}) => {
+    return this.createOrder(symbol, 'limit', 'sell', amount, price, params)
   }
-  createMarketBuyOrder = async (symbol, amount) => {
-    return this.createOrder(symbol, 'market', 'buy', amount)
+  createMarketBuyOrder = async (symbol, amount, params = {}) => {
+    return this.createOrder(symbol, 'market', 'buy', amount, params)
   }
-  createMarketSellOrder = async (symbol, amount) => {
-    return this.createOrder(symbol, 'market', 'sell', amount)
+  createMarketSellOrder = async (symbol, amount, params = {}) => {
+    return this.createOrder(symbol, 'market', 'sell', amount, params)
   }
   cancelOrder = async (id, symbol = undefined) => {
     return false
