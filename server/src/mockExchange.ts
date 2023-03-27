@@ -43,33 +43,35 @@ export class mockExchange {
     this.timestamp = 0
   }
 
-  tick = async (timestamp: number, prices: any[]) => {
+  tick = async (timestamp: number, prices: any) => {
     // update local state
     this.timestamp = timestamp
-    for (const price of prices) {
-      this.prices[price.symbol] = price.price
+    for (const symbol in prices) {
+      const price = prices[symbol]
+      // for (const price of prices) {
+      this.prices[symbol] = price
       // update positions and total if open
-      if (Array.isArray(this.positions[price.symbol])) {
-        const positionIndex = this.positions[price.symbol].findIndex(position => position.status === 'open')
+      if (Array.isArray(this.positions[symbol])) {
+        const positionIndex = this.positions[symbol].findIndex(position => position.status === 'open')
         if (positionIndex >= 0) {
           // update position
-          const contracts = this.positions[price.symbol][positionIndex].contracts
-          const tempNotional = this.prices[price.symbol] * contracts
-          this.currencyBalance(this.pairs[price.symbol].quote).total = this.currencyBalance(this.pairs[price.symbol].quote).free + tempNotional
-          if (this.positions[price.symbol][positionIndex].params.stopLossPrice !== undefined) {
-            if (this.positions[price.symbol][positionIndex].side === 'short' && this.prices[price.symbol] >= this.positions[price.symbol][positionIndex].params.stopLossPrice) {
-              await this.createOrder(price.symbol, 'market', 'buy', contracts, this.positions[price.symbol][positionIndex].params.stopLossPrice)
+          const contracts = this.positions[symbol][positionIndex].contracts
+          const tempNotional = this.prices[symbol] * contracts
+          this.currencyBalance(this.pairs[symbol].quote).total = this.currencyBalance(this.pairs[symbol].quote).free + tempNotional
+          if (this.positions[symbol][positionIndex].params.stopLossPrice !== undefined) {
+            if (this.positions[symbol][positionIndex].side === 'short' && this.prices[symbol] >= this.positions[symbol][positionIndex].params.stopLossPrice) {
+              await this.createOrder(symbol, 'market', 'buy', contracts, this.positions[symbol][positionIndex].params.stopLossPrice)
             }
-            if (this.positions[price.symbol][positionIndex].side === 'long' && this.prices[price.symbol] <= this.positions[price.symbol][positionIndex].params.stopLossPrice) {
-              await this.createOrder(price.symbol, 'market', 'sell', contracts, this.positions[price.symbol][positionIndex].params.stopLossPrice)
+            if (this.positions[symbol][positionIndex].side === 'long' && this.prices[symbol] <= this.positions[symbol][positionIndex].params.stopLossPrice) {
+              await this.createOrder(symbol, 'market', 'sell', contracts, this.positions[symbol][positionIndex].params.stopLossPrice)
             }
           }
-          if (this.positions[price.symbol][positionIndex].params.takePrifitPrice !== undefined) {
-            if (this.positions[price.symbol][positionIndex].side === 'short' && this.prices[price.symbol] <= this.positions[price.symbol][positionIndex].params.takePrifitPrice) {
-              await this.createOrder(price.symbol, 'market', 'buy', contracts, this.positions[price.symbol][positionIndex].params.takePrifitPrice)
+          if (this.positions[symbol][positionIndex].params.takeProfitPrice !== undefined) {
+            if (this.positions[symbol][positionIndex].side === 'short' && this.prices[symbol] <= this.positions[symbol][positionIndex].params.takeProfitPrice) {
+              await this.createOrder(symbol, 'market', 'buy', contracts, this.positions[symbol][positionIndex].params.takeProfitPrice)
             }
-            if (this.positions[price.symbol][positionIndex].side === 'long' && this.prices[price.symbol] >= this.positions[price.symbol][positionIndex].params.takePrifitPrice) {
-              await this.createOrder(price.symbol, 'market', 'sell', contracts, this.positions[price.symbol][positionIndex].params.takePrifitPrice)
+            if (this.positions[symbol][positionIndex].side === 'long' && this.prices[symbol] >= this.positions[symbol][positionIndex].params.takeProfitPrice) {
+              await this.createOrder(symbol, 'market', 'sell', contracts, this.positions[symbol][positionIndex].params.takeProfitPrice)
             }
           }
         }
@@ -166,7 +168,7 @@ export class mockExchange {
         unrealizedPnl: 0,
         liquidationPrice: 0,
         status: newStatus,
-        params
+        params: params
       }
     } else {
       // create new position
@@ -191,7 +193,7 @@ export class mockExchange {
         unrealizedPnl: 0,
         liquidationPrice: 0,
         status: 'open',
-        params
+        params: params
       }
       this.positions[symbol].push(position)
       this.currencyBalance(this.pairs[symbol].quote).free = this.currencyBalance(this.pairs[symbol].quote).free - position.notional
@@ -258,10 +260,10 @@ export class mockExchange {
     return this.createOrder(symbol, 'limit', 'sell', amount, price, params)
   }
   createMarketBuyOrder = async (symbol, amount, params = {}) => {
-    return this.createOrder(symbol, 'market', 'buy', amount, params)
+    return this.createOrder(symbol, 'market', 'buy', amount, undefined, params)
   }
   createMarketSellOrder = async (symbol, amount, params = {}) => {
-    return this.createOrder(symbol, 'market', 'sell', amount, params)
+    return this.createOrder(symbol, 'market', 'sell', amount, undefined, params)
   }
   cancelOrder = async (id, symbol = undefined) => {
     return false

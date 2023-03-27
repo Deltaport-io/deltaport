@@ -262,13 +262,16 @@ export default class BacktestSession {
             })
             ticksOnSource.push({exchange: pairsource.exchange, pair: pairsource.pair, timestamp: pairsource.data[0][0]})
             pairsource.data.shift()
+            // update exchanges with prices
+            const prices = {}
+            prices[pairsource.pair] = pairsource.data[0][4]
+            await this.vm.run(`this.exchanges["${pairsource.exchange}"].tick(${pairsource.data[0][0]}, ${JSON.stringify(prices)})`)
           }
         }
         if (this.stopping !== "") {
           break breaker
         }
         try {
-          timestampNow = minTime
           await this.vm.run(`onTick({timestamp:${minTime}, data:${JSON.stringify(ticksOnSource)}})`)
         } catch (e) {
           await this.saveLog('error', 'onTick '+e.message)
