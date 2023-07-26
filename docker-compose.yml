@@ -30,7 +30,7 @@ services:
     command: npm run start
 
   mysql:
-    image: mariadb:10.7.1
+    image: mariadb:11.0.2
     command: --max_allowed_packet=512000000
     environment:
       - MYSQL_ROOT_PASSWORD=1234
@@ -41,7 +41,7 @@ services:
       - 3306:3306
 
   redis:
-    image: redis:6.2.6-alpine
+    image: redis:7.0.12-alpine
     ports:
       - 6379:6379
     command: redis-server --save "" --appendonly no

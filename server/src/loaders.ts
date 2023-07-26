@@ -378,7 +378,7 @@ export const loadExchanges = async () => {
     'fetchTradingFees',
     'fetchTradingLimits',
   ]
-  for (const exchange of ccxt.exchanges) {
+  for (const exchange of ccxt.exchanges as any) {
     const ex = new ccxt[exchange]
     let count = 0
     let functions = {}

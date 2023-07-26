@@ -160,7 +160,7 @@ class Exchanges extends Component <ExchangesProps, ExchangesStates> {
           console.log(json)
           this.setState({
             isLoading: false,
-            error: json.message.error.message
+            error: json.message
           })
         }
       })

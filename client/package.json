@@ -51,7 +51,7 @@
   },
   "main": "public/electron.js",
   "scripts": {
-    "start": "react-scripts start",
+    "start": "react-scripts --openssl-legacy-provider start",
     "start-electron": "export ELECTRON_START_URL=http://localhost:3000 && electron .",
     "build": "react-scripts build",
     "build-electron": "export PUBLIC_URL=./ && react-scripts build",
@@ -91,6 +91,6 @@
     "@types/react-datepicker": "^4.4.2",
     "@types/react-router-dom": "^5.1.8",
     "electron": "^20.1.4",
-    "node-sass": "^6.0.0"
+    "node-sass": "^9.0.0"
   }
 }
