@@ -11,12 +11,14 @@ const log = debug("trader:taskqueue")
 // tasks
 import TradeSession from "./tasks/tradesession"
 import BacktestSession from "./tasks/backtestsession"
+import FollowSession from "./tasks/followsession"
 import Blank from "./tasks/blank"
 
 // list tasks
 const loadTask = {
   TradeSession,
   BacktestSession,
+  FollowSession,
   Blank
 };
 
@@ -43,16 +45,21 @@ class TaskQueue {
   }
 
   addTask = async (task) => {
-    return this.queue.add(task, {jobId: task.id})
+    const job = await this.queue.getJob(task.id)
+    if (job) {
+      return job.retry()
+    } else {
+      return this.queue.add(task, {jobId: task.id})
+    }
   }
 
   stopTask = async (id) => {
     const job = await this.queue.getJob(id)
     if (job) {
       try {
-        await job.moveToCompleted()
+        await job.moveToFailed()
       } catch (e) {
-        // update to completed
+        // move to failed
       }
     } else {
       await models.tradesessions.update({
@@ -67,6 +74,7 @@ class TaskQueue {
 
   processTasks() {
     this.queue.process(config.app.concurrentTasks, async (job: any, done: any) => {
+      console.log('processTasks', job.data)
       const task = new loadTask[job.data.type](job)
       task.load().then(() => {
         done()

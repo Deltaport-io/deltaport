@@ -14,7 +14,7 @@ export class PairsRouter {
   getPairsInputs = [
     query('search').optional({ nullable: true, checkFalsy: true }).notEmpty(),
     query('include').optional({ nullable: true, checkFalsy: true }).notEmpty(),
-    query('limit').optional({ nullable: true, checkFalsy: true }).isInt({ min: 0, max: 10 }),
+    query('limit').optional({ nullable: true, checkFalsy: true }).isInt({ min: 0, max: 50 }),
     query('offset').optional({ nullable: true, checkFalsy: true }).isInt({ min: 0 }),
   ]
 

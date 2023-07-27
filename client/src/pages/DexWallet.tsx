@@ -5,7 +5,7 @@ import { config } from '../config'
 import { withRouter } from 'react-router'
 import { Card, Table } from 'react-bootstrap'
 import PageTitle from '../template/PageTitle'
-import web3 from 'web3'
+import { fromDisplayBalance, getDisplayBalance } from '../utils'
 
 interface DexWalletProps {
   history: any,
@@ -85,7 +85,7 @@ class DexWallet extends Component <DexWalletProps, DexWalletStates> {
           Authorization: token
         },
         body: JSON.stringify({
-          amount: web3.utils.toWei(this.state.amount, 'ether'),
+          amount: fromDisplayBalance(this.state.amount, '18'),
           address: this.state.address
         })
       })
@@ -124,7 +124,6 @@ class DexWallet extends Component <DexWalletProps, DexWalletStates> {
             ]}
             title={'Wallet'}
           />
-
           <Card>
             <Card.Body>
               <h4 className="header-title mb-2">{this.state.dexwallet.name}</h4>
@@ -141,8 +140,8 @@ class DexWallet extends Component <DexWalletProps, DexWalletStates> {
                     <td>{this.state.dexwallet.name}</td>
                   </tr>
                   <tr>
-                    <td>Node Url</td>
-                    <td>{this.state.dexwallet.nodeurl}</td>
+                    <td>Chain</td>
+                    <td>{this.state.dexwallet.dexchain ? this.state.dexwallet.dexchain.name : ''}</td>
                   </tr>
                   <tr>
                     <td>Address</td>
@@ -151,10 +150,6 @@ class DexWallet extends Component <DexWalletProps, DexWalletStates> {
                   <tr>
                     <td>Wallet index</td>
                     <td>{this.state.dexwallet.walletindex}</td>
-                  </tr>
-                  <tr>
-                    <td>Tx viewer</td>
-                    <td>{this.state.dexwallet.txviewer}</td>
                   </tr>
                 </tbody>
               </Table>
@@ -175,8 +170,8 @@ class DexWallet extends Component <DexWalletProps, DexWalletStates> {
                     </thead>
                     <tbody>
                       <tr>
-                        <td>ETH</td>
-                        <td>{web3.utils.fromWei(this.state.balance, 'ether')}</td>
+                        <td>{this.state.dexwallet.dexchain ? this.state.dexwallet.dexchain.currency : ''}</td>
+                        <td>{getDisplayBalance(this.state.balance, '18')}</td>
                       </tr>
                     </tbody>
                   </Table>
@@ -208,7 +203,6 @@ class DexWallet extends Component <DexWalletProps, DexWalletStates> {
                                   <span className="sr-only"></span>
                                 </div>
                               </button>
-                              
                             :
                               <button className="btn btn-sm btn-primary" type="submit">Send</button>
                             }

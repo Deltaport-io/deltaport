@@ -13,7 +13,8 @@ export class DexWalletsRouter {
   }
 
   getDexWalletsInputs = [
-    query('search').optional({ nullable: true, checkFalsy: true }).notEmpty()
+    query('search').optional({ nullable: true, checkFalsy: true }).notEmpty(),
+    query('chain').optional({ nullable: true, checkFalsy: true }).notEmpty()
   ]
 
   public async getDexWallets (req: express.Request, res: express.Response) {
@@ -42,9 +43,17 @@ export class DexWalletsRouter {
         }
       }
     }
+    if (req.query.chain) {
+      where['dexchainId'] = req.query.chain
+    }
+    // add user check
+    where.userIdusers = user.idusers
     const dexwallets = await models.dexwallets.findAndCountAll({
-      attributes: ['id', 'name', 'nodeurl', 'walletindex', 'address'],
+      attributes: ['id', 'name', 'walletindex', 'address'],
       where,
+      include: {
+        model: models.dexchains
+      },
       offset,
       limit,
       order: [
@@ -56,30 +65,35 @@ export class DexWalletsRouter {
 
   newDexWalletInputs = [
     body('name').isAlphanumeric().notEmpty(),
-    body('nodeurl').isString().notEmpty(),
     body('seedphrase').isString().notEmpty(),
     body('walletindex').isNumeric().notEmpty(),
-    body('txviewer').isString().notEmpty()
+    body('chainId').isNumeric().notEmpty()
   ]
 
   public async newDexWallet (req: express.Request, res: express.Response) {
     const result = validationResult(req)
     if (!result.isEmpty()) {
-        return res.send({ status: 'error', message: 'Please fill all information.', errors: result.mapped() })
+      return res.send({ status: 'error', message: 'Please fill all information.', errors: result.mapped() })
     }
     const user = await getMeUser(req.header('Authorization'))
     if (!user) {
-        return res.send({ status: 'error', message: 'No user' })
+      return res.send({ status: 'error', message: 'No user' })
+    }
+    const chain = await models.dexchains.findOne({
+      where: { id: req.body.chainId }
+    })
+    if (!chain) {
+      return res.send({ status: 'error', message: 'No chain' })
     }
     // test wallet and get address
     let address = ""
     try {
-      const web3Wallet = await ethers.Wallet.fromMnemonic(req.body.seedphrase, "m/44'/60'/0'/0/" + req.body.walletindex)
+      const web3Wallet = await ethers.Wallet.fromMnemonic(req.body.seedphrase, chain.derivationPath + req.body.walletindex)
       address = web3Wallet.address
-      const provider = new ethers.providers.JsonRpcProvider(req.body.nodeurl)
+      const provider = new ethers.providers.JsonRpcProvider(chain.rpc)
       const { chainId } = await provider.getNetwork()
-      if (chainId !== 1) {
-        return res.send({ status: 'error', message: 'Not ethereum node' })
+      if (chainId !== chain.id) {
+        return res.send({ status: 'error', message: 'Wrong node' })
       }
     } catch (e) {
       return res.send({ status: 'error', message: 'Something went wrong' })
@@ -88,11 +102,10 @@ export class DexWalletsRouter {
     await models.dexwallets.create({
       name: req.body.name,
       seedphrase: req.body.seedphrase,
-      nodeurl: req.body.nodeurl,
       walletindex: req.body.walletindex,
-      txviewer: req.body.txviewer,
-      address,
-      userIdusers: user.idusers
+      address: address.toLowerCase(),
+      userIdusers: user.idusers,
+      dexchainId: chain.id
     })
     return res.send({ status: 'success' })
   }
@@ -148,6 +161,9 @@ export class DexWalletsRouter {
       where: {
         id: req.params.id,
         userIdusers: user.idusers
+      },
+      include: {
+        model: models.dexchains
       }
     })
     if (!dexwallet) {
@@ -186,6 +202,9 @@ export class DexWalletsRouter {
       where: {
         id: req.params.id,
         userIdusers: user.idusers
+      },
+      include: {
+        model: models.dexchains
       }
     })
     if (!dexwallet) {
@@ -194,8 +213,8 @@ export class DexWalletsRouter {
     try {
       const ethereumApi = new EthereumApi()
       const web3Wallet = await ethereumApi.wallet(dexwallet)
-      const tx = await web3Wallet.web3.eth.sendTransaction({to:req.body.address, from:dexwallet.address, value:req.body.amount})
-      return res.send({ status: 'success', message: dexwallet.txviewer + tx.transactionHash})
+      const tx = await web3Wallet.transferEther(req.body.address, req.body.amount)
+      return res.send({ status: 'success', message: dexwallet.txviewer + tx.hash})
     } catch (e) {
       // console.log('error', e)
       return res.send({ status: 'error', message: e.message})

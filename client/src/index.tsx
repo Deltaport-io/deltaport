@@ -6,7 +6,7 @@ import reportWebVitals from './reportWebVitals';
 
 ReactDOM.render(
   <React.StrictMode>
-    <div className="grabber"></div>
+    { window.location.pathname.includes('index.html') ? <div className="grabber"></div> : null}
     <Router />
   </React.StrictMode>,
   document.getElementById('root')

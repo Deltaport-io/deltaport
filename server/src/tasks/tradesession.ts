@@ -8,13 +8,15 @@ import { config } from '../config/config'
 import * as tf from '@tensorflow/tfjs'
 import superagent from 'superagent'
 import BigNumber from 'bignumber.js'
+import { ethers } from 'ethers'
 
 const wait1sec = () => new Promise(resolve => setTimeout(resolve, 1000))
 
 export default class TradeSession {
 
   exchanges: any = {}
-  ethereum: any = {}
+  crypto: any = {}
+  smartcontracts: any = {}
   loadingData: any[] = []
   stopping: string = ""
   finished
@@ -42,10 +44,116 @@ export default class TradeSession {
     await models.tradegraphs.create({graph, key, value, timestamp, tradesessionId: this.options.id})
   }
 
+  trackTrades = async (index, exchange, action, actionArgs) => {
+    const subSessions = await models.subtradesessions.findAll({
+      where: { tradesessionId: this.options.id },
+      include: { model: models.dexwallets }
+    })
+    for (const subSession of subSessions) {
+      // signature
+      const dexwallet = subSession.dexwallet
+      const web3WalletSigner = await ethers.Wallet.fromMnemonic(dexwallet.seedphrase, "m/44'/60'/0'/0/" + dexwallet.walletindex)
+      const message = `I am owner of ${dexwallet.address}`
+      const signature = await web3WalletSigner.signMessage(message)
+      // data payload
+      const data = {
+        type: 'exchange',
+        index,
+        exchange,
+        action,
+        actionArgs
+      }
+      // request
+      try {
+        await superagent
+          .post(config.app.baseUri+'/api/v1/marketplace/'+subSession.remoteId+'/newevent')
+          .type('application/json')
+          .send({
+            signature,
+            message,
+            data
+          })
+      } catch (e) {
+        // console.log('er')
+      }
+    }
+  }
+
+  loadExchange = (index, account, noTrading = false) => {
+    const exchange = account.exchange.exchange
+    const ccxtExchange = new ccxt[account.exchange.exchange]({
+      apiKey: account.key,
+      secret: account.secret,
+      enableRateLimit: true
+    })
+    if (account.testnet) {
+      ccxtExchange.setSandboxMode(true)
+    }
+    return {
+      createOrder: async (...args) => {
+        await this.trackTrades(index, exchange, 'createOrder', args)
+        if (noTrading) return
+        return ccxtExchange.createOrder(...args)
+      },
+      createLimitBuyOrder: async (...args) => {
+        await this.trackTrades(index, exchange, 'createLimitBuyOrder', args)
+        if (noTrading) return
+        return ccxtExchange.createLimitBuyOrder(...args)
+      },
+      createLimitSellOrder: async (...args) => {
+        await this.trackTrades(index, exchange, 'createLimitSellOrder', args)
+        if (noTrading) return
+        return ccxtExchange.createLimitSellOrder(...args)
+      },
+      createMarketBuyOrder: async (...args) => {
+        await this.trackTrades(index, exchange, 'createMarketBuyOrder', args)
+        if (noTrading) return
+        return ccxtExchange.createMarketBuyOrder(...args)
+      },
+      createMarketSellOrder: async (...args) => {
+        await this.trackTrades(index, exchange, 'createMarketSellOrder', args)
+        if (noTrading) return
+        return ccxtExchange.createMarketSellOrder(...args)
+      },
+      cancelOrder: async (...args) => {
+        if (noTrading) return
+        return ccxtExchange.cancelOrder(...args)
+      },
+      fetchOrders: async (...args) => {
+        return ccxtExchange.fetchOrders(...args)
+      },
+      fetchOpenOrders: async (...args) => {
+        return ccxtExchange.fetchOpenOrders(...args)
+      },
+      fetchClosedOrders: async (...args) => {
+        return ccxtExchange.fetchClosedOrders(...args)
+      },
+      fetchOrder: async (...args) => {
+        return ccxtExchange.fetchOrder(...args)
+      },
+      fetchPositions: async (...args) => {
+        return ccxtExchange.fetchPositions(...args)
+      },
+      fetchBalance: async (...args) => {
+        return ccxtExchange.fetchBalance(...args)
+      },
+      fetchOHLCV: async (...args) => {
+        return ccxtExchange.fetchOHLCV(...args)
+      },
+      fetchTicker: async (...args) => {
+        return ccxtExchange.fetchTicker(...args)
+      },
+      fetchOrderBook: async (...args) => {
+        return ccxtExchange.fetchOrderBook(...args)
+      }
+    }
+  }
+
   loader = async (toLoad: any) => {
     this.toLoad = toLoad
     // load exchanges
     if (toLoad.exchanges) {
+      let exchangesToLoadIndex = 0
       for (const exchange of toLoad.exchanges) {
         if (this.stopping !== "") {
           await this.close()
@@ -63,14 +171,7 @@ export default class TradeSession {
           }]
         })
         if (account) {
-          this.exchanges[exchange.exchange] = new ccxt[account.exchange.exchange]({
-            apiKey: account.key,
-            secret: account.secret,
-            enableRateLimit: true
-          })
-          if (account.testnet === true) {
-            this.exchanges[exchange.exchange].setSandboxMode(true)
-          }
+          this.exchanges[exchange.exchange] = this.loadExchange(exchangesToLoadIndex, account, exchange.noTrading === true ? true : false)
           for (const pair of exchange.pairs) {
             if (this.stopping !== "") {
               await this.close()
@@ -87,29 +188,60 @@ export default class TradeSession {
           this.saveLog('error', 'Exchange not found '+exchange.exchange)
           this.stopping = 'loader error'
         }
+        exchangesToLoadIndex++
       }
     }
-    // load ethereum
-    if (toLoad.ethereum) {
-      for (const ethereum of toLoad.ethereum) {
+    // load crypto
+    if (toLoad.crypto) {
+      let walletToLoadIndex = 0
+      for (const crypto of toLoad.crypto) {
         if (this.stopping !== "") {
           await this.close()
           return
         }
         const wallet = await models.dexwallets.findOne({
           where: {
-            name: ethereum.wallet,
+            name: crypto.wallet,
             userIdusers: this.session.userIdusers
           }
         })
         if (wallet) {
           const ethereumApi = new EthereumApi()
-          this.ethereum[ethereum.wallet] = await ethereumApi.wallet(wallet, ethereum.injectedABIs ? ethereum.injectedABIs : undefined)
+          this.crypto[crypto.wallet] = await ethereumApi.wallet(wallet, crypto.injectedABIs ? crypto.injectedABIs : undefined, {id: this.options.id, index: walletToLoadIndex, noTrading: crypto.noTrading && crypto.noTrading === true ? true : false})
+          walletToLoadIndex++
         } else {
-          this.saveLog('error', 'Wallet not found '+ethereum.wallet)
+          this.saveLog('error', 'Wallet not found '+crypto.wallet)
           this.stopping = 'loader error'
         }
       }
+    }
+    this.smartcontracts = async (id: string, action: string, inputs: any) => {
+      let dexsmartcontract = await models.dexsmartcontracts.findOne({
+        where: {id: id},
+        include: {
+          model: models.dexsmartcontractsabis
+        }
+      })
+      dexsmartcontract = dexsmartcontract.toJSON()
+      const dexwallets = await models.dexwallets.findAll({
+        where: { userIdusers: this.session.userIdusers }
+      })
+      const ethereumApi = new EthereumApi()
+      const web3Wallets: any = {}
+      for (const dexwallet of dexwallets) {
+        const web3Wallet = await ethereumApi.wallet(dexwallet)
+        web3Wallets[dexwallet.id] = web3Wallet
+      }
+      const vm = new VM({
+        sandbox: {
+          web3Wallets,
+          dexsmartcontract,
+          inputs
+        }
+      })
+      const baseInject = new VMScript(`const base = ${dexsmartcontract.data}`, 'data.js').compile()
+      await vm.run(baseInject)
+      return await vm.run(`base.view.actions["${action}"].fn()`)
     }
   }
 
@@ -119,7 +251,7 @@ export default class TradeSession {
       where: { id: this.options.id }
     })
     // listen shutdown
-    taskQueue.queue.on('global:completed', (id) => {
+    taskQueue.queue.on('global:failed', (id) => {
       if (id === this.session.id) {
         this.stopping = "user stop"
       }
@@ -130,7 +262,7 @@ export default class TradeSession {
     process.on('SIGINT', async () => {
       this.stopping = "system stop"
     })
-    await models.tradesessions.update({started: new Date().getTime()}, {where:{id: this.options.id}})
+    await models.tradesessions.update({started: new Date().getTime(), ended: null, reason: null}, {where:{id: this.options.id}})
     // check for script compile
     let script
     try {
@@ -174,7 +306,8 @@ export default class TradeSession {
       indicators,
       data,
       exchanges: this.exchanges,
-      ethereum: this.ethereum,
+      crypto: this.crypto,
+      smartcontracts: this.smartcontracts,
       tf: config.app.sandbox_tf ? tf : undefined,
       superagent: config.app.sandbox_superagent ? superagent : undefined,
       BigNumber: BigNumber,
@@ -213,45 +346,30 @@ export default class TradeSession {
           if (this.stopping !== "") {
             break breaker
           }
-          const response = await this.exchanges[pairsource.exchange].fetchOHLCV(pairsource.pair, pairsource.timeframe)
-          if (response[0].length > 0) {
-            let entry
-            let maxTime = 0
-            for (const res of response) {
-              if (res[0] > maxTime) {
-                maxTime = res[0]
-                entry = res
-              }
+          if (pairsource.timeframe === 'L2') {
+            let lastPrice: any = undefined
+            try {
+              const responseRaw = await this.exchanges[pairsource.exchange].fetchOrderBook(pairsource.pair)
+              const asks = responseRaw.asks.map((val) => val[0])
+              const ask  = Math.min(...asks)
+              // const bids = responseRaw.bids.map((val) => val[0])
+              // const bid  = Math.max(...bids)
+              lastPrice = ask
+            } catch (err) {
+              await this.saveLog('error', err.message)
             }
-            const pairdata = this.vm.run(`data`)[pairsource.exchange][pairsource.pair]
-            if (pairdata.timestamp.length === 0) {
-              await this.vm.run(`
-                data['${pairsource.exchange}']['${pairsource.pair}'].timestamp.unshift(${entry[0]})
-                data['${pairsource.exchange}']['${pairsource.pair}'].open.unshift(${entry[1]})
-                data['${pairsource.exchange}']['${pairsource.pair}'].high.unshift(${entry[2]})
-                data['${pairsource.exchange}']['${pairsource.pair}'].low.unshift(${entry[3]})
-                data['${pairsource.exchange}']['${pairsource.pair}'].close.unshift(${entry[4]})
-                data['${pairsource.exchange}']['${pairsource.pair}'].volume.unshift(${entry[5] ? entry[5] : 0})
-              `)
-              await models.tradeohlcs.create({
-                source: `${pairsource.exchange}-${pairsource.pair}`,
-                timestamp: entry[0],
-                open: entry[1],
-                high: entry[2],
-                low: entry[3],
-                close: entry[4],
-                volume: entry[5] ? entry[5] : 0,
-                tradesessionId: this.options.id
-              })
-              ticksOnSource.push({exchange: pairsource.exchange, pair: pairsource.pair})
-            } else {
-              if (maxTime === pairdata.timestamp[0] && (
-                pairdata.close[0] !== entry[4] ||
-                pairdata.volume[0] !== (entry[5] ? entry[5] : 0) ||
-                pairdata.open[0] !== entry[1] ||
-                pairdata.high[0] !== entry[2] ||
-                pairdata.low[0] !== entry[3]
-              )) {
+            if (lastPrice) {
+              const currentTimestampMinute = Math.floor(new Date().getTime()/1000/60)*1000*60
+              const pairdata = this.vm.run(`data`)[pairsource.exchange][pairsource.pair]
+              if (pairdata.timestamp.length > 0 && pairdata.timestamp[0] === currentTimestampMinute) {
+                const entry = [
+                  currentTimestampMinute,
+                  pairdata.open[0],
+                  lastPrice > pairdata.high[0] ? lastPrice : pairdata.high[0],
+                  lastPrice < pairdata.low[0] ? lastPrice : pairdata.low[0],
+                  lastPrice,
+                  0
+                ]
                 await this.vm.run(`
                   data['${pairsource.exchange}']['${pairsource.pair}'].open[0]=${entry[1]}
                   data['${pairsource.exchange}']['${pairsource.pair}'].high[0]=${entry[2]}
@@ -274,7 +392,8 @@ export default class TradeSession {
                 })
                 ticksOnSource.push({exchange: pairsource.exchange, pair: pairsource.pair, timestamp: entry[0]})
               }
-              if (maxTime > pairdata.timestamp[0]) {
+              if (pairdata.timestamp.length === 0 || pairdata.timestamp[0] !== currentTimestampMinute) {
+                const entry = [currentTimestampMinute, lastPrice, lastPrice, lastPrice, lastPrice, 0]
                 await this.vm.run(`
                   data['${pairsource.exchange}']['${pairsource.pair}'].timestamp.unshift(${entry[0]})
                   data['${pairsource.exchange}']['${pairsource.pair}'].open.unshift(${entry[1]})
@@ -293,7 +412,169 @@ export default class TradeSession {
                   volume: entry[5] ? entry[5] : 0,
                   tradesessionId: this.options.id
                 })
+                ticksOnSource.push({exchange: pairsource.exchange, pair: pairsource.pair})
+              }
+            }
+          }
+          if (pairsource.timeframe === 'tick') {
+            let lastPrice: any = undefined
+            try {
+              const responseRaw = await this.exchanges[pairsource.exchange].fetchTicker(pairsource.pair)
+              if (responseRaw.symbol === pairsource.pair && responseRaw.last) {
+                lastPrice = responseRaw.last
+              }
+            } catch (err) {
+              await this.saveLog('error', err.message)
+            }
+            if (lastPrice) {
+              const currentTimestampMinute = Math.floor(new Date().getTime()/1000/60)*1000*60
+              const pairdata = this.vm.run(`data`)[pairsource.exchange][pairsource.pair]
+              if (pairdata.timestamp.length > 0 && pairdata.timestamp[0] === currentTimestampMinute) {
+                const entry = [
+                  currentTimestampMinute,
+                  pairdata.open[0],
+                  lastPrice > pairdata.high[0] ? lastPrice : pairdata.high[0],
+                  lastPrice < pairdata.low[0] ? lastPrice : pairdata.low[0],
+                  lastPrice,
+                  0
+                ]
+                await this.vm.run(`
+                  data['${pairsource.exchange}']['${pairsource.pair}'].open[0]=${entry[1]}
+                  data['${pairsource.exchange}']['${pairsource.pair}'].high[0]=${entry[2]}
+                  data['${pairsource.exchange}']['${pairsource.pair}'].low[0]=${entry[3]}
+                  data['${pairsource.exchange}']['${pairsource.pair}'].close[0]=${entry[4]}
+                  data['${pairsource.exchange}']['${pairsource.pair}'].volume[0]=${entry[5] ? entry[5] : 0}
+                `)
+                await models.tradeohlcs.update({
+                  open: entry[1],
+                  high: entry[2],
+                  low: entry[3],
+                  close: entry[4],
+                  volume: entry[5] ? entry[5] : 0
+                }, {
+                  where: {
+                    source: `${pairsource.exchange}-${pairsource.pair}`,
+                    timestamp: entry[0],
+                    tradesessionId: this.options.id
+                  }
+                })
                 ticksOnSource.push({exchange: pairsource.exchange, pair: pairsource.pair, timestamp: entry[0]})
+              }
+              if (pairdata.timestamp.length === 0 || pairdata.timestamp[0] !== currentTimestampMinute) {
+                const entry = [currentTimestampMinute, lastPrice, lastPrice, lastPrice, lastPrice, 0]
+                await this.vm.run(`
+                  data['${pairsource.exchange}']['${pairsource.pair}'].timestamp.unshift(${entry[0]})
+                  data['${pairsource.exchange}']['${pairsource.pair}'].open.unshift(${entry[1]})
+                  data['${pairsource.exchange}']['${pairsource.pair}'].high.unshift(${entry[2]})
+                  data['${pairsource.exchange}']['${pairsource.pair}'].low.unshift(${entry[3]})
+                  data['${pairsource.exchange}']['${pairsource.pair}'].close.unshift(${entry[4]})
+                  data['${pairsource.exchange}']['${pairsource.pair}'].volume.unshift(${entry[5] ? entry[5] : 0})
+                `)
+                await models.tradeohlcs.create({
+                  source: `${pairsource.exchange}-${pairsource.pair}`,
+                  timestamp: entry[0],
+                  open: entry[1],
+                  high: entry[2],
+                  low: entry[3],
+                  close: entry[4],
+                  volume: entry[5] ? entry[5] : 0,
+                  tradesessionId: this.options.id
+                })
+                ticksOnSource.push({exchange: pairsource.exchange, pair: pairsource.pair})
+              }
+            }
+          }
+          if (pairsource.timeframe !== 'L2' && pairsource.timeframe !== 'tick') {
+            let response: any[] = []
+            try {
+              response = await this.exchanges[pairsource.exchange].fetchOHLCV(pairsource.pair, pairsource.timeframe)
+            } catch (err) {
+              await this.saveLog('error', err.message)
+            }
+            if (response.length > 0) {
+              let entry
+              let maxTime = 0
+              for (const res of response) {
+                if (res[0] > maxTime) {
+                  maxTime = res[0]
+                  entry = res
+                }
+              }
+              if (!entry[1] && !entry[2] && !entry[3] && !entry[4]) {
+                continue
+              }
+              const pairdata = this.vm.run(`data`)[pairsource.exchange][pairsource.pair]
+              if (pairdata.timestamp.length === 0) {
+                await this.vm.run(`
+                  data['${pairsource.exchange}']['${pairsource.pair}'].timestamp.unshift(${entry[0]})
+                  data['${pairsource.exchange}']['${pairsource.pair}'].open.unshift(${entry[1]})
+                  data['${pairsource.exchange}']['${pairsource.pair}'].high.unshift(${entry[2]})
+                  data['${pairsource.exchange}']['${pairsource.pair}'].low.unshift(${entry[3]})
+                  data['${pairsource.exchange}']['${pairsource.pair}'].close.unshift(${entry[4]})
+                  data['${pairsource.exchange}']['${pairsource.pair}'].volume.unshift(${entry[5] ? entry[5] : 0})
+                `)
+                await models.tradeohlcs.create({
+                  source: `${pairsource.exchange}-${pairsource.pair}`,
+                  timestamp: entry[0],
+                  open: entry[1],
+                  high: entry[2],
+                  low: entry[3],
+                  close: entry[4],
+                  volume: entry[5] ? entry[5] : 0,
+                  tradesessionId: this.options.id
+                })
+                ticksOnSource.push({exchange: pairsource.exchange, pair: pairsource.pair})
+              } else {
+                if (maxTime === pairdata.timestamp[0] && (
+                  pairdata.close[0] !== entry[4] ||
+                  pairdata.volume[0] !== (entry[5] ? entry[5] : 0) ||
+                  pairdata.open[0] !== entry[1] ||
+                  pairdata.high[0] !== entry[2] ||
+                  pairdata.low[0] !== entry[3]
+                )) {
+                  await this.vm.run(`
+                    data['${pairsource.exchange}']['${pairsource.pair}'].open[0]=${entry[1]}
+                    data['${pairsource.exchange}']['${pairsource.pair}'].high[0]=${entry[2]}
+                    data['${pairsource.exchange}']['${pairsource.pair}'].low[0]=${entry[3]}
+                    data['${pairsource.exchange}']['${pairsource.pair}'].close[0]=${entry[4]}
+                    data['${pairsource.exchange}']['${pairsource.pair}'].volume[0]=${entry[5] ? entry[5] : 0}
+                  `)
+                  await models.tradeohlcs.update({
+                    open: entry[1],
+                    high: entry[2],
+                    low: entry[3],
+                    close: entry[4],
+                    volume: entry[5] ? entry[5] : 0
+                  }, {
+                    where: {
+                      source: `${pairsource.exchange}-${pairsource.pair}`,
+                      timestamp: entry[0],
+                      tradesessionId: this.options.id
+                    }
+                  })
+                  ticksOnSource.push({exchange: pairsource.exchange, pair: pairsource.pair, timestamp: entry[0]})
+                }
+                if (maxTime > pairdata.timestamp[0]) {
+                  await this.vm.run(`
+                    data['${pairsource.exchange}']['${pairsource.pair}'].timestamp.unshift(${entry[0]})
+                    data['${pairsource.exchange}']['${pairsource.pair}'].open.unshift(${entry[1]})
+                    data['${pairsource.exchange}']['${pairsource.pair}'].high.unshift(${entry[2]})
+                    data['${pairsource.exchange}']['${pairsource.pair}'].low.unshift(${entry[3]})
+                    data['${pairsource.exchange}']['${pairsource.pair}'].close.unshift(${entry[4]})
+                    data['${pairsource.exchange}']['${pairsource.pair}'].volume.unshift(${entry[5] ? entry[5] : 0})
+                  `)
+                  await models.tradeohlcs.create({
+                    source: `${pairsource.exchange}-${pairsource.pair}`,
+                    timestamp: entry[0],
+                    open: entry[1],
+                    high: entry[2],
+                    low: entry[3],
+                    close: entry[4],
+                    volume: entry[5] ? entry[5] : 0,
+                    tradesessionId: this.options.id
+                  })
+                  ticksOnSource.push({exchange: pairsource.exchange, pair: pairsource.pair, timestamp: entry[0]})
+                }
               }
             }
           }
@@ -309,6 +590,7 @@ export default class TradeSession {
         }
       }
     } catch (err) {
+      this.stopping = 'error'
       await this.saveLog('error', err.message)
     }
     await this.close()

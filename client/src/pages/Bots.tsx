@@ -15,6 +15,7 @@ interface BotsProps {
 }
 
 type BotsStates = {
+  search: string
   bots: any[]
 }
 
@@ -22,22 +23,30 @@ class Bots extends Component <BotsProps, BotsStates> {
   constructor (props: BotsProps) {
     super(props)
     this.state = {
+      search: '',
       bots: []
     }
   }
 
   componentDidMount () {
-    this.loadBots()
+    this.searchBots()
   }
 
   loadBot = (id: string) => {
     this.props.history.push('/bots/'+id)
   } 
 
-  loadBots () {
+  inputChange = (event: any) => {
+    this.setState({ [event.currentTarget.name]: event.currentTarget.value } as BotsStates)
+  }
+
+  searchBots (event: any = null) {
+    if (event !== null) {
+      event.preventDefault()
+    }
     const { token } = getCredentials()
     fetch(
-      `${config.app.apiUri}/api/v1/bots/`, {
+      `${config.app.apiUri}/api/v1/bots?search=${this.state.search}&order=creatednewest`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -72,7 +81,7 @@ class Bots extends Component <BotsProps, BotsStates> {
       .then((response) => { return response.json() })
       .then((json) => {
         if (json.status === 'success') {
-          this.loadBots()
+          this.searchBots()
         }
       })
       .catch((error) => {
@@ -94,6 +103,12 @@ class Bots extends Component <BotsProps, BotsStates> {
             <Card.Body>
               <h4 className="header-title d-inline-block">Bots</h4>
               <div className="d-flex float-end mb-2">
+                <form className="d-flex" onSubmit={this.searchBots}>
+                  <div className="input-group input-group-sm me-2">
+                    <input type="text" className="form-control form-control-sm" name="search" value={this.state.search} onChange={this.inputChange} placeholder="Bots"/>
+                    <button className="btn btn-primary" type="submit">Search</button>
+                  </div>
+                </form>
                 <button onClick={()=>this.loadBot('new')} type="button" className="btn btn-primary btn-sm">New bot</button>
               </div>
               <Table striped className="mb-0" size="sm">
@@ -110,8 +125,8 @@ class Bots extends Component <BotsProps, BotsStates> {
                     return (
                       <tr key={bot.id}>
                         <td><Link to={`/bots/${bot.id}`}>{bot.name}</Link></td>
-                        <td><Moment format="YYYY/MM/DD h:mm:ss A">{bot.createdAt}</Moment></td>
-                        <td><Moment format="YYYY/MM/DD h:mm:ss A">{bot.updatedAt}</Moment></td>
+                        <td><Moment format="DD/MM/YYYY kk:mm:ss">{bot.createdAt}</Moment></td>
+                        <td><Moment format="DD/MM/YYYY kk:mm:ss">{bot.updatedAt}</Moment></td>
                         <td>
                           <OverlayTrigger placement="bottom" overlay={<Tooltip> Remove </Tooltip>}>
                             <span className="link-primary ms-3" style={{cursor: 'pointer'}} onClick={()=>this.deleteBot(bot.id)}><i className="dripicons dripicons-trash"></i></span>

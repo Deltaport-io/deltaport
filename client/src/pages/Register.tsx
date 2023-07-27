@@ -60,7 +60,7 @@ class Register extends Component <RegisterProps, RegisterStates> {
       .then((json) => {
         if (json.status === 'success') {
           storeCredentials(json.token)
-          this.props.history.push('/dashboard')
+          this.props.history.push('/panel')
         } else {
           this.setState({
             logErrors: json.errors,

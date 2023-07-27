@@ -2,29 +2,41 @@ import React, { Component } from 'react';
 import Dash from '../template/Dash'
 import { config } from '../config'
 import { getCredentials } from '../credcontrols'
-import { StockChart } from "../StockChart";
-import {
-  withDeviceRatio,
-  withSize
-} from "react-financial-charts";
 import { Card, Table } from 'react-bootstrap'
 import AceEditor from "react-ace";
-import { withAPIData } from "../WithAPIData"
 import PageTitle from '../template/PageTitle'
 import Moment from 'react-moment'
 import moment from 'moment'
+import ReactEChartsCore from 'echarts-for-react/lib/core'
+import * as echarts from 'echarts/core'
+import { CandlestickChart, BarChart, LineChart } from 'echarts/charts'
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts'
+  GridComponent,
+  ToolboxComponent,
+  TooltipComponent,
+  TitleComponent,
+  DataZoomComponent,
+  VisualMapComponent,
+  DatasetComponent
+} from 'echarts/components'
+import { CanvasRenderer } from 'echarts/renderers'
 
-import "ace-builds/src-noconflict/mode-javascript" 
-import "ace-builds/src-noconflict/theme-github" 
-import "ace-builds/src-noconflict/snippets/javascript"
+// include required
+echarts.use(
+  [
+    TitleComponent,
+    TooltipComponent,
+    GridComponent,
+    CandlestickChart,
+    LineChart,
+    CanvasRenderer,
+    BarChart,
+    ToolboxComponent,
+    DataZoomComponent,
+    VisualMapComponent,
+    DatasetComponent
+  ]
+);
 
 interface BacktestProps {
   history: any,
@@ -113,7 +125,10 @@ class Backtest extends Component <BacktestProps, BacktestStates> {
             if (data[ohlc.source] === undefined) {
               data[ohlc.source] = []
             }
-            data[ohlc.source].push(ohlc)
+            data[ohlc.source].push({
+              ...ohlc,
+              timestamp: moment(parseInt(ohlc.timestamp)).format('YYYY-MM-DD HH:mm:ss')
+            })
           }
           // process graphs
           const graphs: any = {}
@@ -147,15 +162,155 @@ class Backtest extends Component <BacktestProps, BacktestStates> {
       })
   }
 
+  getGraphOption = (data: any) => {
+    const rawSeries: any = {}
+    for (const entry of data) {
+      if (rawSeries[entry.key]) {
+        rawSeries[entry.key].data.push([entry.timestamp, entry.value])
+      } else {
+        rawSeries[entry.key] = {
+          name: entry.key,
+          type: 'line',
+          data: [[entry.timestamp, entry.value]]
+        }
+      }
+    }
+    console.log(rawSeries)
+    return {
+      xAxis: {
+        type: 'category',
+      },
+      yAxis: {
+        type: 'value'
+      },
+      series: Object.values(rawSeries)
+    }
+  }
+
+  getOHLCChartOption = (data: any) => {
+    const upColor = colors[2]
+    const upBorderColor = colors[2]
+    const downColor = colors[1]
+    const downBorderColor = colors[1]
+    return {
+      dataset: {
+        source: data
+      },
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+          type: 'line'
+        }
+      },
+      grid: [
+        {
+          left: 8,
+          right: 50,
+          height: 300,
+          bottom: 170
+        },
+        {
+          left: 8,
+          right: 50,
+          height: 70,
+          bottom: 70
+        }
+      ],
+      xAxis: [
+        {
+          type: 'category',
+          boundaryGap: true,
+          axisLine: { onZero: false },
+          splitLine: { show: false },
+          min: 'dataMin',
+          max: 'dataMax'
+        },
+        {
+          type: 'category',
+          gridIndex: 1,
+          boundaryGap: true,
+          axisLine: { onZero: false },
+          axisTick: { show: false },
+          splitLine: { show: false },
+          axisLabel: { show: false },
+          min: 'dataMin',
+          max: 'dataMax'
+        }
+      ],
+      yAxis: [
+        {
+          scale: true,
+          splitArea: { show: false },
+          axisLine: { show: false },
+          axisTick: { show: false },
+          splitLine: { show: false },
+          position: 'right',
+        },
+        {
+          scale: true,
+          gridIndex: 1,
+          splitNumber: 2,
+          axisLabel: { show: false },
+          axisLine: { show: false },
+          axisTick: { show: false },
+          splitLine: { show: false }
+        }
+      ],
+      dataZoom: [
+        {
+          type: 'inside',
+          xAxisIndex: [0, 1],
+          start: 0,
+          end: 100,
+          zoomLock: true
+        },
+        {
+          zoomLock: false,
+          show: true,
+          xAxisIndex: [0, 1],
+          type: 'slider',
+          bottom: 15,
+          height: 40,
+          start: 0,
+          end: 1000,
+          borderColor: 'transparent',
+        }
+      ],
+      series: [
+        {
+          type: 'candlestick',
+          itemStyle: {
+            color: upColor,
+            color0: downColor,
+            borderColor: upBorderColor,
+            borderColor0: downBorderColor
+          },
+          encode: {
+            x: 'timestamp',
+            y: ['open', 'close', 'high', 'low']
+          }
+        },
+        {
+          name: 'Volume',
+          type: 'bar',
+          xAxisIndex: 1,
+          yAxisIndex: 1,
+          itemStyle: {
+            color: '#6c757d'
+          },
+          barWidth: '50%',
+          large: true,
+          encode: {
+            x: 'timestamp',
+            y: 'volume'
+          }
+        }
+      ]
+    }
+  }
+
   render () {
     const { id } = this.props.match.params
-    const charts = []
-    for (const source in this.state.data) {
-      const CustomChart = withAPIData(this.state.data[source])(
-        withSize({ style: { minHeight: 300 } })(withDeviceRatio()(StockChart)),
-      )
-      charts.push({source, CustomChart})
-    }
     return (
       <div className="Backtest">
         <Dash>
@@ -169,7 +324,15 @@ class Backtest extends Component <BacktestProps, BacktestStates> {
 
           <Card>
             <Card.Body>
-              <h4 className="header-title mb-2">{this.state.backtest.name}</h4>
+              <div className="d-flex justify-content-between">
+                <h4 className="header-title mb-2">{this.state.backtest.name}</h4>
+                <div className="me-1 btn-group">
+                  <button onClick={()=>this.setState({viewGraphs: this.state.viewGraphs ? false : true})} type="button" className={this.state.viewGraphs ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Graphs</button>
+                  <button onClick={()=>this.setState({viewCharts: this.state.viewCharts ? false : true})} type="button" className={this.state.viewCharts ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Charts</button>
+                  <button onClick={()=>this.setState({viewCode: this.state.viewCode ? false : true})} type="button" className={this.state.viewCode ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Code</button>
+                  <button onClick={()=>this.setState({viewLogs: this.state.viewLogs ? false : true})} type="button" className={this.state.viewLogs ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Logs</button>
+                </div>
+              </div>
               <Table striped className="mb-0" size="sm">
                 <thead>
                   <tr>
@@ -184,35 +347,29 @@ class Backtest extends Component <BacktestProps, BacktestStates> {
                   </tr>
                   <tr>
                     <td>Started</td>
-                    <td><Moment format="YYYY/MM/DD h:mm:ss A">{this.state.backtest.started}</Moment></td>
+                    <td><Moment format="DD/MM/YYYY kk:mm:ss">{this.state.backtest.started}</Moment></td>
                   </tr>
                   <tr>
                     <td>Ended</td>
-                    <td>{this.state.backtest.ended ? <Moment format="YYYY/MM/DD h:mm:ss A">{this.state.backtest.ended}</Moment> : null}</td>
-                  </tr>
-                  <tr>
-                    <td>Display</td>
-                    <td>
-                      <div className="mb-2 me-1 btn-group">
-                        <button onClick={()=>this.setState({viewGraphs: this.state.viewGraphs ? false : true})} type="button" className={this.state.viewGraphs ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Graphs</button>
-                        <button onClick={()=>this.setState({viewCharts: this.state.viewCharts ? false : true})} type="button" className={this.state.viewCharts ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Charts</button>
-                        <button onClick={()=>this.setState({viewCode: this.state.viewCode ? false : true})} type="button" className={this.state.viewCode ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Code</button>
-                        <button onClick={()=>this.setState({viewLogs: this.state.viewLogs ? false : true})} type="button" className={this.state.viewLogs ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Logs</button>
-                      </div>
-                    </td>
+                    <td>{this.state.backtest.ended ? <Moment format="DD/MM/YYYY kk:mm:ss">{this.state.backtest.ended}</Moment> : null}</td>
                   </tr>
                 </tbody>
               </Table>
             </Card.Body>
           </Card>
 
-          {this.state.viewCharts ? charts.map((chart) => {
-            return <Card key={chart.source}>
+          {this.state.viewCharts ? Object.keys(this.state.data).map((source: any) => {
+            return <Card key={source}>
               <Card.Body>
-                <h4 className="header-title d-inline-block mb-2">{chart.source}</h4>
-                <div>
-                  <chart.CustomChart/>
-                </div>
+                <h4 className="header-title d-inline-block mb-2">{source}</h4>
+                <ReactEChartsCore
+                  style={{height: 500}}
+                  echarts={echarts}
+                  option={this.getOHLCChartOption(this.state.data[source])}
+                  notMerge={true}
+                  lazyUpdate={true}
+                  theme={"theme_name"}
+                />
               </Card.Body>
             </Card>
           }): null}
@@ -221,24 +378,13 @@ class Backtest extends Component <BacktestProps, BacktestStates> {
             return <Card key={graph}>
               <Card.Body>
                 <h4 className="header-title d-inline-block mb-2">{graph}</h4>
-                <ResponsiveContainer width={'100%'} height={300}>
-                  <LineChart data={this.state.graphs[graph]} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
-                    <XAxis
-                      dataKey="timestamp"
-                      tick={{fill: '#6c757d'}}
-                      minTickGap={20}
-                      tickFormatter={(tick, index)=>{return moment(tick, 'x').format('DD/MM/YYYY HH:mm:ss')}}
-                    />
-                    <YAxis tick={{fill: '#6c757d'}}/>
-                    <Tooltip
-                      isAnimationActive={false}
-                      labelFormatter={(entry: any)=>{return moment(entry, 'x').format('DD/MM/YYYY HH:mm:ss')}}
-                    />
-                    {this.state.graphKeys[graph].map((entry: any, index: number) => {
-                      return <Line key={entry} dataKey="value" name={entry} dot={false} type="monotone" connectNulls={true} stroke={colors[index % colors.length]} strokeWidth={2}/>
-                    })}
-                  </LineChart>
-                </ResponsiveContainer>
+                <ReactEChartsCore
+                  echarts={echarts}
+                  option={this.getGraphOption(this.state.graphs[graph])}
+                  notMerge={true}
+                  lazyUpdate={true}
+                  theme={"theme_name"}
+                />
               </Card.Body>
             </Card>
           }): null}
@@ -264,11 +410,11 @@ class Backtest extends Component <BacktestProps, BacktestStates> {
             <Card>
               <Card.Body>
                 <h4 className="header-title d-inline-block">Logs</h4>
-                <Table striped className="mb-0" size="sm">
+                <Table striped className="mb-0 logtable" size="sm">
                   <thead>
                   <tr>
-                    <th>Time</th>
-                    <th>Type</th>
+                    <th style={{width: 170}}>Time</th>
+                    <th style={{width: 50}}>Type</th>
                     <th>Log</th>
                   </tr>
                   </thead>
@@ -276,9 +422,9 @@ class Backtest extends Component <BacktestProps, BacktestStates> {
                     {this.state.logs.map((log:any) => {
                       return (
                         <tr key={log.id}>
-                          <td><Moment format="YYYY/MM/DD h:mm:ss A">{log.timestamp}</Moment></td>
+                          <td><Moment format="DD/MM/YYYY kk:mm:ss">{log.timestamp}</Moment></td>
                           <td>{log.type}</td>
-                          <td>{log.msg}</td>
+                          <td style={{wordBreak: 'break-word'}}>{log.msg}</td>
                         </tr>
                       )
                     })}

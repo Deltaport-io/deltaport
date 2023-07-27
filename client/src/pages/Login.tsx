@@ -34,7 +34,7 @@ class Login extends Component <LoginProps, LoginStates> {
     const ssid = new URLSearchParams(this.props.location.search).get('ssid')!
     if (ssid) {
       storeCredentials(ssid)
-      this.props.history.push('/dashboard')
+      this.props.history.push('/panel')
     }
   }
 
@@ -61,7 +61,7 @@ class Login extends Component <LoginProps, LoginStates> {
       .then((json) => {
         if (json.status === 'success') {
           storeCredentials(json.token)
-          this.props.history.push('/dashboard')
+          this.props.history.push('/panel')
         } else {
           this.setState({
             logErrors: json.errors,

@@ -8,7 +8,7 @@ import compression from 'compression'
 import { taskQueue } from "./taskqueue"
 import models from './models'
 import { Umzug, SequelizeStorage } from 'umzug';
-import { loadExchanges, loadDexPoolsTokens } from './loaders'
+import { loadExchanges, importIfNotInPoolsTokens } from './loaders'
 
 // routes
 import MeRouter from "./routes/MeRouter"
@@ -16,11 +16,15 @@ import BotsRouter from "./routes/BotsRouter"
 import PairsRouter from "./routes/PairsRouter"
 import ExchangesRouter from "./routes/ExchangesRouter"
 import DexWalletsRouter from "./routes/DexWalletsRouter"
+import DexChainsRouter from "./routes/DexChainsRouter"
 import BacktestsRouter from "./routes/BacktestsRouter"
 import TradingsRouter from "./routes/TradingsRouter"
-import DexPoolsRouter from "./routes/DexPoolsRouter"
 import DexTokensRouter from "./routes/DexTokensRouter"
+import DexSmartContractsRouter from "./routes/DexSmartContractsRouter"
 import HealthcheckRouter from "./routes/HealthcheckRouter"
+import MarketplaceRouter from "./routes/MarketplaceRouter"
+import FollowRouter from "./routes/FollowRouter"
+import AssetsRouter from "./routes/AssetsRouter"
 
 import {
   logger,
@@ -46,7 +50,7 @@ export const start = async () => {
   // run loaders
   try {
     await loadExchanges()
-    await loadDexPoolsTokens()
+    await importIfNotInPoolsTokens()
   } catch (e) {
     logger.error('failed loading', e)
   }
@@ -73,11 +77,15 @@ export const start = async () => {
     app.use('/api/v1/pairs', PairsRouter)
     app.use('/api/v1/exchanges', ExchangesRouter)
     app.use('/api/v1/dexwallets', DexWalletsRouter)
-    app.use('/api/v1/dexpools', DexPoolsRouter)
+    app.use('/api/v1/dexchains', DexChainsRouter)
     app.use('/api/v1/dextokens', DexTokensRouter)
+    app.use('/api/v1/dexsmartcontracts', DexSmartContractsRouter)
     app.use('/api/v1/backtests', BacktestsRouter)
     app.use('/api/v1/tradings', TradingsRouter)
     app.use('/api/v1/healthcheck', HealthcheckRouter)
+    app.use('/api/v1/marketplace', MarketplaceRouter)
+    app.use('/api/v1/follows', FollowRouter)
+    app.use('/api/v1/assets', AssetsRouter)
     // error logger
     app.use(expressErrorLogger)
     // listen

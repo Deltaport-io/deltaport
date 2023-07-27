@@ -185,8 +185,8 @@ class Tradings extends Component <TestingsProps, TestingsStates> {
                     return (
                       <tr key={session.id}>
                         <td><Link to={`/tradings/${session.id}`}>{session.name}</Link></td>
-                        <td><Moment format="YYYY/MM/DD h:mm:ss A">{session.started}</Moment></td>
-                        <td>{session.ended ? <Moment format="YYYY/MM/DD h:mm:ss A">{session.ended}</Moment> : null}</td>
+                        <td><Moment format="DD/MM/YYYY kk:mm:ss">{session.started}</Moment></td>
+                        <td>{session.ended ? <Moment format="DD/MM/YYYY kk:mm:ss">{session.ended}</Moment> : null}</td>
                         <td>{session.reason}</td>
                         <td>
                           {session.ended ?
@@ -195,12 +195,12 @@ class Tradings extends Component <TestingsProps, TestingsStates> {
                             </OverlayTrigger>
                           :
                             <OverlayTrigger placement="bottom" overlay={<Tooltip> Restart </Tooltip>}>
-                              <span className="link-primary ms-3" style={{color: '#ccc'}}><i className="dripicons dripicons-media-play"></i></span>
+                              <span className="ms-3" style={{color: '#ccc'}}><i className="dripicons dripicons-media-play"></i></span>
                             </OverlayTrigger>
                           }
                           {session.ended ?
                             <OverlayTrigger placement="bottom" overlay={<Tooltip> Stop </Tooltip>}>
-                              <span className="link-primary ms-3" style={{color: '#ccc'}}><i className="dripicons dripicons-media-stop"></i></span>
+                              <span className="ms-3" style={{color: '#ccc'}}><i className="dripicons dripicons-media-stop"></i></span>
                             </OverlayTrigger>
                           :
                             <OverlayTrigger placement="bottom" overlay={<Tooltip> Stop </Tooltip>}>
@@ -213,7 +213,7 @@ class Tradings extends Component <TestingsProps, TestingsStates> {
                             </OverlayTrigger>
                           :
                             <OverlayTrigger placement="bottom" overlay={<Tooltip> Remove </Tooltip>}>
-                              <span className="link-primary ms-3" style={{color: '#ccc'}}><i className="dripicons dripicons-trash"></i></span>
+                              <span className="ms-3" style={{color: '#ccc'}}><i className="dripicons dripicons-trash"></i></span>
                             </OverlayTrigger>
                           }
                         </td>

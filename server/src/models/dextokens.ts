@@ -1,9 +1,11 @@
 export default (sequelize, DataTypes) => {
   const dextokens = sequelize.define('dextokens', {
-    id: { type: DataTypes.CHAR(43), primaryKey: true },
+    id: { type: DataTypes.CHAR(64), primaryKey: true },
+    address: { type: DataTypes.CHAR(43) },
     symbol: { type: DataTypes.STRING },
     name: { type: DataTypes.STRING },
-    decimals: { type: DataTypes.INTEGER(11).UNSIGNED }
+    decimals: { type: DataTypes.INTEGER(11).UNSIGNED },
+    tracking: { type: DataTypes.BOOLEAN, defaultValue: false }
   }, {
     timestamps: false,
     paranoid: false,
@@ -11,7 +13,8 @@ export default (sequelize, DataTypes) => {
     collate: 'utf8mb4_general_ci'
   })
   dextokens.associate = function (models) {
-    models.dextokens.belongsToMany(models.dexpools, { through: models.dexpooltokens })
+    // models.dextokens.belongsToMany(models.dexpools, { through: models.dexpooltokens })
+    models.dextokens.belongsTo(models.dexchains)
   }
   return dextokens
 }

@@ -49,7 +49,7 @@ loader = {
             amount: 10
         }]
     }],
-    ethereum: [{
+    crypto: [{
         wallet: 'MyWallet',
         balances: [{
             currency: 'ETH',
@@ -66,9 +66,6 @@ loader = {
 onStart = async() => {
   // execute on start
   await console.log('on start')
-  // test
-  await console.log('1', await this.exchanges['BitmexLive'].fetchBalance())
-  await console.log('2', await this.exchanges['BitmexLive'].fetchPositions())
 }
 
 onTick = async(ticks) => {
@@ -286,7 +283,7 @@ onEnd = async() => {
                 <button className="btn btn-primary btn-sm ms-1" type="submit" onClick={this.openTradingModal}>Trade</button>
               </div>
               <form>
-                <div style={{height: 'calc(100vh - 265px)',position:'relative'}}>
+                <div style={{height: 'calc(100vh - 288px)',position:'relative'}}>
                   <AceEditor
                     mode="javascript"
                     theme="github"
@@ -294,6 +291,7 @@ onEnd = async() => {
                     width="100%"
                     onChange={this.onChange}
                     value={this.state.code} 
+                    setOptions={{ useWorker: false }}
                   />
                 </div>
               </form>

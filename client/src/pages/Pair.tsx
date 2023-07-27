@@ -2,16 +2,40 @@ import React, { Component } from 'react';
 import Dash from '../template/Dash'
 import { config } from '../config'
 import { getCredentials } from '../credcontrols'
-import { StockChart } from "../StockChart";
-import { DropdownButton, Dropdown } from 'react-bootstrap'
-import {
-  withDeviceRatio,
-  withSize
-} from "react-financial-charts";
-import { withAPIData } from "../WithAPIData"
-import { Card, Table } from 'react-bootstrap'
+import { DropdownButton, Dropdown, Card, Table } from 'react-bootstrap'
 import PageTitle from '../template/PageTitle'
-import DatePicker from 'react-datepicker';
+import DatePicker from 'react-datepicker'
+import ReactEChartsCore from 'echarts-for-react/lib/core'
+import * as echarts from 'echarts/core'
+import { CandlestickChart, BarChart, LineChart } from 'echarts/charts'
+import {
+  GridComponent,
+  ToolboxComponent,
+  TooltipComponent,
+  TitleComponent,
+  DataZoomComponent,
+  VisualMapComponent,
+  DatasetComponent
+} from 'echarts/components'
+import { CanvasRenderer } from 'echarts/renderers'
+import moment from 'moment'
+
+// include required
+echarts.use(
+  [
+    TitleComponent,
+    TooltipComponent,
+    GridComponent,
+    CandlestickChart,
+    LineChart,
+    CanvasRenderer,
+    BarChart,
+    ToolboxComponent,
+    DataZoomComponent,
+    VisualMapComponent,
+    DatasetComponent
+  ]
+);
 
 interface PairProps {
   history: any,
@@ -38,6 +62,15 @@ type PairStates = {
   formLoading: boolean
   isLoading: boolean
 }
+
+const style = getComputedStyle(document.body)
+const colors = [
+  style.getPropertyValue('--bs-primary'),
+  style.getPropertyValue('--bs-danger'),
+  style.getPropertyValue('--bs-success'),
+  style.getPropertyValue('--bs-warning'),
+  style.getPropertyValue('--bs-info')
+]
 
 class Pair extends Component <PairProps, PairStates> {
 
@@ -98,10 +131,16 @@ class Pair extends Component <PairProps, PairStates> {
       .then((response) => { return response.json() })
       .then((json) => {
         if (json.status === 'success') {
-          console.log('data', json.data)
+          const data: any[] = []
+          for (const d of json.data) {
+            data.push({
+              ...d,
+              timestamp: moment(parseInt(d.timestamp)).format('YYYY-MM-DD HH:mm:ss')
+            })
+          }
           this.setState({
             pair: json.pair,
-            data: json.data,
+            data,
             balances: json.balances,
             positions: json.positions,
             timeframes: json.timeframes,
@@ -169,11 +208,130 @@ class Pair extends Component <PairProps, PairStates> {
     })
   }
 
+  getOHLCChartOption = (data: any) => {
+    const upColor = colors[2]
+    const upBorderColor = colors[2]
+    const downColor = colors[1]
+    const downBorderColor = colors[1]
+    return {
+      dataset: {
+        source: data
+      },
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+          type: 'line'
+        }
+      },
+      grid: [
+        {
+          left: 8,
+          right: 50,
+          height: 300,
+          bottom: 170
+        },
+        {
+          left: 8,
+          right: 50,
+          height: 70,
+          bottom: 70
+        }
+      ],
+      xAxis: [
+        {
+          type: 'category',
+          boundaryGap: true,
+          axisLine: { onZero: false },
+          splitLine: { show: false },
+          min: 'dataMin',
+          max: 'dataMax'
+        },
+        {
+          type: 'category',
+          gridIndex: 1,
+          boundaryGap: true,
+          axisLine: { onZero: false },
+          axisTick: { show: false },
+          splitLine: { show: false },
+          axisLabel: { show: false },
+          min: 'dataMin',
+          max: 'dataMax'
+        }
+      ],
+      yAxis: [
+        {
+          scale: true,
+          splitArea: { show: false },
+          axisLine: { show: false },
+          axisTick: { show: false },
+          splitLine: { show: false },
+          position: 'right',
+        },
+        {
+          scale: true,
+          gridIndex: 1,
+          splitNumber: 2,
+          axisLabel: { show: false },
+          axisLine: { show: false },
+          axisTick: { show: false },
+          splitLine: { show: false }
+        }
+      ],
+      dataZoom: [
+        {
+          type: 'inside',
+          xAxisIndex: [0, 1],
+          start: 0,
+          end: 100,
+          zoomLock: true
+        },
+        {
+          zoomLock: false,
+          show: true,
+          xAxisIndex: [0, 1],
+          type: 'slider',
+          bottom: 15,
+          height: 40,
+          start: 0,
+          end: 1000,
+          borderColor: 'transparent',
+        }
+      ],
+      series: [
+        {
+          type: 'candlestick',
+          itemStyle: {
+            color: upColor,
+            color0: downColor,
+            borderColor: upBorderColor,
+            borderColor0: downBorderColor
+          },
+          encode: {
+            x: 'timestamp',
+            y: ['open', 'close', 'high', 'low']
+          }
+        },
+        {
+          name: 'Volume',
+          type: 'bar',
+          xAxisIndex: 1,
+          yAxisIndex: 1,
+          itemStyle: {
+            color: '#6c757d'
+          },
+          barWidth: '50%',
+          large: true,
+          encode: {
+            x: 'timestamp',
+            y: 'volume'
+          }
+        }
+      ]
+    }
+  }
+
   render () {
     const { id } = this.props.match.params
-    const CustomChart = withAPIData(this.state.data)(
-      withSize()(withDeviceRatio()(StockChart)),
-    )
     return (
       <div className="Pairs">
         <Dash>
@@ -222,8 +380,15 @@ class Pair extends Component <PairProps, PairStates> {
                   </button>
                 </div>
               </div>
-              <div style={{height: 400}}>
-                <CustomChart/>
+              <div>
+                <ReactEChartsCore
+                  style={{height: 500}}
+                  echarts={echarts}
+                  option={this.getOHLCChartOption(this.state.data)}
+                  notMerge={true}
+                  lazyUpdate={true}
+                  theme={"theme_name"}
+                />
               </div>
             </Card.Body>
           </Card>
@@ -252,6 +417,9 @@ class Pair extends Component <PairProps, PairStates> {
                           </tr>
                         )
                       })}
+                      {Object.keys(this.state.balances).length === 0 ?
+                        <tr><td colSpan={4} className="py-4 text-center">No balances</td></tr>
+                      : null}
                     </tbody>
                   </Table>
                 </Card.Body>
@@ -365,6 +533,9 @@ class Pair extends Component <PairProps, PairStates> {
                           </tr>
                         )
                       })}
+                      {this.state.positions.length === 0 ?
+                        <tr><td colSpan={6} className="py-4 text-center">No positions yet</td></tr>
+                      : null}
                     </tbody>
                   </Table>
                 </Card.Body>
@@ -398,6 +569,9 @@ class Pair extends Component <PairProps, PairStates> {
                           </tr>
                         )
                       })}
+                      {this.state.orders.length === 0 ?
+                        <tr><td colSpan={7} className="py-4 text-center">No orders yet</td></tr>
+                      : null}
                     </tbody>
                   </Table>
                 </Card.Body>

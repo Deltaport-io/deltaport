@@ -12,6 +12,8 @@ export class BotsRouter {
 
   getBotsInputs = [
     query('search').optional({ nullable: true, checkFalsy: true }).notEmpty(),
+    query('limit').optional({ nullable: true, checkFalsy: true }).isInt({ min: 0, max: 10 }),
+    query('offset').optional({ nullable: true, checkFalsy: true }).isInt({ min: 0 })
   ]
 
   public async getBots (req: express.Request, res: express.Response) {
@@ -43,7 +45,9 @@ export class BotsRouter {
         order.push(['createdAt', 'DESC'])
       }
     }
-    let where:any = {}
+    let where:any = {
+      userIdusers: user.idusers
+    }
     if (req.query.search) {
         where = {
             userIdusers: user.idusers,

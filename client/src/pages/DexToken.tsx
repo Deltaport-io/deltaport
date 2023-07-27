@@ -25,6 +25,7 @@ type DexTokenStates = {
   wallet: string
   error: string
   success: string
+  tracking: boolean
 }
 
 class DexToken extends Component <DexTokenProps, DexTokenStates> {
@@ -39,7 +40,8 @@ class DexToken extends Component <DexTokenProps, DexTokenStates> {
       amount: '',
       wallet: '',
       error: '',
-      success: ''
+      success: '',
+      tracking: false
     }
   }
 
@@ -117,6 +119,54 @@ class DexToken extends Component <DexTokenProps, DexTokenStates> {
       })
   }
 
+  track = () => {
+    const { id } = this.props.match.params
+    const { token } = getCredentials()
+    fetch(
+      config.app.apiUri + '/api/v1/dextokens/'+id+'/track', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token
+        }
+      })
+      .then((response) => { return response.json() })
+      .then((json) => {
+        if (json.status === 'success') {
+          this.setState({
+            tracking: true
+          })
+        }
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+  }
+
+  untrack = () => {
+    const { id } = this.props.match.params
+    const { token } = getCredentials()
+    fetch(
+      config.app.apiUri + '/api/v1/dextokens/'+id+'/untrack', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token
+        }
+      })
+      .then((response) => { return response.json() })
+      .then((json) => {
+        if (json.status === 'success') {
+          this.setState({
+            tracking: false
+          })
+        }
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+  }
+
   render() {
     const { id } = this.props.match.params
     const activeWallet = this.state.balances.find(e => e.id === this.state.wallet)
@@ -133,7 +183,12 @@ class DexToken extends Component <DexTokenProps, DexTokenStates> {
 
           <Card>
             <Card.Body>
-              <h4 className="header-title mb-2">{this.state.dextoken.symbol}</h4>
+              <div className="d-flex justify-content-between">
+                <h4 className="header-title">{this.state.dextoken.symbol}</h4>
+                <div className="me-1 btn-group">
+                  <button onClick={()=> this.state.tracking ? this.untrack() : this.track() } type="button" className={this.state.tracking ? "btn btn-sm btn-primary" : "btn btn-sm btn-light"}>Tracking</button>
+                </div>
+              </div>
               <Table striped className="mb-0" size="sm">
                 <thead>
                   <tr>
@@ -158,34 +213,6 @@ class DexToken extends Component <DexTokenProps, DexTokenStates> {
                     <td>Decimals</td>
                     <td>{this.state.dextoken.decimals}</td>
                   </tr>
-                </tbody>
-              </Table>
-            </Card.Body>
-          </Card>
-
-          <Card>
-            <Card.Body>
-              <h4 className="header-title mb-2">Pools - <Link to={`/dexpools?search=${this.state.dextoken.symbol}`}>See all</Link></h4> 
-              <Table striped hover className="mb-0" size="sm">
-                <thead>
-                  <tr>
-                    <th>Id</th>
-                    <th>Pairs</th>
-                    <th><i className="mdi mdi-information text-secondary"></i></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {this.state.dextoken.dexpools?.map((pool:any) => {
-                    return <tr key={pool.id}>
-                      <td className="font-monospace"><Link to={`/dexpools/${pool.id}`}>{truncate(pool.id, 16)}</Link></td>
-                      <td>
-                        {pool.dextokens?.map((dextoken :any) => {
-                          return <Link key={dextoken.id} to={`/dextokens/${dextoken.id}`}>{dextoken.symbol+' '}</Link>
-                        })}
-                      </td>
-                      <td><Info data={pool.data}/></td>
-                    </tr>
-                  })}
                 </tbody>
               </Table>
             </Card.Body>

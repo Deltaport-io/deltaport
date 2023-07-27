@@ -14,7 +14,7 @@ export default (sequelize, DataTypes) => {
     ]
   })
   dexes.associate = function (models) {
-    models.dexes.hasMany(models.dexpools)
+    // models.dexes.hasMany(models.dexpools)
   }
   return dexes
 }

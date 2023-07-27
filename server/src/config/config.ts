@@ -7,7 +7,9 @@ export const config:any = {
     port: process.env.PORT ? process.env.PORT : 4000,
     hostname: process.env.HOSTNAME ? process.env.HOSTNAME : 'localhost',
     sandbox_tf: process.env.SANDBOX_TF ? true : false,
-    sandbox_superagent: process.env.SANDBOX_SUPERAGENT ? true : false
+    sandbox_superagent: process.env.SANDBOX_SUPERAGENT ? true : false,
+    marketplaceAddress: process.env.MARKETPLACEADDRESS ? process.env.MARKETPLACEADDRESS : '0x532b2dBB81b3e29844dB717F855a33149A430C37',
+    baseUri: process.env.REACT_APP_BASE_URI || 'http://localhost:4005'
   },
   db: process.env.MYSQL ? {
     host: process.env.MYSQL_HOST ? process.env.MYSQL_HOST : "localhost",

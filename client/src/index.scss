@@ -47,10 +47,8 @@ body {
 
 .logo {
   display: block;
-  line-height: 70px;
-  width: 250px;
-  position: fixed;
-  top: 0;
+  line-height: 55px;
+  height: 55px;
 
   span.logo-lg {
       display: block;
@@ -62,27 +60,33 @@ body {
 }
 
 .wrapper {
-  height: 100%;
-  overflow: hidden;
-  width: 100%;
+  height: 100vh;
+  width: 100vw;
+}
+
+.content {
+  min-height: calc(100vh - 55px - 63px);
+}
+
+.content-with-topbar-holder {
+    position: relative;
+    height: 100vh;
+    width: inherit;
 }
 
 .content-page {
-  margin-left: 250px;
-  overflow: hidden;
-  padding: 70px 12px 65px;
-  min-height: 100vh;
-}
+    position: absolute;
+    width: 100%;
+    overflow: scroll;
+    padding: 0px 12px 0px;
+    height: calc(100vh - 55px);
+  }
 
 .leftside-menu {
-  width: 250px;
-  z-index: 10;
-  background: #313a46;
-  bottom: 0;
-  position: fixed;
-  top: 0;
-  padding-top: 70px;
+  flex-shrink: 0;
+  background: #fff;
   box-shadow: $box-shadow;
+  position: relative;
 }
 
 .side-nav {
@@ -94,7 +98,7 @@ body {
   .side-nav-link {
       color: #cedce4;
       display: block;
-      padding: 10px 30px;
+      padding: 10px 25px;
       font-size: 0.9375rem;
       position: relative;
       transition: all 0.4s;
@@ -117,7 +121,6 @@ body {
           margin: 0 10px 0 0;
           font-size: 1.1rem;
           vertical-align: middle;
-          width: 20px;
       }
   }
 
@@ -157,7 +160,7 @@ body {
   }
 
   .side-nav-title {
-      padding: 12px 30px;
+      padding: 12px 25px;
       letter-spacing: .05em;
       pointer-events: none;
       cursor: default;
@@ -233,11 +236,6 @@ body {
   body {
       overflow-x: hidden;
   }
-  .leftside-menu {
-      box-shadow: $box-shadow;
-      display: none;
-      z-index: 10 !important;
-  }
   .sidebar-enable {
       .leftside-menu {
           display: block;
@@ -247,8 +245,7 @@ body {
       float: right;
   }
   .content-page {
-      margin-left: 0 !important;
-      padding: 65px 10px 65px;
+      padding: 0px 10px 65px;
   }
   body[data-leftbar-compact-mode="condensed"] {
       .leftside-menu {
@@ -295,10 +292,10 @@ body {
 
 body {
   .leftside-menu {
-      background: #313a46;
+      background: #fff;
 
       .logo {
-          background: #313a46 !important;
+          background: #fff !important;
       }
   }
 
@@ -308,13 +305,13 @@ body {
           &:hover,
           &:focus,
           &:active {
-              color: #bccee4;
+              color: #6c757d;
           }
       }
   
       .menuitem-active {
           > a {
-              color: #ffffff !important;
+              color: #6c757d !important;
           }
       }
   
@@ -330,12 +327,12 @@ body {
                   color: #8391a2;
                   &:focus,
                   &:hover {
-                      color: #bccee4;
+                      color: #6c757d;
                   }
               }
               &.active {
                   >a {
-                      color: #ffffff;
+                      color: #6c757d;
                   }
               }
           }
@@ -396,13 +393,8 @@ body {
 }
 
 .footer {
-  border-top: 1px solid rgba($gray-600, 0.2);
-  bottom: 0;
   padding: 19px 24px 20px;
-  position: absolute;
-  right: 0;
   color: $gray-600;
-  left: 250px;
 
   .footer-links {
       a {
@@ -421,8 +413,7 @@ body {
 
 @include media-breakpoint-down(md) {
   .footer {
-      left: 0 !important;
-      text-align: center;
+    text-align: center;
   }
 }
 
@@ -659,4 +650,101 @@ a.page-link {
 
 .bg-nav-pills {
     background-color: #eef2f7;
+}
+
+.logtable > tbody > tr > td {
+    background-color: #f1f3fa;
+    padding: 0px 7px;
+}
+
+.ace-github .ace_gutter {
+    background-color: #f1f3fa;
+    color: #6c757d;
+}
+
+.main-holder {
+    display: flex;
+}
+
+.menu-opener {
+    position: absolute;
+    right: -30px;
+    top: 8px;
+    z-index: 99999999;
+    font-size: 28px;
+    cursor: pointer;
+    color: #8391a2;
+}
+
+.menu-scroll {
+    height: calc(100vh - 70px);
+    overflow: scroll;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+.menu-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.navbar-custom {
+    padding: 0 $grid-gutter-width;
+    background-color: $bg-topbar;
+    box-shadow: $box-shadow-menu;
+    min-height: $topbar-height;
+    z-index: 1000;
+    position: relative;
+    
+    .topbar-search {
+        position: absolute;
+        left: 45%;
+        transform: translateX(-50%);
+        margin-top: 12px;
+        width: 350px;
+    }
+
+    .topbar-profile {
+        margin-top: 13px;
+        float: right;
+        font-size: 1.1rem;
+        color: #8391a2;
+        position: relative;
+
+        .topbar-usericon {
+            cursor: pointer;
+        }
+
+        .icon-holder {
+            font-size: 1.5rem;
+            padding-top: 10px;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+
+        .topbar-profile-dropdown {
+            position: absolute;
+            right: 0;
+            font-size: 1rem;
+            top: $topbar-height - 10;
+            background-color: $bg-topbar;
+            padding: 7px 60px;
+            border-radius: $border-radius;
+            box-shadow: $box-shadow;
+
+            .topbar-logout {
+                cursor: pointer;
+            }
+        }
+    }
+}
+
+.seedphrase-generate {
+    cursor: pointer;
+}
+
+.search-results {
+    position: absolute;
+    top: 50px;
+    width: 55vw;
+    padding: 10px;
 }

@@ -10,28 +10,28 @@ import { promotedToken, truncate } from '../utils'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import { Info } from '../template/Info'
 
-interface DexPoolsProps {
+interface DexSmartContractsProps {
   history: any,
   location: any,
   match: any
 }
 
-type DexPoolsStates = {
+type DexSmartContractsStates = {
   search: string
-  pools: any[]
+  smartcontracts: any[]
   entries: number
   page: number
 }
 
 const itemsPerPage = 20
 
-class DexPools extends Component <DexPoolsProps, DexPoolsStates> {
+class DexSmartContracts extends Component <DexSmartContractsProps, DexSmartContractsStates> {
 
-  constructor (props: DexPoolsProps) {
+  constructor (props: DexSmartContractsProps) {
     super(props)
     this.state = {
       search: '',
-      pools: [],
+      smartcontracts: [],
       entries: 0,
       page: 0
     }
@@ -43,10 +43,10 @@ class DexPools extends Component <DexPoolsProps, DexPoolsStates> {
       this.setState({
         search
       }, () => {
-        this.searchPools()
+        this.searchSmartcontracts()
       })
     } else {
-      this.searchPools()
+      this.searchSmartcontracts()
     }
   }
 
@@ -55,20 +55,24 @@ class DexPools extends Component <DexPoolsProps, DexPoolsStates> {
   }
 
   inputChange = (event: any) => {
-    this.setState({ [event.currentTarget.name]: event.currentTarget.value } as DexPoolsStates)
+    this.setState({ [event.currentTarget.name]: event.currentTarget.value } as DexSmartContractsStates)
   }
 
-  searchPools = (event: any = null) => {
-    window.scrollTo(0,0)
+  searchSmartcontractssubmit = (event: any = null) => {
     if (event !== null) {
       event.preventDefault()
     }
+    this.setState({page:0},()=>this.searchSmartcontracts())
+  }
+
+  searchSmartcontracts = () => {
+    window.scrollTo(0,0)
     const { token } = getCredentials()
     const query = this.state.search !== '' ?
       `?search=${this.state.search}&offset=${this.state.page * itemsPerPage}` :
       `?offset=${this.state.page * itemsPerPage}`
     fetch(
-      config.app.apiUri + '/api/v1/dexpools'+query, {
+      config.app.apiUri + '/api/v1/dexsmartcontracts'+query, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -80,12 +84,12 @@ class DexPools extends Component <DexPoolsProps, DexPoolsStates> {
       .then((json) => {
         if (json.status === 'success') {
           this.setState({
-            pools: json.dexpools,
+            smartcontracts: json.dexsmartcontracts,
             entries: json.entries
           })
         } else {
           this.setState({
-            pools: [],
+            smartcontracts: [],
             entries: 0
           })
         }
@@ -97,21 +101,21 @@ class DexPools extends Component <DexPoolsProps, DexPoolsStates> {
 
   render () {
     return (
-      <div className="Pools">
+      <div className="Smartcontracts">
         <Dash>
           <PageTitle
             breadCrumbItems={[
-              { label: 'Pools', path: '/dexpools', active: true },
+              { label: 'Smartcontracts', path: '/dexsmartcontracts', active: true },
             ]}
-            title={'Pools'}
+            title={'Smartcontracts'}
           />
           <Card>
             <Card.Body>
-              <h4 className="header-title d-inline-block">Pools</h4>
+              <h4 className="header-title d-inline-block">Smartcontracts</h4>
               <div className="d-flex float-end mb-2">
-                <form className="d-flex" onSubmit={this.searchPools}>
+                <form className="d-flex" onSubmit={this.searchSmartcontractssubmit}>
                   <div className="input-group input-group-sm">
-                    <input type="text" className="form-control form-control-sm" name="search" value={this.state.search} onChange={this.inputChange} placeholder="Token name"/>
+                    <input type="text" className="form-control form-control-sm" name="search" value={this.state.search} onChange={this.inputChange} placeholder="Action or Token symbol"/>
                     <button className="btn btn-primary" type="submit">Search</button>
                   </div>
                 </form>
@@ -120,45 +124,40 @@ class DexPools extends Component <DexPoolsProps, DexPoolsStates> {
                 <thead>
                   <tr>
                     <th scope="col" style={{width: 31}}><i className="mdi mdi-star text-secondary"></i></th>
-                    <th scope="col">Id / Address</th>
-                    <th scope="col">Tokens</th>
-                    <th scope="col">Dex</th>
+                    <th scope="col">Id</th>
+                    <th scope="col">Chain</th>
+                    <th scope="col">Provider</th>
+                    <th scope="col">Description</th>
                     <th scope="col"><i className="mdi mdi-information text-secondary"></i></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {this.state.pools.map((pool:any) => {
+                  {this.state.smartcontracts.map((smartcontract:any) => {
                     return (
-                      <tr key={pool.id}>
-                        <td>{ promotedToken(pool.dextokens) ? <i className="mdi mdi-star text-warning"></i> : null }</td>
+                      <tr key={smartcontract.id}>
+                        <td>{ promotedToken(smartcontract.dextokens) ? <i className="mdi mdi-star text-warning"></i> : null }</td>
                         <td className="font-monospace">
-                          <Link to={`/dexpools/${pool.id}`}>{truncate(pool.id, 16)}</Link>
-                          <CopyToClipboard text={pool.id}>
-                            <i className="mdi mdi-clipboard-outline link-primary" style={{cursor: 'pointer'}}></i>
-                          </CopyToClipboard>
+                          <Link to={`/dexsmartcontracts/${smartcontract.id}`}>{truncate(smartcontract.id, 10)}</Link>
                         </td>
-                        <td>
-                          {pool.dextokens.map((dextoken :any) => {
-                            return (dextoken.symbol+' ')
-                          })}
-                        </td>
-                        <td>{pool.dex.name}</td>
-                        <td><Info data={pool.data}/></td>
+                        <td>{smartcontract.dexchain.name}</td>
+                        <td>{smartcontract.name}</td>
+                        <td>{smartcontract.description}</td>
+                        <td><Info data={smartcontract.apiguide}/></td>
                       </tr>
                     )
                   })}
-                  {this.state.pools.length === 0 ?
-                    <tr><td colSpan={5} className="py-4 text-center">No pools found or available</td></tr>
+                  {this.state.smartcontracts.length === 0 ?
+                    <tr><td colSpan={5} className="py-4 text-center">No smartcontracts found or available</td></tr>
                   : null}
                 </tbody>
               </Table>
               {this.state.entries > itemsPerPage
                 ? <Pagination className="justify-content-center mt-3">
-                  {this.state.page > 0 ? <Pagination.Prev onClick={() => this.setState({ page: this.state.page - 1 }, () => { this.searchPools() })} /> : null}
+                  {this.state.page > 0 ? <Pagination.Prev onClick={() => this.setState({ page: this.state.page - 1 }, () => { this.searchSmartcontracts() })} /> : null}
                   {[...Array(Math.ceil(this.state.entries / itemsPerPage))].map((e:any, number:any) => {
-                    return (this.state.page - 4 < number && number < this.state.page + 4) ? <Pagination.Item key={number} active={number === this.state.page} onClick={() => this.setState({ page: number }, () => { this.searchPools() })}>{number + 1}</Pagination.Item> : null
+                    return (this.state.page - 4 < number && number < this.state.page + 4) ? <Pagination.Item key={number} active={number === this.state.page} onClick={() => this.setState({ page: number }, () => { this.searchSmartcontracts() })}>{number + 1}</Pagination.Item> : null
                   })}
-                  {this.state.page < Math.floor(this.state.entries / itemsPerPage) ? <Pagination.Next onClick={() => this.setState({ page: this.state.page + 1 }, () => { this.searchPools() })} /> : null}
+                  {this.state.page < Math.floor(this.state.entries / itemsPerPage) ? <Pagination.Next onClick={() => this.setState({ page: this.state.page + 1 }, () => { this.searchSmartcontracts() })} /> : null}
                 </Pagination>
                 : null}
             </Card.Body>
@@ -169,4 +168,4 @@ class DexPools extends Component <DexPoolsProps, DexPoolsStates> {
   }
 }
 
-export default withRouter(DexPools);
+export default withRouter(DexSmartContracts);

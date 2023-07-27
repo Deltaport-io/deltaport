@@ -111,9 +111,10 @@ export class ExchangesRouter {
     try {
       await ccxtExchange.fetchBalance()
     } catch (e) {
-      const index = e.message.indexOf(' {');
-      const message = JSON.parse(e.message.substring(index))
-      return res.send({ status: 'error', message })
+      return res.send({ status: 'error', message: 'Something went wrong' })
+      // const index = e.message.indexOf(' {');
+      // const message = JSON.parse(e.message.substring(index))
+      // return res.send({ status: 'error', message })
     }
     // create account
     const account = await models.accounts.create({

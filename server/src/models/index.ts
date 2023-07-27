@@ -13,13 +13,18 @@ import users from "./users";
 import passreset from "./passreset"
 import bots from "./bots"
 import accounts from "./accounts"
+import dexchains from "./dexchains"
+import usersdextokens from "./usersdextokens"
 import dexes from "./dexes"
 import dexwallets from "./dexwallets"
-import dexpools from "./dexpools"
+import dexsmartcontracts from "./dexsmartcontracts"
+import dexsmartcontractsabis from "./dexsmartcontractsabis"
+import dexsmartcontractstokens from "./dexsmartcontractstokens"
 import dextokens from "./dextokens"
-import dexpooltokens from "./dexpooltokens"
 import tradegraphs from "./tradegraphs"
 import backtestgraphs from "./backtestgraphs"
+import followtrading from "./followtrading"
+import subtradesessions from "./subtradesessions"
 
 import isElectron from 'is-electron'
 
@@ -50,6 +55,7 @@ const models = {
   backtestohlcs: backtestohlcs(sequelize, Sequelize),
   sessions: sessions(sequelize, Sequelize),
   users: users(sequelize, Sequelize),
+  usersdextokens: usersdextokens(sequelize, Sequelize),
   passreset: passreset(sequelize, Sequelize),
   exchanges: exchanges(sequelize, Sequelize),
   pairs: pairs(sequelize, Sequelize),
@@ -57,12 +63,16 @@ const models = {
   accounts: accounts(sequelize, Sequelize),
   tradeohlcs: tradeohlcs(sequelize, Sequelize),
   dexes: dexes(sequelize, Sequelize),
+  dexchains: dexchains(sequelize, Sequelize),
   dexwallets: dexwallets(sequelize, Sequelize),
-  dexpools: dexpools(sequelize, Sequelize),
+  dexsmartcontracts: dexsmartcontracts(sequelize, Sequelize),
+  dexsmartcontractstokens: dexsmartcontractstokens(sequelize, Sequelize),
+  dexsmartcontractsabis: dexsmartcontractsabis(sequelize, Sequelize),
   dextokens: dextokens(sequelize, Sequelize),
-  dexpooltokens: dexpooltokens(sequelize, Sequelize),
   tradegraphs: tradegraphs(sequelize, Sequelize),
-  backtestgraphs: backtestgraphs(sequelize, Sequelize)
+  backtestgraphs: backtestgraphs(sequelize, Sequelize),
+  followtrading: followtrading(sequelize, Sequelize),
+  subtradesessions: subtradesessions(sequelize, Sequelize)
 };
 
 // associate

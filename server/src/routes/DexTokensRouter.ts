@@ -14,7 +14,7 @@ export class DexTokensRouter {
   getDexTokensInputs = [
     query('search').optional({ nullable: true, checkFalsy: true }).notEmpty(),
     query('include').optional({ nullable: true, checkFalsy: true }).notEmpty(),
-    query('limit').optional({ nullable: true, checkFalsy: true }).isInt({ min: 0, max: 10 }),
+    query('limit').optional({ nullable: true, checkFalsy: true }).isInt({ min: 0, max: 50 }),
     query('offset').optional({ nullable: true, checkFalsy: true }).isInt({ min: 0 }),
   ]
 
@@ -30,7 +30,7 @@ export class DexTokensRouter {
       return res.send({ status: 'error', message: 'No user' })
     }
     // query defaults
-    let limit = 20
+    let limit = 50
     if (req.query.limit) {
       limit = parseInt(req.query.limit as any)
     }
@@ -40,7 +40,7 @@ export class DexTokensRouter {
     }
     let where:any = {}
     if (req.query.search) {
-      where = models.Sequelize.literal(`CONCAT(symbol, ' ',name) LIKE "%${req.query.search.toString().toUpperCase()}%"`)
+      where = models.Sequelize.literal(`CONCAT(dextokens.symbol, ' ',dextokens.name) LIKE "%${req.query.search.toString().toUpperCase()}%"`)
     }
     if (req.query.include) {
       const includeArray = req.query.include.toString().split('-')
@@ -48,9 +48,12 @@ export class DexTokensRouter {
         symbol: includeArray
       }
     }
-    // get my pairs
+    // get tokens
     const tokens = await models.dextokens.findAndCountAll({
         where,
+        include: {
+          model: models.dexchains
+        },
         offset,
         limit,
         order: [['symbol']]
@@ -76,12 +79,6 @@ export class DexTokensRouter {
     // get token
     const dextoken = await models.dextokens.findOne({
       where: {id: req.params.id},
-      include: [{
-        model: models.dexpools,
-        include: [{
-          model: models.dextokens
-        }]
-      }]
     })
     // no token
     if (dextoken === null) {
@@ -89,7 +86,13 @@ export class DexTokensRouter {
     }
     // get & loop accounts
     const wallets = await models.dexwallets.findAll({
-      where: {userIdusers: user.idusers}
+      where: {
+        userIdusers: user.idusers,
+        dexchainId: dextoken.dexchainId
+      },
+      include: {
+        model: models.dexchains
+      }
     })
     const balances: any[] = []
     const ethereumApi = new EthereumApi()
@@ -139,6 +142,9 @@ export class DexTokensRouter {
       where: {
         id: req.body.wallet,
         userIdusers: user.idusers
+      },
+      include: {
+        model: models.dexchains
       }
     })
     if (dexwallet === null) {
@@ -156,10 +162,82 @@ export class DexTokensRouter {
     }
   }
 
+  trackDexTokenInputs = [
+  ]
+
+  public async trackDexToken (req: express.Request, res: express.Response) {
+    // validations
+    const result = validationResult(req)
+    if (!result.isEmpty()) {
+        return res.send({ status: 'error', message: 'Input validation failed.', errors: result.mapped() })
+    }
+    // get logged user
+    const user = await getMeUser(req.header('Authorization'))
+    if (!user) {
+        return res.send({ status: 'error', message: 'No user' })
+    }
+    // get token
+    const dextoken = await models.dextokens.findOne({
+      where: {id: req.params.id}
+    })
+    // no token
+    if (dextoken === null) {
+      return res.send({ status: 'error', message: 'No token found' })
+    }
+    // create mapping
+    try {
+      await models.usersdextokens.create({
+        dextokenId: req.params.id,
+        userIdusers: user.idusers
+      })
+      return res.send({ status: 'success' })
+    } catch (e) {
+      return res.send({ status: 'error' })
+    }
+  }
+
+  untrackDexTokenInputs = [
+  ]
+
+  public async untrackDexToken (req: express.Request, res: express.Response) {
+    // validations
+    const result = validationResult(req)
+    if (!result.isEmpty()) {
+        return res.send({ status: 'error', message: 'Input validation failed.', errors: result.mapped() })
+    }
+    // get logged user
+    const user = await getMeUser(req.header('Authorization'))
+    if (!user) {
+        return res.send({ status: 'error', message: 'No user' })
+    }
+    // get token
+    const dextoken = await models.dextokens.findOne({
+      where: {id: req.params.id}
+    })
+    // no token
+    if (dextoken === null) {
+      return res.send({ status: 'error', message: 'No token found' })
+    }
+    // remove mapping
+    try {
+      await models.usersdextokens.destroy({
+        where: {
+          dextokenId: req.params.id,
+          userIdusers: user.idusers
+        }
+      })
+      return res.send({ status: 'success' })
+    } catch (e) {
+      return res.send({ status: 'error' })
+    }
+  }
+
   init () {
     this.router.get('/', this.getDexTokensInputs, this.getDexTokens)
     this.router.get('/:id', this.getDexTokenInputs, this.getDexToken)
     this.router.post('/:id/transfer', this.createDexTokenTransferInputs, this.createDexTokenTransfer)
+    this.router.post('/:id/track', this.trackDexTokenInputs, this.trackDexToken)
+    this.router.post('/:id/untrack', this.untrackDexTokenInputs, this.untrackDexToken)
   }
 }
 

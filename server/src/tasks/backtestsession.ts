@@ -15,7 +15,7 @@ export default class BacktestSession {
   loaderExchanges: any = {}
   loaderCrypto = new mockCrypto()
   exchanges: any = {}
-  ethereum: any = {}
+  crypto: any = {}
   loadingData: any[] = []
   stopping: string = ""
   finished
@@ -120,23 +120,23 @@ export default class BacktestSession {
         }
       }
     }
-    // load ethereum
-    if (toLoad.ethereum) {
-      for (const ethereum of toLoad.ethereum) {
+    // load crypto
+    if (toLoad.crypto) {
+      for (const crypto of toLoad.crypto) {
         if (this.stopping !== "") {
           await this.close()
           return
         }
         const wallet = await models.dexwallets.findOne({
           where: {
-            name: ethereum.wallet,
+            name: crypto.wallet,
             userIdusers: this.session.userIdusers
           }
         })
         if (wallet) {
-          this.ethereum[ethereum.wallet] = await this.loaderCrypto.wallet(wallet, ethereum.balances ? ethereum.balances : undefined)
+          this.crypto[crypto.wallet] = await this.loaderCrypto.wallet(wallet, crypto.balances ? crypto.balances : undefined)
         } else {
-          this.saveLog('error', 'Wallet not found '+ethereum.wallet)
+          this.saveLog('error', 'Wallet not found '+crypto.wallet)
           this.stopping = 'loader error'
         }
       }
@@ -149,7 +149,7 @@ export default class BacktestSession {
       where: { id: this.options.id }
     })
     // listen shutdown
-    taskQueue.queue.on('global:completed', (id) => {
+    taskQueue.queue.on('global:failed', (id) => {
       if (id === this.session.id) {
         this.stopping = "user stop"
       }
@@ -160,7 +160,7 @@ export default class BacktestSession {
     process.on('SIGINT', async () => {
       this.stopping = "system stop"
     })
-    await models.backtestsessions.update({started: new Date().getTime()}, {where:{id: this.options.id}})
+    await models.backtestsessions.update({started: new Date().getTime(), ended: null, reason: null}, {where:{id: this.options.id}})
     // check for script compile
     let script
     try {
@@ -196,7 +196,7 @@ export default class BacktestSession {
       indicators,
       data,
       exchanges: this.exchanges,
-      ethereum: this.ethereum,
+      crypto: this.crypto,
       tf: config.app.sandbox_tf ? tf : undefined,
       superagent: config.app.sandbox_superagent ? superagent : undefined,
       BigNumber: BigNumber,
@@ -262,13 +262,16 @@ export default class BacktestSession {
             })
             ticksOnSource.push({exchange: pairsource.exchange, pair: pairsource.pair, timestamp: pairsource.data[0][0]})
             pairsource.data.shift()
+            // update exchanges with prices
+            const prices = {}
+            prices[pairsource.pair] = pairsource.data[0][4]
+            await this.vm.run(`this.exchanges["${pairsource.exchange}"].tick(${pairsource.data[0][0]}, ${JSON.stringify(prices)})`)
           }
         }
         if (this.stopping !== "") {
           break breaker
         }
         try {
-          timestampNow = minTime
           await this.vm.run(`onTick({timestamp:${minTime}, data:${JSON.stringify(ticksOnSource)}})`)
         } catch (e) {
           await this.saveLog('error', 'onTick '+e.message)

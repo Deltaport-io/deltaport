@@ -110,7 +110,7 @@ export class TradingsRouter {
         'value'
       ],
       where: {
-        tradegraphs: req.params.id
+        tradesessionId: req.params.id
       },
       order: [['timestamp', 'ASC']]
     })
@@ -184,9 +184,12 @@ export class TradingsRouter {
       return res.send({ status: 'error', message: 'Not ended' })
     }
     // start task
-    const task = await taskQueue.addTask({type: 'TradeSession', id: tradesession.id})
-    // return
-    return res.send({ status: 'success' })
+    try {
+      await taskQueue.addTask({type: 'TradeSession', id: tradesession.id})
+      return res.send({ status: 'success' })
+    } catch(e) {
+      return res.send({ status: 'error' })
+    }
   }
 
   tradeInputs = [

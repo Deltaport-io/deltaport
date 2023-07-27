@@ -3,9 +3,10 @@ import Dash from '../template/Dash'
 import { getCredentials } from '../credcontrols'
 import { config } from '../config'
 import { withRouter } from 'react-router'
-import { Modal, Button, Card, Table, OverlayTrigger, Tooltip } from 'react-bootstrap'
+import { Modal, Button, Card, Table, OverlayTrigger, Tooltip, DropdownButton, Dropdown } from 'react-bootstrap'
 import PageTitle from '../template/PageTitle'
 import { Link } from 'react-router-dom'
+import { utils } from 'ethers'
 
 interface DexWalletsProps {
   history: any,
@@ -18,10 +19,10 @@ type DexWalletsStates = {
   type: string
   name: string
   seedphrase: string
-  nodeurl: string
-  txviewer: string
   walletindex: number
   wallets: any[]
+  dexchains: any[]
+  selectedDexchain: any
   error: string
   errors: any
   showModal: boolean
@@ -36,10 +37,10 @@ class DexWallets extends Component <DexWalletsProps, DexWalletsStates> {
       type: '',
       name: '',
       seedphrase: '',
-      nodeurl: '',
       walletindex: 0,
-      txviewer: 'https://etherscan.io/tx/',
       wallets: [],
+      dexchains: [],
+      selectedDexchain: undefined,
       error: '',
       errors: {},
       showModal: false,
@@ -52,6 +53,7 @@ class DexWallets extends Component <DexWalletsProps, DexWalletsStates> {
   }
 
   componentDidMount () {
+    this.loadDexChains()
     if(this.props.location.search){
       const search = new URLSearchParams(this.props.location.search).get('search')!
       this.setState({
@@ -87,6 +89,30 @@ class DexWallets extends Component <DexWalletsProps, DexWalletsStates> {
       })
   }
 
+  loadDexChains = () => {
+    const { token } = getCredentials()
+    fetch(
+      config.app.apiUri + '/api/v1/dexchains/', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token
+        }
+      })
+      .then((response) => { return response.json() })
+      .then((json) => {
+        if (json.status === 'success') {
+          this.setState({
+            dexchains: json.dexchains,
+            selectedDexchain: json.dexchains[0]
+          })
+        }
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+  }
+
   save = () => {
     this.setState({isLoading:true})
     const { token } = getCredentials()
@@ -100,9 +126,8 @@ class DexWallets extends Component <DexWalletsProps, DexWalletsStates> {
         body: JSON.stringify({
           name: this.state.name,
           seedphrase: this.state.seedphrase,
-          nodeurl: this.state.nodeurl,
           walletindex: this.state.walletindex,
-          txviewer: this.state.txviewer
+          chainId: this.state.selectedDexchain.id
         })
       })
       .then((response) => { return response.json() })
@@ -112,9 +137,7 @@ class DexWallets extends Component <DexWalletsProps, DexWalletsStates> {
             isLoading: false,
             name: '',
             seedphrase: '',
-            nodeurl: '',
             walletindex: 0,
-            txviewer: 'https://etherscan.io/tx/',
             errors: {},
             error: '',
             showModal: false
@@ -155,6 +178,12 @@ class DexWallets extends Component <DexWalletsProps, DexWalletsStates> {
       })
   }
 
+  generateSeedphrase = () => {
+    this.setState({
+      seedphrase: utils.entropyToMnemonic(utils.randomBytes(16))
+    })
+  }
+
   openModal = () => {
     this.setState({
       showModal: true
@@ -187,6 +216,7 @@ class DexWallets extends Component <DexWalletsProps, DexWalletsStates> {
                 <thead>
                   <tr>
                     <th scope="col">Alias</th>
+                    <th scope="col">Chain</th>
                     <th scope="col">Address</th>
                     <th scope="col">Actions</th>
                   </tr>
@@ -196,6 +226,7 @@ class DexWallets extends Component <DexWalletsProps, DexWalletsStates> {
                     return (
                       <tr key={wallet.name}>
                         <td><Link to={`/dexwallets/${wallet.id}`}>{wallet.name}</Link></td>
+                        <td className="font-monospace">{wallet.dexchain.name}</td>
                         <td className="font-monospace">{wallet.address}</td>
                         <td>
                           <OverlayTrigger placement="bottom" overlay={<Tooltip> Remove </Tooltip>}>
@@ -224,20 +255,23 @@ class DexWallets extends Component <DexWalletsProps, DexWalletsStates> {
                 <input type="text" className="form-control" name="name" value={this.state.name} onChange={this.inputChange} placeholder="Alias"/>
               </div>
               <div className="mb-3">
-                <label className="form-label">Seedphrase</label>
+                <label className="form-label">Chain</label>
+                <DropdownButton
+                  title={this.state.selectedDexchain ? this.state.selectedDexchain.name : ''}
+                  size="sm"
+                >
+                  {this.state.dexchains.map(dexchain => {
+                    return <Dropdown.Item onClick={() => this.setState({selectedDexchain:dexchain})}>{dexchain.name}</Dropdown.Item>
+                  })}
+                </DropdownButton>
+              </div>
+              <div className="mb-3">
+                <label className="form-label seedphrase-generate">Seedphrase <i onClick={()=>this.generateSeedphrase()} className="uil uil-redo"></i></label>
                 <input type="text" className="form-control" name="seedphrase" value={this.state.seedphrase} onChange={this.inputChange} placeholder="Seedphrase"/>
               </div>
               <div className="mb-3">
-                <label className="form-label">Node URL</label>
-                <input type="text" className="form-control" name="nodeurl" value={this.state.nodeurl} onChange={this.inputChange} placeholder="Ethereum Node URL"/>
-              </div>
-              <div className="mb-3">
                 <label className="form-label">Wallet index</label>
-                <input type="text" className="form-control" name="accindex" value={this.state.walletindex} onChange={this.inputChange}/>
-              </div>
-              <div className="mb-3">
-                <label className="form-label">Tx viewer</label>
-                <input type="text" className="form-control" name="txviewer" value={this.state.txviewer} onChange={this.inputChange}/>
+                <input type="text" className="form-control" name="walletindex" value={this.state.walletindex} onChange={this.inputChange}/>
               </div>
               { this.state.error !== ''
                 ? <div className="alert alert-danger alerterror">

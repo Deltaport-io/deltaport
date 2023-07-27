@@ -22,7 +22,7 @@ type DexTokensStates = {
   page: number
 }
 
-const itemsPerPage = 20
+const itemsPerPage = 50
 
 class DexTokens extends Component <DexTokensProps, DexTokensStates> {
 
@@ -64,8 +64,8 @@ class DexTokens extends Component <DexTokensProps, DexTokensStates> {
     }
     const { token } = getCredentials()
     const query = this.state.search !== '' ?
-      `?search=${this.state.search}&offset=${this.state.page * itemsPerPage}` :
-      `?offset=${this.state.page * itemsPerPage}`
+      `?search=${this.state.search}&offset=${this.state.page * itemsPerPage}&limit=${itemsPerPage}` :
+      `?offset=${this.state.page * itemsPerPage}&limit=${itemsPerPage}`
     fetch(
       config.app.apiUri + '/api/v1/dextokens'+query, {
         method: 'GET',
@@ -121,6 +121,7 @@ class DexTokens extends Component <DexTokensProps, DexTokensStates> {
                   <tr>
                     <th scope="col" style={{width: 31}}><i className="mdi mdi-star text-secondary"></i></th>
                     <th scope="col">Id / Address</th>
+                    <th scope="col">Chain</th>
                     <th scope="col">Symbol</th>
                     <th scope="col">Name</th>
                   </tr>
@@ -136,6 +137,7 @@ class DexTokens extends Component <DexTokensProps, DexTokensStates> {
                             <i className="mdi mdi-clipboard-outline link-primary" style={{cursor: 'pointer'}}></i>
                           </CopyToClipboard>
                         </td>
+                        <td>{token.dexchain.name}</td>
                         <td>{token.symbol}</td>
                         <td>{token.name}</td>
                       </tr>

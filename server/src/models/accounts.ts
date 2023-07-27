@@ -12,7 +12,7 @@ export default (sequelize, DataTypes) => {
     charset: 'utf8mb4',
     collate: 'utf8mb4_general_ci',
     indexes: [
-      {unique: true, fields: ['name']}
+      {unique: true, fields: ['name', 'userIdusers']}
     ]
   })
   accounts.associate = function (models) {
