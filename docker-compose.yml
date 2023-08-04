@@ -7,7 +7,7 @@ services:
       context: ./client
       dockerfile: ./Dockerfile
       args:
-        REACT_APP_API_URI: http://localhost:4000
+        REACT_APP_API_URI: http://localhost:4912
     ports:
       - 3000:80
     depends_on:
@@ -18,7 +18,7 @@ services:
       context: ./server
       dockerfile: ./Dockerfile
     ports:
-      - 4000:4000
+      - 4912:4912
     depends_on:
       - mysql
       - redis

@@ -4,7 +4,7 @@ export const config:any = {
   app: {
     mode: process.env.MODE ? process.env.MODE : "FULL", // FULL, API, PROCESSOR
     concurrentTasks: process.env.CONCURRENT_TASKS ? process.env.CONCURRENT_TASKS : 5,
-    port: process.env.PORT ? process.env.PORT : 4000,
+    port: process.env.PORT ? process.env.PORT : 4912,
     hostname: process.env.HOSTNAME ? process.env.HOSTNAME : 'localhost',
     sandbox_tf: process.env.SANDBOX_TF ? true : false,
     sandbox_superagent: process.env.SANDBOX_SUPERAGENT ? true : false,

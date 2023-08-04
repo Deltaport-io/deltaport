@@ -45,7 +45,7 @@ services:
     networks:
       - master
     ports:
-      - 4000
+      - 4912
     depends_on:
       - demoredis
       - demomysql
@@ -67,7 +67,7 @@ services:
       - "traefik.http.routers.demobackend-secure.tls=true"
       - "traefik.http.routers.demobackend-secure.tls.certresolver=letsecrypt"
       - "traefik.http.routers.demobackend-secure.service=demobackend"
-      - "traefik.http.services.demobackend.loadbalancer.server.port=4000"
+      - "traefik.http.services.demobackend.loadbalancer.server.port=4912"
     command: [ "npm", "start" ]
 
   demomysql:

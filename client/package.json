@@ -53,8 +53,8 @@
   "scripts": {
     "start": "react-scripts --openssl-legacy-provider start",
     "start-electron": "export ELECTRON_START_URL=http://localhost:3000 && electron .",
-    "build": "react-scripts build",
-    "build-electron": "export PUBLIC_URL=./ && react-scripts build",
+    "build": "react-scripts --openssl-legacy-provider build",
+    "build-electron": "export PUBLIC_URL=./ && react-scripts --openssl-legacy-provider build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
