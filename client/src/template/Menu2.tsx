@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { withRouter } from 'react-router'
 import AppMenu from './Menu'
+import isElectron from 'is-electron';
 
 interface MenuProps {
   history: any,
@@ -38,8 +39,8 @@ class Menu extends Component <MenuProps, MenuStates> {
         <a className="logo text-center logo-light" href="/">
           <span className="logo-lg">
             {this.state.menuExtended ?
-              <img src="/logo-big-dark.png" alt="logo" height="32"/> :
-              <img src="/logo-only-dark.png" alt="logo" height="32"/>
+              <img src={ isElectron() ? "logo-big-dark.png" : "/logo-big-dark.png"} alt="logo" height="32"/> :
+              <img src={ isElectron() ? "logo-only-dark.png" : "/logo-only-dark.png"} alt="logo" height="32"/>
             }
           </span>
         </a>

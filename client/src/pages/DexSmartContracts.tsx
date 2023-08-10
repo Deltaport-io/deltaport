@@ -147,7 +147,7 @@ class DexSmartContracts extends Component <DexSmartContractsProps, DexSmartContr
                     )
                   })}
                   {this.state.smartcontracts.length === 0 ?
-                    <tr><td colSpan={5} className="py-4 text-center">No smartcontracts found or available</td></tr>
+                    <tr><td colSpan={6} className="py-4 text-center">No smartcontracts found or available</td></tr>
                   : null}
                 </tbody>
               </Table>

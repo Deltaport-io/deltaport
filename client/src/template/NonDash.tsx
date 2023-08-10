@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
+import isElectron from 'is-electron';
 
 function NonDash(props: any) {
     return (
@@ -14,7 +15,7 @@ function NonDash(props: any) {
                             <div className="auth-brand text-center text-lg-start">
                                 <Link to="/" className="logo-dark">
                                     <span>
-                                        <img src="/logo-big-dark.png" alt="" height="32" />
+                                        <img src={ isElectron() ? "logo-big-dark.png" : "/logo-big-dark.png"} alt="" height="32" />
                                     </span>
                                 </Link>
                             </div>

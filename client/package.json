@@ -4,7 +4,7 @@
   "private": true,
   "description": "Crypto trading app",
   "email": "contact@deltaport.io",
-  "homepage": "/",
+  "homepage": "./",
   "author": {
     "name": "Deltaport",
     "email": "contact@deltaport.io",
@@ -33,6 +33,7 @@
     "electron-is-dev": "^2.0.0",
     "electron-log": "^4.4.8",
     "ethers": "^5.7.1",
+    "is-electron": "^2.2.2",
     "markdown-to-jsx": "^7.1.7",
     "moment": "^2.29.4",
     "react": "^17.0.2",
@@ -53,6 +54,7 @@
   "scripts": {
     "start": "react-scripts --openssl-legacy-provider start",
     "start-electron": "export ELECTRON_START_URL=http://localhost:3000 && electron .",
+    "start-electron-reactbuild": "electron .",
     "build": "react-scripts --openssl-legacy-provider build",
     "build-electron": "export PUBLIC_URL=./ && react-scripts --openssl-legacy-provider build",
     "test": "react-scripts test",

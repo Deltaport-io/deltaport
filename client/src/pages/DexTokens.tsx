@@ -144,7 +144,7 @@ class DexTokens extends Component <DexTokensProps, DexTokensStates> {
                     )
                   })}
                   {this.state.tokens.length === 0 ?
-                    <tr><td colSpan={4} className="py-4 text-center">No tokens found or available.</td></tr>
+                    <tr><td colSpan={5} className="py-4 text-center">No tokens found or available.</td></tr>
                   : null}
                 </tbody>
               </Table>
