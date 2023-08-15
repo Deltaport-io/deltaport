@@ -271,7 +271,10 @@ export class MarketplaceRouter {
     }
     // load wallet
     const dexwallet = await models.dexwallets.findOne({
-      where: { id: req.body.wallet, userIdusers: user.idusers }
+      where: { id: req.body.wallet, userIdusers: user.idusers },
+      include: {
+        model: models.dexchains
+      }
     })
     if (!dexwallet) {
       return res.send({ status: 'error', message: 'Wallet not found' })

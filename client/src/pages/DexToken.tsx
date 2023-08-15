@@ -70,6 +70,7 @@ class DexToken extends Component <DexTokenProps, DexTokenStates> {
           this.setState({
             dextoken: json.dextoken,
             balances: json.balances,
+            tracking: json.dextoken.users.length > 0 ? true : false,
             wallet: json.balances[0]?.id
           })
         }
@@ -256,9 +257,10 @@ class DexToken extends Component <DexTokenProps, DexTokenStates> {
                           <td className="text-end align-middle">Wallet</td>
                           <td>
                             <DropdownButton
-                              title={activeWallet ? activeWallet.name : ''}
+                              title={activeWallet ? activeWallet.name : 'Select wallet'}
                               size="sm"
                             >
+                              {this.state.balances.length === 0 ? <Dropdown.ItemText>Add wallet first</Dropdown.ItemText> : null}
                               {this.state.balances.map(wallet => {
                                 return <Dropdown.Item onClick={() => this.setState({wallet:wallet.id})}>{wallet.name}</Dropdown.Item>
                               })}

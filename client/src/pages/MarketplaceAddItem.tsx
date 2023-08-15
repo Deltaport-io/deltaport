@@ -247,6 +247,7 @@ class MarketplaceAddItem extends Component <MarketplaceAddItemProps, Marketplace
                 <DropdownButton
                   title={ this.state.selectedWallet ? this.state.selectedWallet.name : 'Select wallet' }
                 >
+                  { this.state.wallets.length === 0 ? <Dropdown.ItemText>Add wallet first</Dropdown.ItemText> : null}
                   { this.state.wallets.map((wallet:any, index: number) => {
                     return <Dropdown.Item key={wallet.id} onClick={() => this.setState({selectedWallet: wallet})}>{wallet.name}</Dropdown.Item>
                   })}
@@ -266,7 +267,7 @@ class MarketplaceAddItem extends Component <MarketplaceAddItemProps, Marketplace
                 {this.state.type === 0 ?
                   <div>
                     <div className="mb-2">
-                      <label className="form-label">Price</label>
+                      <label className="form-label">Price in Eth</label>
                       <input type="text" className="form-control" name="price" value={this.state.price} onChange={this.inputChange} placeholder=""/>
                     </div>
                     <label className="form-label">Select bot</label>
@@ -304,7 +305,7 @@ class MarketplaceAddItem extends Component <MarketplaceAddItemProps, Marketplace
                 {this.state.type === 1 ?
                   <div>
                     <div className="mb-2">
-                      <label className="form-label">Price</label>
+                      <label className="form-label">Price in Eth</label>
                       <input type="text" className="form-control" name="price" value={this.state.price} onChange={this.inputChange} placeholder=""/>
                     </div>
                     <label className="form-label">Script</label>
@@ -377,7 +378,7 @@ class MarketplaceAddItem extends Component <MarketplaceAddItemProps, Marketplace
               </div>
               <button onClick={()=>this.addToMarketplace()} className="btn btn-primary btn">Add</button>
               { this.state.error
-                ? <div className="alert alert-danger alerterror">
+                ? <div className="alert alert-danger alerterror mt-2">
                   {this.state.error}
                 </div>
                 : null

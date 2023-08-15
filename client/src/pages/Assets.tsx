@@ -90,7 +90,7 @@ class Assets extends Component <AssetsProps, AssetsStates> {
                         {asset.balances.map((item: any) => {
                           return (
                             <tr key={asset.id+'+'+item.id}>
-                              <td style={{paddingLeft: 30}}>{item.name}</td>
+                              <td style={{paddingLeft: 30}}>{item.symbol}</td>
                               <td>{getDisplayBalance(item.balance, item.decimals)}</td>
                             </tr>
                           )

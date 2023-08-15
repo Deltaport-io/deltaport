@@ -79,6 +79,13 @@ export class DexTokensRouter {
     // get token
     const dextoken = await models.dextokens.findOne({
       where: {id: req.params.id},
+      include: {
+        model: models.users,
+        attributes: ['idusers'],
+        where: {
+          idusers: user.idusers
+        }
+      }
     })
     // no token
     if (dextoken === null) {
@@ -98,7 +105,7 @@ export class DexTokensRouter {
     const ethereumApi = new EthereumApi()
     for (const wallet of wallets) {
       const web3Account = await ethereumApi.wallet(wallet)
-      const token = await web3Account.token(dextoken.id)
+      const token = await web3Account.token(dextoken.address)
       const balance = (await token.getBalance()).toString()
       balances.push({
         id: wallet.id,
@@ -153,7 +160,7 @@ export class DexTokensRouter {
     // load token
     const ethereumApi = new EthereumApi()
     const web3Account = await ethereumApi.wallet(dexwallet)
-    const token = await web3Account.token(dextoken.id)
+    const token = await web3Account.token(dextoken.address)
     try {
       const tx = await token.transfer(req.body.address, req.body.amount)
       return res.send({ status: 'success', message: dexwallet.txviewer + tx.transactionHash})

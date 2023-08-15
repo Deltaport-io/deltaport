@@ -4,8 +4,7 @@ export default (sequelize, DataTypes) => {
     address: { type: DataTypes.CHAR(43) },
     symbol: { type: DataTypes.STRING },
     name: { type: DataTypes.STRING },
-    decimals: { type: DataTypes.INTEGER(11).UNSIGNED },
-    tracking: { type: DataTypes.BOOLEAN, defaultValue: false }
+    decimals: { type: DataTypes.INTEGER(11).UNSIGNED }
   }, {
     timestamps: false,
     paranoid: false,
@@ -15,6 +14,7 @@ export default (sequelize, DataTypes) => {
   dextokens.associate = function (models) {
     // models.dextokens.belongsToMany(models.dexpools, { through: models.dexpooltokens })
     models.dextokens.belongsTo(models.dexchains)
+    models.dextokens.belongsToMany(models.users, { through: models.usersdextokens })
   }
   return dextokens
 }

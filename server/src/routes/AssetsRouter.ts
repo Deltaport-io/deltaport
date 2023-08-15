@@ -29,6 +29,9 @@ export class AssetsRouter {
     const dataToReturn = []
     // wallets
     const trackedTokens = await models.usersdextokens.findAll({
+      where: {
+        userIdusers: user.idusers
+      },
       include: {
         model: models.dextokens,
         include: {
@@ -50,15 +53,13 @@ export class AssetsRouter {
         const balances: any[] = []
         balances.push((async () => {
           const balance = (await web3Account.getBalance()).toString()
-          return {name: wallet.dexchain.currency, id: '', balance, decimals: 18}
+          return {symbol: wallet.dexchain.currency, id: '', balance, decimals: 18}
         })())
         for (const trackedToken of trackedTokens) {
-          if (wallet.dexchainId === trackedToken.dexchainId) {
-            const balance = (await web3Account.token(trackedToken.dextoken.id).getBalance()).toString()
-            if (balance === "0") continue
+          if (wallet.dexchainId === trackedToken.dextoken.dexchainId) {
             balances.push((async () => {
-              const balance = (await web3Account.token(trackedToken.dextoken.id).getBalance()).toString()
-              return {name: trackedToken.dextoken.name, id: trackedToken.dextoken.id, symbol: trackedToken.dextoken.symbol, balance, decimals: trackedToken.dextoken.decimals}
+              const balance = (await web3Account.token(trackedToken.dextoken.address).getBalance()).toString()
+              return {name: trackedToken.dextoken.name, id: trackedToken.dextoken.id, address: trackedToken.dextoken.address, symbol: trackedToken.dextoken.symbol, balance, decimals: trackedToken.dextoken.decimals}
             })())
           }
         }

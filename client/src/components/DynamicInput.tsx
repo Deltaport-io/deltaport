@@ -57,9 +57,10 @@ class DynamicInput extends Component <DynamicInputProps, DynamicInputStates> {
               <td className="text-end align-middle">{this.props.entry.name}</td>
               <td>
                 <DropdownButton
-                  title={this.props.inputObj[this.props.entry.id] && this.props.wallets.length > 0 ? this.props.wallets.find((wallet:any)=> wallet.id === this.props.inputObj[this.props.entry.id]).name : ''}
+                  title={this.props.inputObj[this.props.entry.id] && this.props.wallets.length > 0 ? this.props.wallets.find((wallet:any)=> wallet.id === this.props.inputObj[this.props.entry.id]).name : 'Select wallet'}
                   size="sm"
                 >
+                  {this.props.wallets.length === 0 ? <Dropdown.ItemText>Add wallet first</Dropdown.ItemText> : null}
                   {this.props.wallets.map((wallet:any) => {
                     return <Dropdown.Item key={wallet.id} onClick={() => this.props.setState({[this.props.entry.id]: wallet.id})}>{wallet.name}</Dropdown.Item>
                   })}
