@@ -434,7 +434,7 @@ class MarketplaceItem extends Component <MarketplaceItemProps, MarketplaceItemSt
                       <td>
                         <div className="mb-2 me-1">
                           {this.state.wallets.map(x => x.address).includes(this.state.item.owner) ?
-                            <button onClick={()=>this.setState({})} type="button" className="btn btn-sm btn-primary">Close</button>
+                            <button onClick={()=>this.setState({})} type="button" className="btn btn-sm btn-primary">Remove from marketplace</button>
                           :
                             <div>
                               {this.state.item.blockchainType === "0" ?

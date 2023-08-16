@@ -15,6 +15,7 @@ export default (sequelize, DataTypes) => {
     models.users.hasMany(models.bots)
     models.users.hasMany(models.accounts)
     models.users.hasMany(models.dexwallets)
+    models.users.belongsToMany(models.dextokens, { through: models.usersdextokens })
   }
   return users
 }

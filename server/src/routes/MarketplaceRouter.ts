@@ -31,7 +31,7 @@ export class MarketplaceRouter {
       // get addresses
       let updatedSearch
       const listOfAddresses = []
-      const dexwallets = await models.dexwallets.findAll({ where: { userIdusers: user.idusers } })
+      const dexwallets = await models.dexwallets.findAll({ where: { userIdusers: user.idusers }, include: { model: models.dexchains }})
       for (const dexwallet of dexwallets) {
         listOfAddresses.push(dexwallet.address)
       }
@@ -106,6 +106,9 @@ export class MarketplaceRouter {
     const dexwallets = await models.dexwallets.findAll({
       where: {
         userIdusers: user.idusers
+      },
+      include: {
+        model: models.dexchains
       }
     })
     // create signatures
@@ -161,7 +164,10 @@ export class MarketplaceRouter {
     }
     // load wallet
     const dexwallet = await models.dexwallets.findOne({
-      where: { id: req.body.wallet, userIdusers: user.idusers }
+      where: { id: req.body.wallet, userIdusers: user.idusers },
+      include: {
+        model: models.dexchains
+      }
     })
     if (!dexwallet) {
       return res.send({ status: 'error', message: 'Wallet not found' })
@@ -176,6 +182,10 @@ export class MarketplaceRouter {
       data = {code: bot.code}
     }
     if (req.body.type === 'Script'){
+      blockchainType = 0
+      data = {code: req.body.data}
+    }
+    if (req.body.type === 'Job'){
       blockchainType = 0
       data = {code: req.body.data}
     }
@@ -311,7 +321,10 @@ export class MarketplaceRouter {
     }
     // load wallet
     const dexwallet = await models.dexwallets.findOne({
-      where: { id: req.body.wallet, userIdusers: user.idusers }
+      where: { id: req.body.wallet, userIdusers: user.idusers },
+      include: {
+        model: models.dexchains
+      }
     })
     if (!dexwallet) {
       return res.send({ status: 'error', message: 'Wallet not found' })
@@ -347,7 +360,10 @@ export class MarketplaceRouter {
     }
     // load wallet
     const dexwallet = await models.dexwallets.findOne({
-      where: { id: req.body.wallet, userIdusers: user.idusers }
+      where: { id: req.body.wallet, userIdusers: user.idusers },
+      include: {
+        model: models.dexchains
+      }
     })
     if (!dexwallet) {
       return res.send({ status: 'error', message: 'Wallet not found' })
@@ -383,7 +399,10 @@ export class MarketplaceRouter {
     }
     // load wallet
     const dexwallet = await models.dexwallets.findOne({
-      where: { id: req.body.walletm, userIdusers: user.idusers }
+      where: { id: req.body.walletm, userIdusers: user.idusers },
+      include: {
+        model: models.dexchains
+      }
     })
     if (!dexwallet) {
       return res.send({ status: 'error', message: 'Wallet not found' })

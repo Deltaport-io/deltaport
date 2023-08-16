@@ -69,7 +69,7 @@ export class DexTokensRouter {
     // validations
     const result = validationResult(req)
     if (!result.isEmpty()) {
-        return res.send({ status: 'error', message: 'Input validation failed.', errors: result.mapped() })
+      return res.send({ status: 'error', message: 'Input validation failed.', errors: result.mapped() })
     }
     // get logged user
     const user = await getMeUser(req.header('Authorization'))
@@ -84,7 +84,8 @@ export class DexTokensRouter {
         attributes: ['idusers'],
         where: {
           idusers: user.idusers
-        }
+        },
+        required: false
       }
     })
     // no token

@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import Dash from '../template/Dash'
 import { config } from '../config'
 import { withRouter } from 'react-router'
-import { Card, Dropdown, DropdownButton } from 'react-bootstrap'
+import { Card, Dropdown, DropdownButton, Button } from 'react-bootstrap'
 import PageTitle from '../template/PageTitle'
 import Moment from 'react-moment'
 import AceEditor from "react-ace"
@@ -264,10 +264,10 @@ class MarketplaceAddItem extends Component <MarketplaceAddItemProps, Marketplace
                 </DropdownButton>
               </div>
               <div className="mb-2">
-                {this.state.type === 0 ?
+                {types[this.state.type] === 'Bot' ?
                   <div>
                     <div className="mb-2">
-                      <label className="form-label">Price in Eth</label>
+                      <label className="form-label">Price in ETH</label>
                       <input type="text" className="form-control" name="price" value={this.state.price} onChange={this.inputChange} placeholder=""/>
                     </div>
                     <label className="form-label">Select bot</label>
@@ -275,7 +275,7 @@ class MarketplaceAddItem extends Component <MarketplaceAddItemProps, Marketplace
                       <li onClick={()=>this.setState({selectedBotOrTrading: undefined, searchDropDownVisible: false})} className="list-group-item"><span style={{fontWeight: 'bold'}}>{this.state.selectedBotOrTrading.name}</span> created:<Moment format="DD/MM/YYYY kk:mm:ss">{this.state.selectedBotOrTrading.createdAt}</Moment></li>
                     :
                       <div>
-                        <form className="d-flex" onSubmit={this.searchBots}>
+                        <form className="d-flex" onSubmit={(e: any)=>this.searchBots(e)}>
                           <div className="input-group input-group">
                             <input
                               type="text"
@@ -294,7 +294,7 @@ class MarketplaceAddItem extends Component <MarketplaceAddItemProps, Marketplace
                         {this.state.searchDropDownVisible ?
                           <ul className="list-group">
                             {this.state.searchResults.map((result: any) => {
-                              return <li key={result.id} onMouseDown={(event)=>{this.setState({selectedBotOrTrading: result})}} className="list-group-item"><span style={{fontWeight: 'bold'}}>{result.name}</span> created:<Moment format="DD/MM/YYYY kk:mm:ss">{result.createdAt}</Moment></li>
+                              return <li key={result.id} onMouseDown={(event)=>{this.setState({selectedBotOrTrading: result})}} className="list-group-item" style={{cursor: 'pointer'}}><span style={{fontWeight: 'bold'}}>{result.name}</span> created:<Moment format="DD/MM/YYYY kk:mm:ss">{result.createdAt}</Moment></li>
                             })}
                           </ul>
                         :null}
@@ -302,10 +302,10 @@ class MarketplaceAddItem extends Component <MarketplaceAddItemProps, Marketplace
                     }
                   </div>
                 :null}
-                {this.state.type === 1 ?
+                {types[this.state.type] === 'Script' ?
                   <div>
                     <div className="mb-2">
-                      <label className="form-label">Price in Eth</label>
+                      <label className="form-label">Price in ETH</label>
                       <input type="text" className="form-control" name="price" value={this.state.price} onChange={this.inputChange} placeholder=""/>
                     </div>
                     <label className="form-label">Script</label>
@@ -322,7 +322,7 @@ class MarketplaceAddItem extends Component <MarketplaceAddItemProps, Marketplace
                     </div>
                   </div>
                 :null}
-                {this.state.type === 2 ?
+                {types[this.state.type] === 'Subscription' ?
                   <div>
                     <div className="mb-2">
                       <label className="form-label">Price/4 weeks</label>
@@ -352,7 +352,7 @@ class MarketplaceAddItem extends Component <MarketplaceAddItemProps, Marketplace
                         {this.state.searchDropDownVisible ?
                           <ul className="list-group">
                             {this.state.searchResults.map((result: any) => {
-                              return <li key={result.id} onMouseDown={(event)=>{this.setState({selectedBotOrTrading: result})}} className="list-group-item"><span style={{fontWeight: 'bold'}}>{result.name}</span> created:<Moment format="DD/MM/YYYY kk:mm:ss">{result.createdAt}</Moment></li>
+                              return <li key={result.id} onMouseDown={(event)=>{this.setState({selectedBotOrTrading: result})}} className="list-group-item" style={{cursor: 'pointer'}}><span style={{fontWeight: 'bold'}}>{result.name}</span> created:<Moment format="DD/MM/YYYY kk:mm:ss">{result.createdAt}</Moment></li>
                             })}
                           </ul>
                         :null}
@@ -360,7 +360,7 @@ class MarketplaceAddItem extends Component <MarketplaceAddItemProps, Marketplace
                     }
                   </div>
                 :null}
-                {this.state.type === 3 ?
+                {types[this.state.type] === 'Job' ?
                   <div>
                     <label className="form-label">Job requirements and contact</label>
                     <textarea
@@ -376,7 +376,15 @@ class MarketplaceAddItem extends Component <MarketplaceAddItemProps, Marketplace
                   </div>
                 :null}
               </div>
-              <button onClick={()=>this.addToMarketplace()} className="btn btn-primary btn">Add</button>
+              {this.state.isLoading ?
+                <Button className="btn btn-primary" type="button">
+                  <div className="spinner-border spinner-border-sm">
+                    <span className="sr-only"></span>
+                  </div>
+                </Button>
+              :
+                <Button onClick={()=>this.addToMarketplace()} className="btn btn-primary">Add</Button>
+              }
               { this.state.error
                 ? <div className="alert alert-danger alerterror mt-2">
                   {this.state.error}
