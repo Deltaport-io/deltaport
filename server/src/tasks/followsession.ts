@@ -158,7 +158,8 @@ export default class Blank {
       return
     }
     // load signature
-    const web3WalletSigner = await ethers.Wallet.fromMnemonic(this.session.dexwallet.seedphrase, "m/44'/60'/0'/0/" + this.session.dexwallet.walletindex)
+    const mnemonicInstance = ethers.Mnemonic.fromPhrase(this.session.dexwallet.seedphrase);
+    const web3WalletSigner = ethers.HDNodeWallet.fromMnemonic(mnemonicInstance, "m/44'/60'/0'/0/" + this.session.dexwallet.walletindex);
     this.walletMessage = `I am owner of ${this.session.dexwallet.address}`
     this.walletSingature = await web3WalletSigner.signMessage(this.walletMessage)
     // listen shutdown

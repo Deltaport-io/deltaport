@@ -1,19 +1,21 @@
 import { ethers } from 'ethers'
+import { HDNodeWallet, Mnemonic, JsonRpcProvider } from 'ethers'
 import BigNumber from 'bignumber.js'
 import models from './models'
 import { config } from '././config/config'
 import superagent from 'superagent'
 
 export class EthereumApi {
-  wallet = async (wallet: any, injectedAbis: any[] = [], options=undefined) =>  {
-    const web3Wallet = await ethers.Wallet.fromMnemonic(wallet.seedphrase, wallet.dexchain.derivationPath + wallet.walletindex)
+  wallet = async (wallet: any, injectedAbis: any[] = [], options=undefined) => {
+    const mnemonicInstance = ethers.Mnemonic.fromPhrase(wallet.seedphrase);
+    const web3Wallet = ethers.HDNodeWallet.fromMnemonic(mnemonicInstance, wallet.dexchain.derivationPath + wallet.walletindex);
     const walletAddress = web3Wallet.address
     // prepare injected
     const injectedABIs: any = {}
     if (injectedAbis.length > 0) {
       for (const injectedAbi of injectedAbis) {
         injectedABIs[injectedAbi.name] = (contractAddress: string) => {
-          const provider = new ethers.providers.JsonRpcProvider(wallet.dexchain.rpc)
+          const provider = new ethers.JsonRpcProvider(wallet.dexchain.rpc)
           const web3Provider = web3Wallet.connect(provider)
           const injectedContract = new ethers.Contract(contractAddress, injectedAbi.abi, web3Provider)
           const returnObj = {}
@@ -31,18 +33,18 @@ export class EthereumApi {
     // create wallet obj
     const walletHolder = {
       getBalance: async (address: string = undefined) => {
-        const provider = new ethers.providers.JsonRpcProvider(wallet.dexchain.rpc)
+        const provider = new ethers.JsonRpcProvider(wallet.dexchain.rpc)
         return provider.getBalance(address ? address : walletAddress)
       },
       transferEther: async (toAddress: string, amount: number) => {
-        const provider = new ethers.providers.JsonRpcProvider(wallet.dexchain.rpc)
+        const provider = new ethers.JsonRpcProvider(wallet.dexchain.rpc)
         const web3Provider = web3Wallet.connect(provider)
         this.trackActions(options, {action: 'transferEther', from: walletAddress, to: toAddress, value: amount})
         if (options && options.noTrading === true) return
         return web3Provider.sendTransaction({from: walletAddress, to: toAddress, value: amount})
       },
       token: (tokenAddress: string) => {
-        const provider = new ethers.providers.JsonRpcProvider(wallet.dexchain.rpc)
+        const provider = new ethers.JsonRpcProvider(wallet.dexchain.rpc)
         const web3Provider = web3Wallet.connect(provider)
         const contract = new ethers.Contract(tokenAddress, erc20ABI, web3Provider)
         const readContract = new ethers.Contract(tokenAddress, erc20ABI, provider)
@@ -69,48 +71,48 @@ export class EthereumApi {
       marketplace: {
         addToMarketplace: async (entryType: number, price: string) => {
           if (wallet.dexchain.id !== 1) throw Error("action needs ethereum wallet")
-          const provider = new ethers.providers.JsonRpcProvider(wallet.dexchain.rpc)
+          const provider = new ethers.JsonRpcProvider(wallet.dexchain.rpc)
           const web3Provider = web3Wallet.connect(provider)
           const marketplaceContract = new ethers.Contract(config.app.marketplaceAddress, marketplaceABI, web3Provider)
           return marketplaceContract.addEntry(entryType,price,{value: 500})
         },
         purchase: async (entryId: string, price: string) => {
           if (wallet.dexchain.id !== 1) throw Error("action needs ethereum wallet")
-          const provider = new ethers.providers.JsonRpcProvider(wallet.dexchain.rpc)
+          const provider = new ethers.JsonRpcProvider(wallet.dexchain.rpc)
           const web3Provider = web3Wallet.connect(provider)
           const marketplaceContract = new ethers.Contract(config.app.marketplaceAddress, marketplaceABI, web3Provider)
           return marketplaceContract.purchase(entryId,{value: price})
         },
         subscribe: async (entryId: string, price: string) => {
           if (wallet.dexchain.id !== 1) throw Error("action needs ethereum wallet")
-          const provider = new ethers.providers.JsonRpcProvider(wallet.dexchain.rpc)
+          const provider = new ethers.JsonRpcProvider(wallet.dexchain.rpc)
           const web3Provider = web3Wallet.connect(provider)
           const marketplaceContract = new ethers.Contract(config.app.marketplaceAddress, marketplaceABI, web3Provider)
           return marketplaceContract.addUpdateSubPayee(entryId,{value: price})
         },
         unsubscribe: async (entryId: string) => {
           if (wallet.dexchain.id !== 1) throw Error("action needs ethereum wallet")
-          const provider = new ethers.providers.JsonRpcProvider(wallet.dexchain.rpc)
+          const provider = new ethers.JsonRpcProvider(wallet.dexchain.rpc)
           const web3Provider = web3Wallet.connect(provider)
           const marketplaceContract = new ethers.Contract(config.app.marketplaceAddress, marketplaceABI, web3Provider)
           return marketplaceContract.endUpdateSubPayee(entryId)
         },
         close: async (entryId: string) => {
           if (wallet.dexchain.id !== 1) throw Error("action needs ethereum wallet")
-          const provider = new ethers.providers.JsonRpcProvider(wallet.dexchain.rpc)
+          const provider = new ethers.JsonRpcProvider(wallet.dexchain.rpc)
           const web3Provider = web3Wallet.connect(provider)
           const marketplaceContract = new ethers.Contract(config.app.marketplaceAddress, marketplaceABI, web3Provider)
           return marketplaceContract.closeEntry(entryId)
         }
       },
       executeContractAction: async (address, abi, name, args) => {
-        const provider = new ethers.providers.JsonRpcProvider(wallet.dexchain.rpc)
+        const provider = new ethers.JsonRpcProvider(wallet.dexchain.rpc)
         const web3Provider = web3Wallet.connect(provider)
         const tempContract = new ethers.Contract(address, abi, web3Provider)
         return tempContract[name](...args)
       },
       readContractAction: async (address, abi, name, args) => {
-        const provider = new ethers.providers.JsonRpcProvider(wallet.dexchain.rpc)
+        const provider = new ethers.JsonRpcProvider(wallet.dexchain.rpc)
         const tempContract = new ethers.Contract(address, abi, provider)
         return tempContract[name](...args)
       }
@@ -127,7 +129,8 @@ export class EthereumApi {
     for (const subSession of subSessions) {
       // signature
       const dexwallet = subSession.dexwallet
-      const web3WalletSigner = await ethers.Wallet.fromMnemonic(dexwallet.seedphrase, "m/44'/60'/0'/0/" + dexwallet.walletindex)
+      const mnemonicInstance = ethers.Mnemonic.fromPhrase(dexwallet.seedphrase);
+      const web3WalletSigner = ethers.HDNodeWallet.fromMnemonic(mnemonicInstance, "m/44'/60'/0'/0/" + dexwallet.walletindex);
       const message = `I am owner of ${dexwallet.address}`
       const signature = await web3WalletSigner.signMessage(message)
       // data payload

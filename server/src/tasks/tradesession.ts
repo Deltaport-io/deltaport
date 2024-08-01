@@ -52,7 +52,8 @@ export default class TradeSession {
     for (const subSession of subSessions) {
       // signature
       const dexwallet = subSession.dexwallet
-      const web3WalletSigner = await ethers.Wallet.fromMnemonic(dexwallet.seedphrase, "m/44'/60'/0'/0/" + dexwallet.walletindex)
+      const mnemonicInstance = ethers.Mnemonic.fromPhrase(dexwallet.seedphrase);
+      const web3WalletSigner = ethers.HDNodeWallet.fromMnemonic(mnemonicInstance, "m/44'/60'/0'/0/" + dexwallet.walletindex);
       const message = `I am owner of ${dexwallet.address}`
       const signature = await web3WalletSigner.signMessage(message)
       // data payload

@@ -88,14 +88,17 @@ export class DexWalletsRouter {
     // test wallet and get address
     let address = ""
     try {
-      const web3Wallet = await ethers.Wallet.fromMnemonic(req.body.seedphrase, chain.derivationPath + req.body.walletindex)
+      const mnemonicInstance = ethers.Mnemonic.fromPhrase(req.body.seedphrase);
+      const web3Wallet = ethers.HDNodeWallet.fromMnemonic(mnemonicInstance, chain.derivationPath + req.body.walletindex);
       address = web3Wallet.address
-      const provider = new ethers.providers.JsonRpcProvider(chain.rpc)
+      const provider = new ethers.JsonRpcProvider(chain.rpc)
       const { chainId } = await provider.getNetwork()
-      if (chainId !== chain.id) {
+      console.log('chain id', chainId.toString(), chain.id.toString())
+      if (chainId.toString() !== chain.id.toString()) {
         return res.send({ status: 'error', message: 'Wrong node' })
       }
     } catch (e) {
+      console.log('e', e)
       return res.send({ status: 'error', message: 'Something went wrong' })
     }
     // create wallet

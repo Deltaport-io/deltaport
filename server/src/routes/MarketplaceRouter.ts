@@ -9,7 +9,7 @@ import superagent from 'superagent'
 import { config } from '../config/config'
 import { VM } from 'vm2'
 
-const marketplaceIFace = new ethers.utils.Interface(marketplaceABI);
+const marketplaceIFace = new ethers.Interface(marketplaceABI);
 
 export class MarketplaceRouter {
   router: express.Router
@@ -114,7 +114,8 @@ export class MarketplaceRouter {
     // create signatures
     const signatures = []
     for (const dexwallet of dexwallets) {
-      const web3WalletSigner = await ethers.Wallet.fromMnemonic(dexwallet.seedphrase, "m/44'/60'/0'/0/" + dexwallet.walletindex)
+      const mnemonicInstance = ethers.Mnemonic.fromPhrase(dexwallet.seedphrase);
+      const web3WalletSigner = ethers.HDNodeWallet.fromMnemonic(mnemonicInstance, "m/44'/60'/0'/0/" + dexwallet.walletindex);
       const message = `I am owner of ${dexwallet.address}`
       const signature = await web3WalletSigner.signMessage(message)
       signatures.push({
@@ -225,7 +226,8 @@ export class MarketplaceRouter {
       const receipt = await tx.wait()
       const logData = marketplaceIFace.parseLog(receipt.logs[0])
       const { entryId } = logData.args
-      const web3WalletSigner = await ethers.Wallet.fromMnemonic(dexwallet.seedphrase, "m/44'/60'/0'/0/" + dexwallet.walletindex)
+      const mnemonicInstance = ethers.Mnemonic.fromPhrase(dexwallet.seedphrase);
+      const web3WalletSigner = ethers.HDNodeWallet.fromMnemonic(mnemonicInstance, "m/44'/60'/0'/0/" + dexwallet.walletindex);
       const message = `I am owner of ${dexwallet.address}`
       const signature = await web3WalletSigner.signMessage(message)
       const baseReq = await superagent
@@ -408,7 +410,8 @@ export class MarketplaceRouter {
       return res.send({ status: 'error', message: 'Wallet not found' })
     }
     // create signatures
-    const web3WalletSigner = await ethers.Wallet.fromMnemonic(dexwallet.seedphrase, "m/44'/60'/0'/0/" + dexwallet.walletindex)
+    const mnemonicInstance = ethers.Mnemonic.fromPhrase(dexwallet.seedphrase);
+    const web3WalletSigner = ethers.HDNodeWallet.fromMnemonic(mnemonicInstance, "m/44'/60'/0'/0/" + dexwallet.walletindex);
     const message = `I am owner of ${dexwallet.address}`
     const signature = await web3WalletSigner.signMessage(message)
     // execute
